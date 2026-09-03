@@ -1,0 +1,38 @@
+{
+  "case_name": "packed_bed_400c_flat",
+  "electricity_price_synthetic": true,
+  "generated_at": "2026-09-03T20:56:51.210321+00:00",
+  "kpis": {
+    "carbon_cost_eur": 418235.03931497654,
+    "e_cap_mwh": 54.98691637293239,
+    "electricity_cost_eur": 2497270.3382671284,
+    "emissions_tco2": 5227.937991437207,
+    "fuel_cost_eur": 1035235.24582915,
+    "max_heat_balance_residual_mw": 8.881784197001252e-16,
+    "power_rating_mw": 7.417831956699598,
+    "total_cost_eur": 3992456.1985031418,
+    "unmet_heat_mwh": 0.0
+  },
+  "load_profile_synthetic": true,
+  "profile_shape": "flat",
+  "solver": {
+    "name": "HiGHS",
+    "objective_eur": 3992456.1985031418,
+    "status": "ok",
+    "termination": "optimal",
+    "time_limit_hit": false,
+    "wall_time_seconds": 8.573798668000023
+  },
+  "verification_checks": {
+    "finite_results": true,
+    "heat_balance_closure": true,
+    "nonnegativity": true,
+    "objective_reconstruction": true,
+    "storage_balance_identity": true,
+    "storage_level_bounds": true,
+    "storage_terminal_condition": true,
+    "unmet_heat_negligible": true
+  },
+  "verification_failed_checks": [],
+  "verification_passed": true
+}

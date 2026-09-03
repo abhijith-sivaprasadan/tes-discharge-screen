@@ -170,3 +170,29 @@ def test_higher_discount_rate_lowers_optimal_storage_capacity() -> None:
     _config_low, _load, _price, result_low = _solve_short(discount_rate=0.03)
     _config_high, _load2, _price2, result_high = _solve_short(discount_rate=0.20)
     assert result_high.schedule.attrs["e_cap_mwh"] <= result_low.schedule.attrs["e_cap_mwh"] + 1e-6
+
+
+def test_process_temperature_has_no_effect_on_phase_a_result() -> None:
+    # Documents a real, deliberate limitation rather than letting it be a
+    # silent surprise: Phase A's storage block is a temperature-agnostic MWh
+    # reservoir (dispatch.py never reads delivery_temperature_c, medium, or
+    # storage.temperature_max_c/min_c). Two configs that differ only in the
+    # process temperature/medium must therefore solve to the identical
+    # objective. That is exactly the simplification this project exists to
+    # test; Phase C's SOC-dependent limit is what is supposed to break this
+    # invariance. If this test starts failing without Phase C's discharge
+    # curve being wired in, something changed by accident.
+    config_300 = _short_case()
+    config_400 = dataclasses.replace(
+        config_300,
+        process=dataclasses.replace(config_300.process, delivery_temperature_c=400.0, medium="air"),
+    )
+    load = build_load_profile(
+        config_300.process.profile_shape, config_300.process.annual_peak_load_mw, SHORT_HORIZON
+    )
+    price = synthetic_daily_price_profile(SHORT_HORIZON)
+    result_300 = solve_dispatch(config_300, load, price)
+    result_400 = solve_dispatch(config_400, load, price)
+    assert np.isclose(
+        result_300.solver["objective_eur"], result_400.solver["objective_eur"], rtol=1e-9
+    )

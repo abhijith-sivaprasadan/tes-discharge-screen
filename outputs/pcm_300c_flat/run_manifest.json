@@ -1,0 +1,38 @@
+{
+  "case_name": "pcm_300c_flat",
+  "electricity_price_synthetic": true,
+  "generated_at": "2026-09-03T20:56:41.168909+00:00",
+  "kpis": {
+    "carbon_cost_eur": 563863.622239605,
+    "e_cap_mwh": 13.799943561174238,
+    "electricity_cost_eur": 2111368.3343697772,
+    "emissions_tco2": 7048.295277995062,
+    "fuel_cost_eur": 1395702.035246547,
+    "max_heat_balance_residual_mw": 8.881784197001252e-16,
+    "power_rating_mw": 4.85,
+    "total_cost_eur": 4172471.9188936707,
+    "unmet_heat_mwh": 0.0
+  },
+  "load_profile_synthetic": true,
+  "profile_shape": "flat",
+  "solver": {
+    "name": "HiGHS",
+    "objective_eur": 4172471.9188936707,
+    "status": "ok",
+    "termination": "optimal",
+    "time_limit_hit": false,
+    "wall_time_seconds": 8.065757306000009
+  },
+  "verification_checks": {
+    "finite_results": true,
+    "heat_balance_closure": true,
+    "nonnegativity": true,
+    "objective_reconstruction": true,
+    "storage_balance_identity": true,
+    "storage_level_bounds": true,
+    "storage_terminal_condition": true,
+    "unmet_heat_negligible": true
+  },
+  "verification_failed_checks": [],
+  "verification_passed": true
+}

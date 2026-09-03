@@ -1,0 +1,38 @@
+{
+  "case_name": "molten_salt_300c_flat",
+  "electricity_price_synthetic": true,
+  "generated_at": "2026-09-03T20:56:31.696025+00:00",
+  "kpis": {
+    "carbon_cost_eur": 452676.11740802624,
+    "e_cap_mwh": 36.795559464700496,
+    "electricity_cost_eur": 2400254.66515762,
+    "emissions_tco2": 5658.451467600329,
+    "fuel_cost_eur": 1120485.4391287777,
+    "max_heat_balance_residual_mw": 8.881784197001252e-16,
+    "power_rating_mw": 4.849999999999998,
+    "total_cost_eur": 4071018.4890985703,
+    "unmet_heat_mwh": 0.0
+  },
+  "load_profile_synthetic": true,
+  "profile_shape": "flat",
+  "solver": {
+    "name": "HiGHS",
+    "objective_eur": 4071018.4890985703,
+    "status": "ok",
+    "termination": "optimal",
+    "time_limit_hit": false,
+    "wall_time_seconds": 10.94991689199999
+  },
+  "verification_checks": {
+    "finite_results": true,
+    "heat_balance_closure": true,
+    "nonnegativity": true,
+    "objective_reconstruction": true,
+    "storage_balance_identity": true,
+    "storage_level_bounds": true,
+    "storage_terminal_condition": true,
+    "unmet_heat_negligible": true
+  },
+  "verification_failed_checks": [],
+  "verification_passed": true
+}

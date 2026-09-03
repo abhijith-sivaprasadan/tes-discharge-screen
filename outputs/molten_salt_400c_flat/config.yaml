@@ -1,0 +1,53 @@
+# Two-tank molten salt (Solar Salt, NaNO3-KNO3 60:40), 400 C process air,
+# flat continuous load. Phase A baseline: constant discharge limit. Control
+# case at the second process temperature; same salt and citations as
+# molten_salt_300c_flat.yaml (docs/DATA.md). The 290-565 C operating range
+# still covers a 400 C process comfortably, so only the usable floor moves.
+
+case_name: molten_salt_400c_flat
+
+process:
+  delivery_temperature_c: 400.0
+  medium: air
+  profile_shape: flat
+  profile_path: data/profiles/molten_salt_400c_flat.csv
+  annual_peak_load_mw: 10.0
+
+storage:
+  technology: molten_salt
+  energy_capacity_mwh: null
+  charge_power_max_mw: null
+  discharge_power_max_mw: null
+  eta_charge: 0.95            # [assumption] see docs/DATA.md
+  eta_discharge: 0.95         # [assumption] see docs/DATA.md
+  standing_loss_fraction_per_hour: 0.0005   # [assumption] see docs/DATA.md
+  temperature_max_c: 565.0    # hot tank; Kearney 2003, docs/DATA.md
+  temperature_min_c: 420.0    # usable floor: below this the salt can no longer serve the 400 C load
+  soc_init_fraction: 0.5
+  soc_final_min_fraction: 0.5
+  discharge_limit_mode: constant
+
+supply:
+  electric_heater:
+    efficiency: 0.99
+    capacity_mw: 15.0
+  backup_boiler:
+    fuel: natural_gas
+    fuel_cost_eur_per_mwh: 40.0
+    emission_factor_kg_co2_per_mwh: 202.0
+    capacity_mw: 12.0
+  electricity_price_source: synthetic
+
+economics:
+  currency: EUR
+  discount_rate: 0.06
+  storage_lifetime_years: 25.0
+  storage_capex_eur_per_mwh: 26000.0
+  storage_capex_eur_per_mw: 60000.0
+  carbon_price_eur_per_tco2: 80.0
+
+optimization:
+  solver: highs
+  horizon_hours: 8760
+  time_limit_seconds: 300.0
+  mip_gap: 0.01

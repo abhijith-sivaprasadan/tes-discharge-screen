@@ -36,11 +36,24 @@ describes.
   condition actually binding when forced to, and an independent objective
   reconstruction, all checked against the raw extracted solution rather than
   against Pyomo's own internal expressions.
-- One real, solved, verified case: packed-bed sensible storage, 300 C steam
-  process, flat load, full 8,760-hour horizon. `outputs/packed_bed_300c_flat/`
-  carries its config, hourly schedule, and a manifest with solver status and
-  every verification check's pass/fail. Molten-salt and PCM configs exist with
-  literature-cited parameters but have not been run.
+- Five real, solved, verified cases, Phase A's own exit criterion (three
+  technologies, both process temperatures, minus the one combination noted
+  below as deliberately not run): packed-bed, molten-salt, and PCM sensible/
+  latent storage, at 300 C and 400 C, flat load, full 8,760-hour horizon each.
+  `outputs/<case_name>/` carries each one's config, hourly schedule, and a
+  manifest with solver status and every verification check's pass/fail. All
+  five terminate optimal with every check passing; the cost ranking
+  (packed bed cheapest, PCM most expensive) tracks the CAPEX ranking in
+  docs/DATA.md, the expected sanity check for a purely economic model at this
+  stage. See README's Phase A results table for the numbers.
+- **A documented, checked limitation**: the 300 C and 400 C result for a given
+  technology is numerically identical, because `dispatch.py` never reads
+  `delivery_temperature_c`, `medium`, or `storage.temperature_max_c`/`min_c`.
+  Phase A's storage block is a temperature-agnostic MWh reservoir, by
+  construction; `tests/test_dispatch.py::test_process_temperature_has_no_effect_on_phase_a_result`
+  checks this explicitly so it stays a documented property rather than a
+  silent surprise, and is expected to need updating once Phase C's
+  temperature-aware discharge curve is wired in.
 
 ## What does not exist yet
 
@@ -49,8 +62,12 @@ describes.
 - The state-of-charge-dependent discharge limit (Phase C): the whole reason
   this project exists. Nothing has been compared against the constant-limit
   baseline yet, so there is no finding, null or otherwise, to report.
-- Runs for molten salt, PCM, the two-shift and seasonal load profiles, or the
-  400 C process temperature.
+- PCM at 400 C: no common nitrate-salt PCM composition was found in this
+  session's research with a melting point usefully close to 400 C, so that
+  combination is left undone rather than forced (docs/DATA.md, README).
+- Runs for the two-shift and seasonal load profiles: built
+  (`synthetic_profiles.py`) but only the flat profile has been run so far.
+  The full 18-run matrix is Phase C's job.
 - A live ENTSO-E price fetch.
 - Sensitivity analysis, the boundary-harmonisation table, or the
   technology-selection map (Phase D).
