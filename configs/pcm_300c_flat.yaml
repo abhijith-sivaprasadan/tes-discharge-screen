@@ -1,0 +1,59 @@
+# High-temperature PCM (single-salt sodium nitrate, NaNO3, mp ~306 C), 300 C
+# saturated steam process, flat continuous load. Phase A baseline: constant
+# discharge limit. NaNO3's melting point sits close to this process
+# temperature, which is the point: a latent store only behaves like the
+# "near-constant discharge temperature" idealisation while it is actually
+# discharging across its phase change near the process temperature. Not used
+# for the 400 C air case: no common nitrate-salt PCM melts that high with
+# useful latent heat (docs/DATA.md).
+#
+# NOTE: this configuration is written but has not been solved yet in this
+# session; only packed_bed_300c_flat.yaml has an actual recorded run so far.
+
+case_name: pcm_300c_flat
+
+process:
+  delivery_temperature_c: 300.0
+  medium: steam
+  profile_shape: flat
+  profile_path: data/profiles/pcm_300c_flat.csv
+  annual_peak_load_mw: 10.0
+
+storage:
+  technology: pcm
+  energy_capacity_mwh: null
+  charge_power_max_mw: null
+  discharge_power_max_mw: null
+  eta_charge: 0.95            # [assumption] see docs/DATA.md
+  eta_discharge: 0.95         # [assumption] see docs/DATA.md
+  standing_loss_fraction_per_hour: 0.0007   # [assumption] see docs/DATA.md
+  temperature_max_c: 330.0    # sensible superheat above the ~306 C melt point
+  temperature_min_c: 300.0    # usable floor: matches the process delivery temperature
+  soc_init_fraction: 0.5
+  soc_final_min_fraction: 0.5
+  discharge_limit_mode: constant
+
+supply:
+  electric_heater:
+    efficiency: 0.99
+    capacity_mw: 15.0
+  backup_boiler:
+    fuel: natural_gas
+    fuel_cost_eur_per_mwh: 40.0
+    emission_factor_kg_co2_per_mwh: 202.0
+    capacity_mw: 12.0
+  electricity_price_source: synthetic
+
+economics:
+  currency: EUR
+  discount_rate: 0.06
+  storage_lifetime_years: 25.0
+  storage_capex_eur_per_mwh: 80000.0   # mid of 50-120 $/kWh-th; docs/DATA.md, Hirschey et al.
+  storage_capex_eur_per_mw: 40000.0    # [assumption] PCM heat-exchanger network; see docs/DATA.md
+  carbon_price_eur_per_tco2: 80.0
+
+optimization:
+  solver: highs
+  horizon_hours: 8760
+  time_limit_seconds: 300.0
+  mip_gap: 0.01
