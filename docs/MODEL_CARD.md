@@ -1,6 +1,6 @@
 # Model card
 
-## Status: Phase 0 (scaffold) and Phase A (annual quasi-steady core) built
+## Status: Phase 0, Phase A, and Phase B (packed bed only) built
 
 This card documents what is actually built at this commit, not what the project
 intends to build. It will be rewritten section by section as each phase lands,
@@ -55,10 +55,41 @@ describes.
   silent surprise, and is expected to need updating once Phase C's
   temperature-aware discharge curve is wired in.
 
+- **Phase B, packed bed only**: a one-dimensional two-phase (solid/fluid)
+  packed-bed thermocline discharge model (Schumann 1929; docs/DATA.md),
+  authored twice per the build spec's B1/B3: a pure-Python shadow twin
+  (`src/tes_screen/packed_bed_dynamics.py`, backward-Euler time-stepping, a
+  closed-form forward sweep at each step) and a Modelica model of the
+  identical continuous governing equations
+  (`modelica/tes_screen/package.mo`). Discharge curves (state of charge vs.
+  deliverable power above the process temperature) at three draw rates are
+  generated and committed with their generating config
+  (`outputs/packed_bed_dynamics/`, `scripts/run_packed_bed_dynamics.py`).
+  The heat transfer coefficient is derived from the Wakao-Kaguei correlation
+  (docs/DATA.md) rather than assumed as a bare number.
+- **Three analytic checks (B4), all passing**: zero draw rate holds the
+  outlet at the initial temperature exactly; a single-node bed with h_v to
+  infinity matches the closed-form well-mixed-tank exponential response to
+  1e-3 relative / 1e-2 C absolute; cumulative outlet energy equals the bed's
+  own stored-energy loss to 1e-9 relative (near machine precision), checked
+  at every timestep. `tests/test_packed_bed_dynamics.py`.
+- An FMU export adapter (`src/tes_screen/fmu.py`), ported from OpenSteamOpt's
+  `find_omc()` pattern, and `tests/test_modelica_contract.py`, a
+  toolchain-independent static check on the authored Modelica source (same
+  pattern OpenSteamOpt's own `test_modelica_contract.py` uses).
+
 ## What does not exist yet
 
-- The targeted dynamic sub-model (Phase B): no Modelica model, no FMU export,
-  no shadow twin.
+- **The FMU-vs-shadow-twin cross-check.** No OpenModelica toolchain (`omc`)
+  or `fmpy` is installed in this working environment, so the Modelica model
+  has been authored but never compiled, and this project's intended
+  strongest verification story (the build spec's own words) has not been
+  run. `fmu.py` fails loudly and specifically when the toolchain is absent
+  rather than silently skipping.
+- Molten-salt and PCM dynamic sub-models: not started. Packed bed is the
+  technology the project's hypothesis expects to show the largest effect
+  from the SOC-dependent correction, so it was prioritised alone rather than
+  leaving three unfinished.
 - The state-of-charge-dependent discharge limit (Phase C): the whole reason
   this project exists. Nothing has been compared against the constant-limit
   baseline yet, so there is no finding, null or otherwise, to report.
@@ -87,7 +118,10 @@ Verified, not validated, and the distinction matters: the Phase A model's
 energy balance, storage identity, terminal condition, and objective have each
 been independently recomputed from the solved output and checked against the
 solver's own reported numbers (`verification.py`), and that check is run on
-every solve, not only once. None of that is validation. Nothing in this
-repository has been checked against measured data from a real storage
-installation, and the current inputs (load profile, electricity price) are
-declared synthetic, not measurements of any real site or market.
+every solve, not only once. The Phase B packed-bed shadow twin is checked
+against three closed-form analytic limits, not against a compiled FMU (no
+OpenModelica toolchain here) and not against any measurement. None of that is
+validation. Nothing in this repository has been checked against measured data
+from a real storage installation, and the current inputs (load profile,
+electricity price) are declared synthetic, not measurements of any real site
+or market.

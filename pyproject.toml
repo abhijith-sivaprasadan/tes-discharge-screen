@@ -36,6 +36,9 @@ dev = [
 entsoe = [
   "entsoe-py",
 ]
+fmu = [
+  "fmpy",
+]
 
 [project.urls]
 Repository = "https://github.com/abhijith-sivaprasadan/tes-screen"

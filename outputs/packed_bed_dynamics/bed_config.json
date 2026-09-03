@@ -1,0 +1,13 @@
+{
+  "air_density_kg_per_m3": 0.565,
+  "air_specific_heat_j_per_kgk": 1085.0,
+  "air_thermal_conductivity_w_per_mk": 0.0454,
+  "air_viscosity_pa_s": 3.1e-05,
+  "bed_length_m": 5.0,
+  "cross_section_area_m2": 10.0,
+  "n_nodes": 40,
+  "particle_diameter_m": 0.03,
+  "porosity": 0.4,
+  "rock_density_kg_per_m3": 2400.0,
+  "rock_specific_heat_j_per_kgk": 790.0
+}

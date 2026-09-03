@@ -60,6 +60,20 @@ This is the technology the project's own hypothesis expects to show the largest
 effect from the SOC-dependent discharge correction, because a packed bed develops
 the strongest thermocline (falling outlet temperature) of the three.
 
+### Phase B dynamic sub-model parameters (packed bed only)
+
+`src/tes_screen/packed_bed_dynamics.py`'s default bed adds parameters the
+Phase A annual model does not need: a particle size (for the interphase heat
+transfer correlation) and air (HTF) properties.
+
+| Parameter | Value | Source |
+|---|---|---|
+| Particle diameter | 0.03 m | [assumption] typical crushed-rock/gravel size in packed-bed CSP designs; no single citable figure was pinned down in the time available, so this is stated as a round, order-of-magnitude engineering choice, not a literature quote. |
+| Porosity (packing void fraction) | 0.4 | [assumption] typical random-packed crushed rock; a common round figure in the packed-bed literature, not tied to one specific source this session. |
+| Air density, specific heat, viscosity, thermal conductivity | rho=0.565 kg/m3, cp=1085 J/kgK, mu=3.1e-5 Pa.s, k=0.0454 W/mK | [textbook-standard] standard air property-table values (e.g. Incropera & DeWitt, *Fundamentals of Heat and Mass Transfer*) at a representative bed operating temperature (~350 C); interpolated from memory of standard tables, not independently re-verified against a table this session. Treat as order-of-magnitude, not exact. |
+| Volumetric heat transfer coefficient (h_v) | derived, not assumed | Wakao, N., Kaguei, S. (1982), *Heat and Mass Transfer in Packed Beds*, Gordon and Breach. Nu = 2 + 1.1 Re^0.6 Pr^(1/3) (valid 15 < Re < 8500), scaled to a volumetric coefficient via the packing's specific surface area a_v = 6(1-eps)/d_p. A well-established, widely-cited correlation from general domain knowledge, not confirmed via search this session; deriving h_v from more fundamental quantities (particle size, flow rate, fluid properties) is more defensible than asserting a single bare h_v number, which is why this project computes it rather than picking one. |
+| Governing equations | Schumann two-phase model, axial conduction neglected | Schumann, T.E.W. (1929), "Heat transfer: A liquid flowing through a porous prism," *Journal of the Franklin Institute*, 208(3), 405-416. Foundational, universally-cited packed-bed TES formulation; the same structure Zanganeh et al. (2012, see above) and the wider literature use. |
+
 ## High-temperature PCM (single-salt sodium nitrate, NaNO3)
 
 | Parameter | Value | Source |
@@ -77,6 +91,21 @@ across its phase change near the process temperature. It is a poor match for the
 400 C air process case (no common nitrate-salt PCM melts that high with useful
 latent heat); the 400 C case is therefore only run for molten salt and packed bed
 until a suitable high-temperature PCM composition is sourced.
+
+## Phase B scope: packed bed only, for now
+
+Only the packed-bed technology has a dynamic sub-model (Phase B) at this
+commit, matching the project's own stated priority (a single technology
+fully verified beats three unfinished) and the spec's expectation that
+packed bed is where the SOC-dependent correction should matter most. The
+packed-bed dynamic model is also adiabatic (no ambient heat loss term): that
+is a deliberate scope choice, not an oversight. Phase A already accounts for
+standing loss at the annual scale (`storage.standing_loss_fraction_per_hour`);
+adding a second, redundant loss term inside the hours-long discharge
+sub-model would double-count it and would also break the exact energy
+conservation identity this module's strongest verification check
+(`test_energy_conservation_holds_to_near_machine_precision`) depends on.
+Molten-salt and PCM dynamic sub-models do not exist yet.
 
 ## Round-trip charge/discharge efficiency
 

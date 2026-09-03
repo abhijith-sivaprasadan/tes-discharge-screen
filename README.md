@@ -39,18 +39,24 @@ that is what comes out.
 
 ## Status
 
-Phase 0 (scaffold and contracts) is done. Phase A (annual quasi-steady core,
-constant discharge limit) is done to its own exit criterion: all three
-technologies solved at both process temperatures, full 8,760-hour horizon,
-optimal termination, every independent check in `verification.py` passing on
-every run. The two-shift and seasonal load profiles are built but not yet run
-in every combination; that full 18-run matrix (3 technologies x 2 temperatures
-x 3 profiles x 2 discharge formulations) is Phase C's job, once the
-SOC-dependent formulation exists to pair against. No dynamic sub-model (Phase
-B) and no SOC-dependent discharge correction (Phase C) exist yet: the constant
-discharge limit is the only formulation implemented so far, which is
-deliberate, since Phase A's whole job is to be a fair, unbiased baseline of
-current practice.
+Phase 0 (scaffold and contracts) and Phase A (annual quasi-steady core,
+constant discharge limit) are both done to their own exit criteria: see
+[Phase A baseline results](#phase-a-baseline-results-flat-load-synthetic-priceload)
+below. Phase B (targeted dynamic sub-model) is built for the packed-bed
+technology only, matching the project's own priority (one technology fully
+verified beats three unfinished): a Python shadow twin
+(`packed_bed_dynamics.py`), a Modelica model of the identical physics
+(`modelica/tes_screen/package.mo`), and an FMU export adapter (`fmu.py`).
+No OpenModelica toolchain is available in this working environment, so the
+Modelica model has been authored but not compiled, and the FMU-vs-shadow-twin
+cross-check (this project's intended strongest verification story) has not
+been run; the shadow twin's own correctness instead rests on three analytic
+limits, all passing. See [Phase B](#phase-b-packed-bed-dynamic-sub-model)
+below. Molten-salt and PCM dynamic sub-models do not exist yet. No
+SOC-dependent discharge correction (Phase C) exists yet either: the constant
+discharge limit is the only formulation the annual model implements, and
+nothing has compared against it, so there is no ranking finding, null or
+otherwise, to report.
 
 Electricity prices are synthetic in every run so far: this working environment
 has no `ENTSOE_API_KEY` configured, so the real ENTSO-E fetch path
@@ -114,13 +120,48 @@ suitable high-temperature PCM composition is sourced.
 Every case's full schedule, config, and solver/verification manifest:
 `outputs/<case_name>/`.
 
+## Phase B: packed-bed dynamic sub-model
+
+A one-dimensional, two-phase (solid/fluid) transient model of the packed
+bed's discharge (Schumann's 1929 formulation; `docs/DATA.md`), authored twice:
+as a pure-Python shadow twin (`src/tes_screen/packed_bed_dynamics.py`) and as
+a Modelica model of the identical governing equations
+(`modelica/tes_screen/package.mo`), following OpenSteamOpt's shadow-twin
+pattern. The twin's own correctness rests on three analytic limits (the build
+spec's B4), all passing:
+
+| Analytic check | Result |
+|---|---|
+| Zero draw rate, zero loss: outlet stays at the initial (charged) temperature | pass, exact to 1e-9 C |
+| Infinite heat transfer coefficient: single-node bed reduces to a well-mixed tank's closed-form exponential response | pass, matches to 1e-3 relative / 1e-2 C absolute |
+| Energy conservation: cumulative outlet enthalpy flow equals stored-energy loss | pass, to 1e-9 relative (near machine precision) |
+
+Discharge curves (state of charge vs. deliverable power above the 300 C
+process temperature) were generated at three draw rates and committed with
+their generating bed config: `outputs/packed_bed_dynamics/`.
+
+**What has not been done, and why.** No OpenModelica toolchain (`omc`) or
+`fmpy` is installed in this working environment, so the Modelica model above
+has been authored but never compiled, and the FMU-vs-shadow-twin cross-check
+that the build spec calls "the single strongest verification story available
+here" has not been run. `fmu.py` (ported from OpenSteamOpt's identical
+`find_omc()` pattern) fails loudly and specifically when the toolchain is
+absent rather than silently skipping; `tests/test_modelica_contract.py`
+statically checks the authored Modelica source instead, the same
+toolchain-independent pattern OpenSteamOpt itself uses for CI. Molten-salt and
+PCM dynamic sub-models do not exist yet: packed bed is the technology the
+project's hypothesis expects to show the largest effect, and a single
+technology fully verified is worth more here than three left unfinished.
+
 ## Repository layout
 
 ```
 src/tes_screen/   Python package: config schema, profile contract, provenance,
                   synthetic profiles, electricity price source, the Phase A
-                  dispatch LP, and its independent verification checks
-scripts/          Annual run harness (scripts/run_case.py)
+                  dispatch LP and its verification, the Phase B packed-bed
+                  shadow twin, and the FMU export adapter
+modelica/         Authored Modelica model(s) for Phase B (not yet compiled here)
+scripts/          Run harnesses (scripts/run_case.py, run_packed_bed_dynamics.py)
 tests/            Physics and contract tests, not syntax tests
 configs/          One YAML per case; no parameter lives in source
 outputs/          Committed run evidence: config + schedule + solver/verification manifest
@@ -141,11 +182,12 @@ Neither is modified; nothing is imported across repositories.
 
 ## Sequencing
 
-Phase 0 (scaffold, done) -> A (annual quasi-steady core, constant discharge limit;
-one case run and verified, others configured but unrun) -> B (targeted dynamic
-sub-model and shadow twin, not started) -> C (coupling and the paired-run
-experiment, the deliverable) -> D (harmonised comparison and sensitivity, optional
-enrichment).
+Phase 0 (scaffold, done) -> A (annual quasi-steady core, constant discharge
+limit; done to its exit criterion) -> B (targeted dynamic sub-model and
+shadow twin; packed bed done to its exit criterion, molten salt and PCM not
+started, FMU cross-check untestable in this environment) -> C (coupling and
+the paired-run experiment, the deliverable; not started) -> D (harmonised
+comparison and sensitivity, optional enrichment).
 
 ## Development
 
@@ -155,6 +197,9 @@ uv pip install -e ".[dev]"
 pytest
 ruff check .
 
-# Solve one case end to end and write outputs/<case_name>/:
+# Solve one Phase A case end to end and write outputs/<case_name>/:
 python scripts/run_case.py configs/packed_bed_300c_flat.yaml
+
+# Generate and commit Phase B packed-bed discharge curves:
+python scripts/run_packed_bed_dynamics.py
 ```
