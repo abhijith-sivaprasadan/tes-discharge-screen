@@ -1,0 +1,124 @@
+{
+  "case": "packed_bed_300c_flat",
+  "constant_limit": {
+    "kpis": {
+      "carbon_cost_eur": 418235.03931497654,
+      "e_cap_mwh": 54.98691637293239,
+      "electricity_cost_eur": 2497270.3382671284,
+      "emissions_tco2": 5227.937991437207,
+      "fuel_cost_eur": 1035235.24582915,
+      "max_heat_balance_residual_mw": 8.881784197001252e-16,
+      "power_rating_mw": 7.417831956699598,
+      "total_cost_eur": 3992456.1985031418,
+      "unmet_heat_mwh": 0.0
+    },
+    "solver": {
+      "name": "HiGHS",
+      "objective_eur": 3992456.1985031418,
+      "status": "ok",
+      "termination": "optimal",
+      "time_limit_hit": false,
+      "wall_time_seconds": 8.271526488999939
+    },
+    "verification_checks": {
+      "finite_results": true,
+      "heat_balance_closure": true,
+      "nonnegativity": true,
+      "objective_reconstruction": true,
+      "storage_balance_identity": true,
+      "storage_level_bounds": true,
+      "storage_terminal_condition": true,
+      "unmet_heat_negligible": true
+    },
+    "verification_passed": true
+  },
+  "delta_soc_dependent_minus_constant": {
+    "e_cap_mwh": -4.557070153780849,
+    "electricity_cost_eur": 11678.326750054024,
+    "emissions_tco2": -32.61665883053047,
+    "fuel_cost_eur": -6458.744322877261,
+    "power_rating_mw": 5.56585274844623,
+    "total_cost_eur": 8822.825112415478,
+    "total_cost_pct": 0.2209873990783755,
+    "wall_time_seconds_constant": 8.271526488999939,
+    "wall_time_seconds_soc_dependent": 22.46456263999994
+  },
+  "generated_at": "2026-09-03T21:31:56.623324+00:00",
+  "note": "MVP scope per the build spec's own section 10/8: one technology (packed bed), one process temperature (300 C), one load profile (flat), both discharge-limit formulations. Not the full 18-run matrix; only packed bed has a Phase B dynamic sub-model, so a technology-ranking comparison is not answerable from this run.",
+  "reference_discharge": {
+    "initial_bed_temperature_c": 400.0,
+    "inlet_temperature_c": 320.0,
+    "mass_flow_kg_per_s": 3.0
+  },
+  "segment_count_robustness_check": [
+    {
+      "e_cap_mwh": 50.42984621915154,
+      "max_overestimate_mw": 4.286848653833886e-14,
+      "mean_absolute_error_mw": 0.0049335415312459175,
+      "n_segments": 3,
+      "power_rating_mw": 12.983684705145828,
+      "total_cost_eur": 4001511.925317578,
+      "verification_passed": true
+    },
+    {
+      "e_cap_mwh": 50.42984621915154,
+      "max_overestimate_mw": 5.896672039540363e-14,
+      "mean_absolute_error_mw": 0.0024551957691303474,
+      "n_segments": 5,
+      "power_rating_mw": 12.983684705145828,
+      "total_cost_eur": 4001279.0236155572,
+      "verification_passed": true
+    },
+    {
+      "e_cap_mwh": 50.42984621915154,
+      "max_overestimate_mw": 7.235878562994458e-14,
+      "mean_absolute_error_mw": 0.001290792980199002,
+      "n_segments": 8,
+      "power_rating_mw": 12.983684705145828,
+      "total_cost_eur": 4001196.818036376,
+      "verification_passed": true
+    },
+    {
+      "e_cap_mwh": 50.42984621915154,
+      "max_overestimate_mw": 8.266998197115072e-14,
+      "mean_absolute_error_mw": 0.0007444585655399932,
+      "n_segments": 12,
+      "power_rating_mw": 12.983684705145828,
+      "total_cost_eur": 4001165.8042799076,
+      "verification_passed": true
+    }
+  ],
+  "soc_dependent": {
+    "kpis": {
+      "carbon_cost_eur": 415625.7066085341,
+      "e_cap_mwh": 50.42984621915154,
+      "electricity_cost_eur": 2508948.6650171825,
+      "emissions_tco2": 5195.321332606676,
+      "fuel_cost_eur": 1028776.5015062727,
+      "max_heat_balance_residual_mw": 8.881784197001252e-16,
+      "power_rating_mw": 12.983684705145828,
+      "total_cost_eur": 4001279.0236155572,
+      "unmet_heat_mwh": 0.0
+    },
+    "n_segments": 5,
+    "solver": {
+      "name": "HiGHS",
+      "objective_eur": 4001279.0236155572,
+      "status": "ok",
+      "termination": "optimal",
+      "time_limit_hit": false,
+      "wall_time_seconds": 22.46456263999994
+    },
+    "verification_checks": {
+      "finite_results": true,
+      "heat_balance_closure": true,
+      "nonnegativity": true,
+      "objective_reconstruction": true,
+      "storage_balance_identity": true,
+      "storage_level_bounds": true,
+      "storage_terminal_condition": true,
+      "unmet_heat_negligible": true
+    },
+    "verification_passed": true
+  }
+}

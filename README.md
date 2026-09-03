@@ -52,11 +52,16 @@ Modelica model has been authored but not compiled, and the FMU-vs-shadow-twin
 cross-check (this project's intended strongest verification story) has not
 been run; the shadow twin's own correctness instead rests on three analytic
 limits, all passing. See [Phase B](#phase-b-packed-bed-dynamic-sub-model)
-below. Molten-salt and PCM dynamic sub-models do not exist yet. No
-SOC-dependent discharge correction (Phase C) exists yet either: the constant
-discharge limit is the only formulation the annual model implements, and
-nothing has compared against it, so there is no ranking finding, null or
-otherwise, to report.
+below. Molten-salt and PCM dynamic sub-models do not exist yet.
+
+**Phase C (the paired experiment) is done at MVP scope**: one technology
+(packed bed), one process temperature (300 C), one load profile (flat),
+solved under both discharge-limit formulations. The SOC-dependent limit
+increases annualised cost by 0.22% and required power capacity by 75% for
+this case; see [Phase C](#phase-c-the-paired-experiment-mvp-scope) below for
+the full numbers. This is not the full 18-run technology-ranking matrix
+(only packed bed has a Phase B dynamic sub-model yet), so whether the
+technology ranking itself changes is not answerable from this result.
 
 Electricity prices are synthetic in every run so far: this working environment
 has no `ENTSOE_API_KEY` configured, so the real ENTSO-E fetch path
@@ -153,15 +158,78 @@ PCM dynamic sub-models do not exist yet: packed bed is the technology the
 project's hypothesis expects to show the largest effect, and a single
 technology fully verified is worth more here than three left unfinished.
 
+## Phase C: the paired experiment (MVP scope)
+
+**The finding, stated first and plainly:** for packed bed at 300 C with a
+flat load profile, replacing the constant discharge limit with the
+SOC-dependent one increases annualised total cost by **0.22%** (+8,823
+EUR/yr on a ~4.0M EUR/yr baseline), decreases the optimal storage energy
+capacity by **8.3%** (54.99 to 50.43 MWh-th), and increases the required
+power capacity by **75%** (7.42 to 12.98 MW). This is a real but modest
+effect for this one case, not a dramatic one and not a null one: the
+constant-limit simplification understates how much power capability a
+packed bed needs to deliver the same load, which is exactly the direction
+this project's hypothesis predicted, at a scale worth stating honestly
+rather than rounding up or down.
+
+This is the MVP the build spec's own section 10 and 8 describe as "a
+complete piece of work": one technology (packed bed), one process
+temperature (300 C), one load profile (flat), both discharge-limit
+formulations, solved and independently verified. It is **not** the full
+18-run matrix (3 technologies x 2 temperatures x 3 profiles): only packed
+bed has a Phase B dynamic sub-model, so there is no second technology to
+rank against yet, and "does the technology ranking change" is not
+answerable from this result.
+
+| | Constant limit (Phase A baseline) | SOC-dependent (Phase C) | Delta |
+|---|---:|---:|---:|
+| Termination | optimal | optimal | |
+| Annualised total cost (EUR/yr) | 3,992,456 | 4,001,279 | +8,823 (+0.22%) |
+| Storage energy capacity (MWh-th) | 54.99 | 50.43 | -4.56 (-8.3%) |
+| Storage power capacity (MW) | 7.42 | 12.98 | +5.57 (+75.0%) |
+| Backup fuel cost (EUR/yr) | 1,035,235 | 1,028,777 | -6,459 |
+| Electricity cost (EUR/yr) | 2,497,270 | 2,508,949 | +11,678 |
+| Emissions (tCO2/yr) | 5,228 | 5,195 | -33 |
+| Solve time | 8.3 s | 22.5 s | |
+
+**The piecewise construction and its safety, checked, not assumed.**
+Following the same technique as OpenSteamOpt's boiler fuel curve
+(`rto.py`), the discharge curve becomes a small set of linear constraints,
+`p_dis[t] <= a_i*level[t] + b_i*E_cap` for every segment `i`
+simultaneously, kept strictly linear even with storage energy capacity as
+a free decision variable by tying the fitted curve's power/energy ratio to
+`E_cap` rather than treating power and energy capacity as independent
+(charge power is tied the same way when unfixed, so the two runs compare
+on equal footing: same sizing degrees of freedom, only the discharge
+constraint itself differs). This construction is exact for a concave curve
+and only ever safe (never overestimates deliverable power) for one; the
+packed-bed discharge curve is empirically concave (flat near full charge,
+steepening toward depletion), checked against the underlying data at 3,
+5, 8, and 12 segments, not assumed from the curve's shape.
+
+**More segments barely changes the answer**, exactly per the build spec's
+own C1 instruction to check this: sized capacity and power were identical
+(50.43 MWh, 12.98 MW) at every segment count from 3 to 12, and total cost
+varied by under 350 EUR (under 0.01%) across that range. 5 segments (the
+spec's own suggested default) is what the headline table above uses.
+
+Every number above traces to `outputs/phase_c_packed_bed_300c_flat/`:
+both hourly schedules, the fitted curve's breakpoints, and a manifest with
+both runs' solver status, every verification check's pass/fail, and the
+full segment-count robustness table.
+
 ## Repository layout
 
 ```
 src/tes_screen/   Python package: config schema, profile contract, provenance,
-                  synthetic profiles, electricity price source, the Phase A
-                  dispatch LP and its verification, the Phase B packed-bed
-                  shadow twin, and the FMU export adapter
+                  synthetic profiles, electricity price source, the annual
+                  dispatch LP (constant and SOC-dependent) and its
+                  verification, the Phase B packed-bed shadow twin, the
+                  piecewise discharge-curve construction (C1), and the FMU
+                  export adapter
 modelica/         Authored Modelica model(s) for Phase B (not yet compiled here)
-scripts/          Run harnesses (scripts/run_case.py, run_packed_bed_dynamics.py)
+scripts/          Run harnesses: run_case.py (Phase A), run_packed_bed_dynamics.py
+                  (Phase B curves), run_phase_c_experiment.py (the paired comparison)
 tests/            Physics and contract tests, not syntax tests
 configs/          One YAML per case; no parameter lives in source
 outputs/          Committed run evidence: config + schedule + solver/verification manifest
@@ -177,7 +245,8 @@ Neither is modified; nothing is imported across repositories.
   pattern (level, charge/discharge, standing loss, terminal condition), the
   provenance record pattern, and the annual run harness.
 - **OpenSteamOpt** (`src/opensteamopt/{fmu,twin,rto}.py`): the Modelica/FMI 2.0
-  export path, the shadow-twin cross-check, the piecewise-linear construction, and
+  export path, the shadow-twin cross-check, the piecewise-linear construction (used
+  here for the SOC-dependent discharge curve, `discharge_curve.py`), and
   the profile contract validation.
 
 ## Sequencing
@@ -186,8 +255,9 @@ Phase 0 (scaffold, done) -> A (annual quasi-steady core, constant discharge
 limit; done to its exit criterion) -> B (targeted dynamic sub-model and
 shadow twin; packed bed done to its exit criterion, molten salt and PCM not
 started, FMU cross-check untestable in this environment) -> C (coupling and
-the paired-run experiment, the deliverable; not started) -> D (harmonised
-comparison and sensitivity, optional enrichment).
+the paired-run experiment; done at MVP scope, one technology/temperature/
+profile pair, not the full 18-run matrix) -> D (harmonised comparison and
+sensitivity, optional enrichment; not started).
 
 ## Development
 
@@ -202,4 +272,7 @@ python scripts/run_case.py configs/packed_bed_300c_flat.yaml
 
 # Generate and commit Phase B packed-bed discharge curves:
 python scripts/run_packed_bed_dynamics.py
+
+# Run the Phase C paired constant-vs-SOC-dependent experiment:
+python scripts/run_phase_c_experiment.py
 ```

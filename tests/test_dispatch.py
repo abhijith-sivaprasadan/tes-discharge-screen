@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import dataclasses
+import functools
 
 import numpy as np
 import pytest
 
 from tes_screen.config import load_config
+from tes_screen.discharge_curve import PiecewiseDischargeCurve, fit_piecewise_discharge_curve
 from tes_screen.dispatch import capital_recovery_factor, solve_dispatch
+from tes_screen.packed_bed_dynamics import default_packed_bed_config, simulate_discharge
 from tes_screen.synthetic_profiles import build_load_profile, synthetic_daily_price_profile
 from tes_screen.verification import reconstruct_objective, verify_schedule
 
@@ -33,6 +36,36 @@ def _solve_short(**economics_overrides: float):
     )
     price = synthetic_daily_price_profile(SHORT_HORIZON)
     return config, load, price, solve_dispatch(config, load, price)
+
+
+@functools.lru_cache(maxsize=1)
+def _reference_discharge_curve() -> PiecewiseDischargeCurve:
+    bed_config = default_packed_bed_config()
+    result = simulate_discharge(
+        bed_config,
+        mass_flow_kg_per_s=3.0,
+        initial_bed_temperature_c=400.0,
+        inlet_temperature_c=320.0,
+        duration_s=30 * 3600,
+        n_steps=1500,
+    )
+    return fit_piecewise_discharge_curve(result, process_temperature_c=300.0, n_segments=5)
+
+
+def _solve_short_soc_dependent(**economics_overrides: float):
+    config = _short_case(**economics_overrides)
+    config = dataclasses.replace(
+        config,
+        storage=dataclasses.replace(
+            config.storage, discharge_limit_mode="soc_dependent", discharge_power_max_mw=None
+        ),
+    )
+    load = build_load_profile(
+        config.process.profile_shape, config.process.annual_peak_load_mw, SHORT_HORIZON
+    )
+    price = synthetic_daily_price_profile(SHORT_HORIZON)
+    curve = _reference_discharge_curve()
+    return config, load, price, solve_dispatch(config, load, price, discharge_curve=curve)
 
 
 def test_solve_reaches_optimal_and_verifies() -> None:
@@ -88,7 +121,7 @@ def test_unmet_heat_is_zero_when_boiler_is_sized_above_peak() -> None:
     assert result.schedule["unmet_heat_mw"].sum() < 1e-6
 
 
-def test_soc_dependent_discharge_mode_is_not_implemented_here() -> None:
+def test_soc_dependent_mode_without_a_curve_is_rejected() -> None:
     config = _short_case()
     config = dataclasses.replace(
         config, storage=dataclasses.replace(config.storage, discharge_limit_mode="soc_dependent")
@@ -99,6 +132,66 @@ def test_soc_dependent_discharge_mode_is_not_implemented_here() -> None:
     price = synthetic_daily_price_profile(SHORT_HORIZON)
     with pytest.raises(ValueError, match="soc_dependent"):
         solve_dispatch(config, load, price)
+
+
+def test_constant_mode_with_a_curve_is_rejected() -> None:
+    # A curve given for a constant-limit config would be silently ignored;
+    # reject instead of accepting it and pretending it did nothing.
+    config, load, price, _ = _solve_short()
+    curve = _reference_discharge_curve()
+    with pytest.raises(ValueError, match="discharge_limit_mode == 'constant'"):
+        solve_dispatch(config, load, price, discharge_curve=curve)
+
+
+def test_soc_dependent_mode_rejects_a_given_discharge_power_max() -> None:
+    config = _short_case()
+    config = dataclasses.replace(
+        config,
+        storage=dataclasses.replace(
+            config.storage, discharge_limit_mode="soc_dependent", discharge_power_max_mw=5.0
+        ),
+    )
+    load = build_load_profile(
+        config.process.profile_shape, config.process.annual_peak_load_mw, SHORT_HORIZON
+    )
+    price = synthetic_daily_price_profile(SHORT_HORIZON)
+    curve = _reference_discharge_curve()
+    with pytest.raises(ValueError, match="discharge_power_max_mw must be null"):
+        solve_dispatch(config, load, price, discharge_curve=curve)
+
+
+def test_soc_dependent_solve_reaches_optimal_and_verifies() -> None:
+    config, load, price, result = _solve_short_soc_dependent()
+    assert result.solver["termination"] == "optimal"
+    checks = verify_schedule(result.schedule, config, result.solver["objective_eur"])
+    assert all(checks.values()), checks
+
+
+def test_soc_dependent_discharge_never_exceeds_the_fitted_curve() -> None:
+    config, load, price, result = _solve_short_soc_dependent()
+    curve = _reference_discharge_curve()
+    e_cap = result.schedule.attrs["e_cap_mwh"]
+    limits = result.schedule["level_mwh"].apply(lambda level: curve.limit_mw(level, e_cap))
+    assert (result.schedule["p_dis_mw"] <= limits + 1e-6).all()
+
+
+def test_soc_dependent_requires_more_power_capacity_than_constant_limit_for_the_same_case() -> None:
+    # The headline physical expectation: a store whose discharge power falls
+    # away with state of charge needs more full-charge power capability to
+    # deliver the same load profile than the constant-limit baseline assumes
+    # it can. This is what makes the constant-limit simplification an
+    # understatement of what a real sensible-heat store needs, not the other
+    # way around. Nearly-free storage CAPEX forces both formulations to
+    # actually build storage at this short horizon, so the comparison isn't
+    # degenerate at E_cap=0 (see the full-horizon Phase C experiment for the
+    # result under real economics).
+    overrides = {"storage_capex_eur_per_mwh": 1.0, "storage_capex_eur_per_mw": 1.0}
+    _config_a, _load_a, _price_a, result_constant = _solve_short(**overrides)
+    _config_c, _load_c, _price_c, result_soc = _solve_short_soc_dependent(**overrides)
+    assert (
+        result_soc.schedule.attrs["power_rating_mw"]
+        > result_constant.schedule.attrs["power_rating_mw"]
+    )
 
 
 def test_mismatched_profile_length_is_rejected() -> None:

@@ -25,6 +25,7 @@ import pandas as pd
 import pyomo.environ as pyo
 
 from tes_screen.config import CaseConfig
+from tes_screen.discharge_curve import PiecewiseDischargeCurve
 from tes_screen.profiles import ELECTRICITY_PRICE_COLUMNS, PROCESS_LOAD_COLUMNS, validate_profile
 
 # A numerical safety valve, not a real energy price: it exists so an
@@ -51,15 +52,38 @@ def capital_recovery_factor(discount_rate: float, lifetime_years: float) -> floa
 
 
 def build_model(
-    config: CaseConfig, process_load: pd.DataFrame, electricity_price: pd.DataFrame
+    config: CaseConfig,
+    process_load: pd.DataFrame,
+    electricity_price: pd.DataFrame,
+    discharge_curve: PiecewiseDischargeCurve | None = None,
 ) -> pyo.ConcreteModel:
-    """Build but do not solve the Phase A annual LP."""
+    """Build but do not solve the annual LP: constant limit (Phase A) or SOC-dependent (Phase C).
 
-    if config.storage.discharge_limit_mode != "constant":
+    `discharge_curve` is required when `storage.discharge_limit_mode ==
+    "soc_dependent"` (Phase C's corrected model: `discharge_curve.py`'s
+    piecewise-linear construction, C1) and rejected otherwise, so a config
+    and a curve can never silently drift apart. In soc_dependent mode,
+    `storage.discharge_power_max_mw` must be null: the curve replaces it
+    entirely (C1: "replaces p_dis[t] <= P_dis_max"), so a value there would
+    be silently ignored rather than honoured, which this rejects instead.
+    """
+
+    soc_dependent = config.storage.discharge_limit_mode == "soc_dependent"
+    if soc_dependent and discharge_curve is None:
         raise ValueError(
-            "dispatch.build_model only implements storage.discharge_limit_mode == "
-            "'constant' (Phase A's baseline). 'soc_dependent' is Phase C's corrected "
-            "model and is not implemented here."
+            "storage.discharge_limit_mode == 'soc_dependent' requires a discharge_curve "
+            "(discharge_curve.fit_piecewise_discharge_curve)."
+        )
+    if not soc_dependent and discharge_curve is not None:
+        raise ValueError(
+            "discharge_curve was given but storage.discharge_limit_mode == 'constant'; "
+            "it would be silently ignored. Set discharge_limit_mode to 'soc_dependent'."
+        )
+    if soc_dependent and config.storage.discharge_power_max_mw is not None:
+        raise ValueError(
+            "storage.discharge_power_max_mw must be null when discharge_limit_mode == "
+            "'soc_dependent': the piecewise discharge_curve replaces it, so a given value "
+            "would be silently ignored."
         )
 
     validate_profile(process_load, PROCESS_LOAD_COLUMNS)
@@ -100,22 +124,42 @@ def build_model(
     else:
         e_cap = storage.energy_capacity_mwh
 
-    charge_given = storage.charge_power_max_mw is not None
-    discharge_given = storage.discharge_power_max_mw is not None
-    if charge_given != discharge_given:
-        raise ValueError(
-            "storage.charge_power_max_mw and storage.discharge_power_max_mw must both "
-            "be given or both be null in Phase A; mixed sizing is not supported."
-        )
-    if charge_given:
-        p_ch_max: Any = storage.charge_power_max_mw
-        p_dis_max: Any = storage.discharge_power_max_mw
-        power_rating: Any = max(storage.charge_power_max_mw, storage.discharge_power_max_mw)
+    if soc_dependent:
+        # The discharge side is no longer an independent sizing choice: the
+        # piecewise curve determines allowed discharge power from (level,
+        # E_cap) alone (C1). When charge power is also unfixed, tie it to the
+        # same reference power/energy ratio (k) the discharge curve uses,
+        # rather than giving it an independent free variable: the
+        # constant-limit baseline ties charge and discharge to one shared
+        # power rating, and giving the SOC-dependent model an extra,
+        # unconstrained sizing degree of freedom the baseline never had would
+        # confound "what changed" between the two runs with "the discharge
+        # curve" and "charge sizing became independent of discharge sizing"
+        # at once. A fixed charge_power_max_mw is honoured as given, exactly
+        # as before.
+        if storage.charge_power_max_mw is None:
+            p_ch_max: Any = discharge_curve.k_mw_per_mwh * e_cap
+        else:
+            p_ch_max = storage.charge_power_max_mw
+        p_dis_max: Any = None
+        power_rating: Any = p_ch_max
     else:
-        model.P_rated = pyo.Var(domain=pyo.NonNegativeReals, bounds=(0, peak * 5))
-        p_ch_max = model.P_rated
-        p_dis_max = model.P_rated
-        power_rating = model.P_rated
+        charge_given = storage.charge_power_max_mw is not None
+        discharge_given = storage.discharge_power_max_mw is not None
+        if charge_given != discharge_given:
+            raise ValueError(
+                "storage.charge_power_max_mw and storage.discharge_power_max_mw must both "
+                "be given or both be null in Phase A; mixed sizing is not supported."
+            )
+        if charge_given:
+            p_ch_max = storage.charge_power_max_mw
+            p_dis_max = storage.discharge_power_max_mw
+            power_rating = max(storage.charge_power_max_mw, storage.discharge_power_max_mw)
+        else:
+            model.P_rated = pyo.Var(domain=pyo.NonNegativeReals, bounds=(0, peak * 5))
+            p_ch_max = model.P_rated
+            p_dis_max = model.P_rated
+            power_rating = model.P_rated
 
     model.p_ch = pyo.Var(model.T, domain=pyo.NonNegativeReals)
     model.p_dis = pyo.Var(model.T, domain=pyo.NonNegativeReals)
@@ -133,11 +177,28 @@ def build_model(
 
     model.c_charge_limit = pyo.Constraint(model.T, rule=charge_limit)
 
-    def discharge_limit(m: pyo.ConcreteModel, t: int) -> Any:
-        # This constant bound is the assumption under test: A5/README.
-        return m.p_dis[t] <= p_dis_max
+    if soc_dependent:
+        # C1's piecewise-linear replacement for the constant P_dis_max bound:
+        # p_dis[t] <= a_i*level[t] + b_i*E_cap, for every segment i,
+        # simultaneously. Exact for a concave curve (this one is, checked
+        # empirically in discharge_curve.py's own tests, not assumed).
+        model.Segments = pyo.RangeSet(0, len(discharge_curve.a_coefficients) - 1)
 
-    model.c_discharge_limit = pyo.Constraint(model.T, rule=discharge_limit)
+        def discharge_limit_piecewise(m: pyo.ConcreteModel, t: int, seg: int) -> Any:
+            a = discharge_curve.a_coefficients[seg]
+            b = discharge_curve.b_coefficients[seg]
+            return m.p_dis[t] <= a * m.level[t] + b * e_cap
+
+        model.c_discharge_limit = pyo.Constraint(
+            model.T, model.Segments, rule=discharge_limit_piecewise
+        )
+    else:
+
+        def discharge_limit(m: pyo.ConcreteModel, t: int) -> Any:
+            # This constant bound is the assumption under test: A5/README.
+            return m.p_dis[t] <= p_dis_max
+
+        model.c_discharge_limit = pyo.Constraint(model.T, rule=discharge_limit)
 
     def level_cap(m: pyo.ConcreteModel, t: int) -> Any:
         return m.level[t] <= e_cap
@@ -190,7 +251,13 @@ def build_model(
     model._load = load
     model._price = price
     model._e_cap_is_var = storage.energy_capacity_mwh is None
-    model._power_is_var = not charge_given
+    # True only when model.P_rated actually exists as its own Var: the
+    # constant-limit model's "both charge and discharge null" case. In
+    # soc_dependent mode there is no such variable even when charge power is
+    # unfixed; power_rating is k*e_cap instead (see extract_schedule).
+    model._power_is_var = (not soc_dependent) and storage.charge_power_max_mw is None
+    model._soc_dependent = soc_dependent
+    model._discharge_curve_k = discharge_curve.k_mw_per_mwh if soc_dependent else None
     return model
 
 
@@ -248,24 +315,42 @@ def extract_schedule(model: pyo.ConcreteModel) -> pd.DataFrame:
             }
         )
     schedule = pd.DataFrame(rows)
-    schedule.attrs["e_cap_mwh"] = (
-        _value(model.E_cap) if model._e_cap_is_var else config.storage.energy_capacity_mwh
-    )
-    schedule.attrs["power_rating_mw"] = (
-        _value(model.P_rated)
-        if model._power_is_var
-        else max(config.storage.charge_power_max_mw, config.storage.discharge_power_max_mw)
-    )
+    e_cap_mwh = _value(model.E_cap) if model._e_cap_is_var else config.storage.energy_capacity_mwh
+    schedule.attrs["e_cap_mwh"] = e_cap_mwh
+
+    if model._power_is_var:
+        power_rating_mw = _value(model.P_rated)
+    elif model._soc_dependent:
+        # soc_dependent mode: charge power is either fixed, or tied to the
+        # same reference k = P_rated/E_cap ratio the discharge curve uses
+        # (build_model); discharge_power_max_mw is required to be null (C1).
+        power_rating_mw = (
+            config.storage.charge_power_max_mw
+            if config.storage.charge_power_max_mw is not None
+            else model._discharge_curve_k * e_cap_mwh
+        )
+    else:
+        power_rating_mw = max(
+            config.storage.charge_power_max_mw, config.storage.discharge_power_max_mw
+        )
+    schedule.attrs["power_rating_mw"] = power_rating_mw
     schedule.attrs["capital_recovery_factor"] = crf
     return schedule
 
 
 def solve_dispatch(
-    config: CaseConfig, process_load: pd.DataFrame, electricity_price: pd.DataFrame
+    config: CaseConfig,
+    process_load: pd.DataFrame,
+    electricity_price: pd.DataFrame,
+    discharge_curve: PiecewiseDischargeCurve | None = None,
 ) -> DispatchResult:
-    """Solve the Phase A LP with HiGHS and return a schedule with recorded solver status."""
+    """Solve the annual LP with HiGHS and return a schedule with recorded solver status.
 
-    model = build_model(config, process_load, electricity_price)
+    `discharge_curve` is required for `storage.discharge_limit_mode ==
+    "soc_dependent"`; see `build_model`.
+    """
+
+    model = build_model(config, process_load, electricity_price, discharge_curve)
     solver = pyo.SolverFactory("appsi_highs")
     solver.options["time_limit"] = config.optimization.time_limit_seconds
     solver.options["mip_rel_gap"] = config.optimization.mip_gap

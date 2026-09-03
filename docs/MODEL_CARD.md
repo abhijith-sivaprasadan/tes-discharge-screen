@@ -1,6 +1,6 @@
 # Model card
 
-## Status: Phase 0, Phase A, and Phase B (packed bed only) built
+## Status: Phase 0, A, B (packed bed only), and C (MVP scope) built
 
 This card documents what is actually built at this commit, not what the project
 intends to build. It will be rewritten section by section as each phase lands,
@@ -47,13 +47,19 @@ describes.
   docs/DATA.md, the expected sanity check for a purely economic model at this
   stage. See README's Phase A results table for the numbers.
 - **A documented, checked limitation**: the 300 C and 400 C result for a given
-  technology is numerically identical, because `dispatch.py` never reads
-  `delivery_temperature_c`, `medium`, or `storage.temperature_max_c`/`min_c`.
-  Phase A's storage block is a temperature-agnostic MWh reservoir, by
-  construction; `tests/test_dispatch.py::test_process_temperature_has_no_effect_on_phase_a_result`
-  checks this explicitly so it stays a documented property rather than a
-  silent surprise, and is expected to need updating once Phase C's
-  temperature-aware discharge curve is wired in.
+  technology is numerically identical in Phase A, because `dispatch.py` never
+  reads `delivery_temperature_c`, `medium`, or
+  `storage.temperature_max_c`/`min_c` itself. Phase A's storage block is a
+  temperature-agnostic MWh reservoir, by construction;
+  `tests/test_dispatch.py::test_process_temperature_has_no_effect_on_phase_a_result`
+  checks this explicitly. Phase C's SOC-dependent mode still does not read
+  those config fields inside `dispatch.py` either; process temperature enters
+  the *pipeline* only through the externally-fitted discharge curve
+  (`discharge_curve.fit_piecewise_discharge_curve`'s own
+  `process_temperature_c` argument), not through the LP itself. The
+  limitation this bullet originally described (Phase A alone has no
+  temperature-awareness at all) is still exactly true; the pipeline as a
+  whole now does, but only via that one external argument.
 
 - **Phase B, packed bed only**: a one-dimensional two-phase (solid/fluid)
   packed-bed thermocline discharge model (Schumann 1929; docs/DATA.md),
@@ -77,6 +83,21 @@ describes.
   `find_omc()` pattern, and `tests/test_modelica_contract.py`, a
   toolchain-independent static check on the authored Modelica source (same
   pattern OpenSteamOpt's own `test_modelica_contract.py` uses).
+- **Phase C, MVP scope**: the piecewise-linear discharge-curve construction
+  (`src/tes_screen/discharge_curve.py`, C1) and the SOC-dependent dispatch LP
+  (`dispatch.py`'s `soc_dependent` mode), run as a paired comparison against
+  the constant-limit baseline for one case: packed bed, 300 C, flat load
+  (`scripts/run_phase_c_experiment.py`, `outputs/phase_c_packed_bed_300c_flat/`).
+  Both runs terminate optimal with every verification check passing. The
+  finding: the SOC-dependent limit increases annualised cost by 0.22% and
+  required power capacity by 75% for this case, while storage energy capacity
+  falls by 8.3%. See README's Phase C section for the full table. The
+  piecewise construction's safety (it must never let the LP claim more
+  deliverable power than the discharge curve shows is achievable) is checked
+  against the underlying curve data, not assumed from the construction alone;
+  the result was also confirmed stable across 3, 5, 8, and 12 segments (C1's
+  own robustness instruction), with sized capacity and power identical at
+  every count tested.
 
 ## What does not exist yet
 
@@ -90,15 +111,16 @@ describes.
   technology the project's hypothesis expects to show the largest effect
   from the SOC-dependent correction, so it was prioritised alone rather than
   leaving three unfinished.
-- The state-of-charge-dependent discharge limit (Phase C): the whole reason
-  this project exists. Nothing has been compared against the constant-limit
-  baseline yet, so there is no finding, null or otherwise, to report.
+- **The full 18-run technology-ranking matrix** (3 technologies x 2 process
+  temperatures x 3 load profiles, both discharge-limit formulations): not
+  started. Only packed bed has a Phase B dynamic sub-model, so there is no
+  second technology to rank against yet; "does the ranking change" is not
+  answerable from the one MVP case run so far.
 - PCM at 400 C: no common nitrate-salt PCM composition was found in this
   session's research with a melting point usefully close to 400 C, so that
   combination is left undone rather than forced (docs/DATA.md, README).
 - Runs for the two-shift and seasonal load profiles: built
   (`synthetic_profiles.py`) but only the flat profile has been run so far.
-  The full 18-run matrix is Phase C's job.
 - A live ENTSO-E price fetch.
 - Sensitivity analysis, the boundary-harmonisation table, or the
   technology-selection map (Phase D).
@@ -114,14 +136,18 @@ README for the full framing.
 
 ## Validation status
 
-Verified, not validated, and the distinction matters: the Phase A model's
+Verified, not validated, and the distinction matters: the dispatch model's
 energy balance, storage identity, terminal condition, and objective have each
 been independently recomputed from the solved output and checked against the
-solver's own reported numbers (`verification.py`), and that check is run on
-every solve, not only once. The Phase B packed-bed shadow twin is checked
-against three closed-form analytic limits, not against a compiled FMU (no
-OpenModelica toolchain here) and not against any measurement. None of that is
-validation. Nothing in this repository has been checked against measured data
-from a real storage installation, and the current inputs (load profile,
-electricity price) are declared synthetic, not measurements of any real site
-or market.
+solver's own reported numbers (`verification.py`), for both the constant and
+SOC-dependent formulations, and that check is run on every solve, not only
+once. The Phase B packed-bed shadow twin is checked against three closed-form
+analytic limits, not against a compiled FMU (no OpenModelica toolchain here)
+and not against any measurement. The Phase C piecewise discharge-curve
+construction is checked for safety (it must never claim more deliverable
+power than the underlying curve shows) against that same curve's own data,
+and the paired-run finding is checked for stability across four different
+segment counts. None of that is validation. Nothing in this repository has
+been checked against measured data from a real storage installation, and the
+current inputs (load profile, electricity price) are declared synthetic, not
+measurements of any real site or market.
