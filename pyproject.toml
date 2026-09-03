@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tes-screen"
+version = "0.1.0"
+description = "Techno-economic screening of thermal storage for industrial process heat, with dynamically-informed discharge constraints"
+readme = "README.md"
+requires-python = ">=3.10,<3.14"
+license = "MIT"
+authors = [{ name = "Abhijith Sivaprasadan" }]
+keywords = ["thermal energy storage", "techno-economic", "optimization", "pyomo", "modelica"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering",
+]
+dependencies = [
+  "numpy==2.2.6",
+  "pandas==2.3.3",
+  "PyYAML==6.0.2",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest==9.0.2",
+  "ruff==0.15.4",
+]
+
+[project.urls]
+Repository = "https://github.com/abhijith-sivaprasadan/tes-screen"
+Issues = "https://github.com/abhijith-sivaprasadan/tes-screen/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+# UP017 (datetime.UTC alias) needs Python 3.11; this project still supports 3.10.
+ignore = ["UP017"]

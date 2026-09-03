@@ -1,0 +1,52 @@
+# Example case: packed-bed sensible store, 300 C saturated steam process,
+# flat continuous load. See docs/DATA.md for parameter citations once Phase A
+# lands. This file exercises the Phase 0 config contract; it is not yet
+# consumed by an optimisation model.
+
+case_name: packed_bed_300c_flat
+
+process:
+  delivery_temperature_c: 300.0
+  medium: steam
+  profile_shape: flat
+  profile_path: data/profiles/packed_bed_300c_flat.csv
+  annual_peak_load_mw: 10.0
+
+storage:
+  technology: packed_bed
+  energy_capacity_mwh: null   # sizing decision variable once Phase A lands
+  charge_power_max_mw: null
+  discharge_power_max_mw: null
+  eta_charge: 0.95
+  eta_discharge: 0.95
+  standing_loss_fraction_per_hour: 0.002
+  temperature_max_c: 400.0
+  temperature_min_c: 320.0
+  soc_init_fraction: 0.5
+  soc_final_min_fraction: 0.5
+  discharge_limit_mode: constant   # baseline; soc_dependent is the corrected case
+
+supply:
+  electric_heater:
+    efficiency: 0.99
+    capacity_mw: 15.0
+  backup_boiler:
+    fuel: natural_gas
+    fuel_cost_eur_per_mwh: 40.0
+    emission_factor_kg_co2_per_mwh: 202.0
+    capacity_mw: 12.0
+  electricity_price_source: entso_e
+
+economics:
+  currency: EUR
+  discount_rate: 0.06
+  storage_lifetime_years: 25.0
+  storage_capex_eur_per_mwh: 30000.0
+  storage_capex_eur_per_mw: 60000.0
+  carbon_price_eur_per_tco2: 80.0
+
+optimization:
+  solver: highs
+  horizon_hours: 8760
+  time_limit_seconds: 300.0
+  mip_gap: 0.01
