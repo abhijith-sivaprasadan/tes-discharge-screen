@@ -1,4 +1,4 @@
-"""tes-screen: techno-economic screening of thermal storage for industrial process heat."""
+"""tes-discharge-screen: techno-economic screening of thermal storage for process heat."""
 
 from __future__ import annotations
 

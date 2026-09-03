@@ -108,7 +108,7 @@ def build_model(
     price = electricity_price.set_index("hour")["price_eur_per_mwh"].to_dict()
     peak = max(load.values())
 
-    model = pyo.ConcreteModel(name=f"tes-screen-{config.case_name}")
+    model = pyo.ConcreteModel(name=f"tes-discharge-screen-{config.case_name}")
     model.T = pyo.RangeSet(0, horizon - 1)
 
     # Sizing: a config value of null means "let the solver choose"; a given
