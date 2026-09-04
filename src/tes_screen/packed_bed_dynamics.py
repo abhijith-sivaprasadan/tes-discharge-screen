@@ -139,28 +139,69 @@ class DischargeResult:
     config: PackedBedDynamicsConfig
     mass_flow_kg_per_s: float
     inlet_temperature_c: float
-    initial_bed_temperature_c: float
+    initial_bed_temperature_c: float | np.ndarray
+
+
+def bed_stored_energy_j(
+    config: PackedBedDynamicsConfig,
+    fluid_temperature_c: np.ndarray,
+    solid_temperature_c: np.ndarray,
+    reference_temperature_c: float,
+) -> float:
+    """Total sensible energy stored in the bed, referenced to `reference_temperature_c`.
+
+    The same accounting `simulate_discharge`'s own `bed_stored_energy_j`
+    trace column uses (there, always referenced to `inlet_temperature_c`),
+    factored out here as a standalone primitive so a constructed
+    (non-uniform) temperature field can be checked against exactly the same
+    physics rather than a second, potentially drifting, implementation --
+    used by `state_sufficiency.py`'s P0.3 field constructors, and by
+    `discharge_curve.mass_flow_for_target_duration`'s reference-energy
+    calculation.
+    """
+    fluid_capacity_per_volume = (
+        config.porosity * config.air_density_kg_per_m3 * config.air_specific_heat_j_per_kgk
+    )
+    solid_capacity_per_volume = (
+        (1 - config.porosity) * config.rock_density_kg_per_m3 * config.rock_specific_heat_j_per_kgk
+    )
+    dx = config.bed_length_m / config.n_nodes
+    fluid_temperature_c = np.asarray(fluid_temperature_c)
+    solid_temperature_c = np.asarray(solid_temperature_c)
+    return float(
+        config.cross_section_area_m2
+        * dx
+        * np.sum(
+            fluid_capacity_per_volume * (fluid_temperature_c - reference_temperature_c)
+            + solid_capacity_per_volume * (solid_temperature_c - reference_temperature_c)
+        )
+    )
 
 
 def simulate_discharge(
     config: PackedBedDynamicsConfig,
     mass_flow_kg_per_s: float,
-    initial_bed_temperature_c: float,
+    initial_bed_temperature_c: float | np.ndarray,
     inlet_temperature_c: float,
     duration_s: float,
     *,
     heat_transfer_coefficient_override_w_per_m3k: float | None = None,
     n_steps: int = 500,
 ) -> DischargeResult:
-    """Discharge a fully-charged bed at a constant mass flow; the shadow twin.
+    """Discharge a bed at a constant mass flow; the shadow twin.
 
     Cold fluid at `inlet_temperature_c` enters node 0 and flows toward node
     N-1, whose fluid temperature is the delivered outlet temperature. Both
-    phases start at `initial_bed_temperature_c` everywhere (a fully-charged
-    bed). No ambient heat loss term: this is an adiabatic bed model, matching
-    Phase A's separate accounting of standing loss at the annual scale and
-    keeping the energy-conservation analytic check (test_packed_bed_dynamics.py)
-    exact rather than approximate.
+    phases start at `initial_bed_temperature_c`: a single number for a
+    uniform, fully-charged bed (every normal call site in this repository),
+    or a length-`config.n_nodes` array for a non-uniform initial temperature
+    field (P0.3's state-sufficiency experiment, `state_sufficiency.py`) --
+    fluid and solid phases start equilibrated to the same field either way,
+    generalising the uniform case rather than replacing it. No ambient heat
+    loss term: this is an adiabatic bed model, matching Phase A's separate
+    accounting of standing loss at the annual scale and keeping the
+    energy-conservation analytic check (test_packed_bed_dynamics.py) exact
+    rather than approximate.
 
     Time-stepped with backward Euler (implicit), not forward Euler: air's
     volumetric heat capacity is orders of magnitude below rock's, which makes
@@ -216,29 +257,22 @@ def simulate_discharge(
     a_coeff = fluid_capacity_per_volume / dt_s + advective_rate_per_volume / dx + h_v * w_s
     b_coeff = advective_rate_per_volume / dx
 
-    t_f = np.full(n, initial_bed_temperature_c, dtype=float)
-    t_s = np.full(n, initial_bed_temperature_c, dtype=float)
+    t_f = np.array(initial_bed_temperature_c, dtype=float)
+    if t_f.shape == ():
+        t_f = np.full(n, float(t_f))
+    elif t_f.shape != (n,):
+        raise ValueError(
+            f"initial_bed_temperature_c array must have shape ({n},) to match "
+            f"config.n_nodes, got {t_f.shape}"
+        )
+    t_s = t_f.copy()
 
     rows: list[dict[str, float]] = []
-    initial_energy_j = (
-        config.cross_section_area_m2
-        * dx
-        * np.sum(
-            fluid_capacity_per_volume * (t_f - inlet_temperature_c)
-            + solid_capacity_per_volume * (t_s - inlet_temperature_c)
-        )
-    )
+    initial_energy_j = bed_stored_energy_j(config, t_f, t_s, inlet_temperature_c)
     cumulative_outlet_energy_j = 0.0
 
     def record(time_s: float, outlet_energy_j: float) -> None:
-        bed_energy_j = (
-            config.cross_section_area_m2
-            * dx
-            * np.sum(
-                fluid_capacity_per_volume * (t_f - inlet_temperature_c)
-                + solid_capacity_per_volume * (t_s - inlet_temperature_c)
-            )
-        )
+        bed_energy_j = bed_stored_energy_j(config, t_f, t_s, inlet_temperature_c)
         rows.append(
             {
                 "time_s": time_s,

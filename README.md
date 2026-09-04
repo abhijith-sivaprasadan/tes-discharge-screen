@@ -54,6 +54,18 @@ been run; the shadow twin's own correctness instead rests on three analytic
 limits, all passing. See [Phase B](#phase-b-packed-bed-dynamic-sub-model)
 below. Molten-salt and PCM dynamic sub-models do not exist yet.
 
+**Scalar SOC is not shown to be a sufficient state, and this is reported
+rather than hidden.** [P0.3](#p03-is-scalar-soc-a-sufficient-packed-bed-state)
+constructs several bed states at matched total energy but different spatial
+structure and finds near-term deliverable power scattering by up to 220%
+(115% even restricted to states reachable by discharging alone) at the same
+SOC -- so Phase B/C's discharge curve is a **trajectory-derived SOC
+capability curve**, accurate along the one specific bed-state history it
+was built from, not a validated general `Pmax(SOC)` law. This does not
+invalidate Phase C/C2 below (both use exactly that one trajectory,
+consistently), but it is a real limitation to carry forward, stated
+explicitly rather than assumed away.
+
 **Phase C (the paired experiment) is done at MVP scope**: one technology
 (packed bed), one process temperature (300 C), one load profile (flat),
 solved under both discharge-limit formulations. Its original run left the
@@ -154,7 +166,14 @@ spec's B4), all passing:
 
 Discharge curves (state of charge vs. deliverable power) were generated at
 three draw rates and committed with their generating bed config:
-`outputs/packed_bed_dynamics/`.
+`outputs/packed_bed_dynamics/`. **Call this a trajectory-derived SOC
+capability curve, not a universal packed-bed `Pmax(SOC)` law** (roadmap
+P0.3's own documentation-language instruction): it comes from one specific
+trajectory (a fully-charged, spatially uniform bed, discharged continuously
+at one mass flow), and [P0.3](#p03-is-scalar-soc-a-sufficient-packed-bed-state)
+below finds real evidence that total stored energy alone does not determine
+near-term deliverable power for other, differently-shaped bed states at the
+same total energy.
 
 **Temperature semantics (roadmap P0.2).** `discharge_power_curve` separates
 three temperatures an earlier version of this module conflated: `T_process`
@@ -193,6 +212,74 @@ toolchain-independent pattern OpenSteamOpt itself uses for CI. Molten-salt and
 PCM dynamic sub-models do not exist yet: packed bed is the technology the
 project's hypothesis expects to show the largest effect, and a single
 technology fully verified is worth more here than three left unfinished.
+
+## P0.3: is scalar SOC a sufficient packed-bed state?
+
+A packed bed is a distributed-temperature system: two beds holding the same
+total stored energy can have that energy arranged very differently along
+the bed (a sharp thermocline near one end vs. a broad, smeared one), and
+Phase B/C's discharge curve reads deliverable power off total energy alone,
+from a single trajectory. Whether that is actually a safe reduction --
+whether scalar SOC is *sufficient* to predict near-term outlet capability,
+not just correlated with it along the one trajectory the curve was fit from
+-- is an empirical question the single-trajectory construction cannot
+answer by itself. The roadmap's own short-term research test (P0.3) checks
+this directly, rather than assuming it.
+
+**The finding, stated first and plainly, and not softened: scalar SOC is
+not a sufficient state for this bed model.** `state_sufficiency.py`
+constructs four temperature fields at matched total energy (uniform,
+`step_hot_at_inlet`, its mirror image `step_hot_at_outlet`, and a broad
+`smeared` ramp -- same energy, different spatial arrangement, by
+construction; see the module for exactly how) at three energy fractions
+(0.3, 0.5, 0.7), discharges each briefly (30 minutes, ~1.5-2.5% of a full
+breakthrough discharge, at the same mass flow and return temperature every
+time: `scripts/run_state_sufficiency_experiment.py`), and reads deliverable
+power off each at several short-term checkpoints. At fixed total energy,
+deliverable power ranges as widely as **~0 MW to ~0.26 MW** across the
+profile family -- a relative scatter (max-min)/mean of up to **220%** at
+some (energy fraction, checkpoint) pairs, against an explicit 5% threshold
+this experiment would have needed to stay under to call scalar SOC
+adequate. Even restricted to the three profiles reachable by discharging
+alone (excluding `step_hot_at_inlet`, which places the hot block where cold
+fluid enters first -- not reachable without an external recharge or mixing
+step, since a real discharge always erodes from the inlet), the scatter is
+still **up to 115%**. Both numbers, and the full per-(energy fraction,
+checkpoint, profile) table, are in `outputs/state_sufficiency/`.
+
+**Why, physically.** At a short time horizon, near-term deliverable power
+is governed mainly by how much hot material sits immediately upstream of
+the outlet, not by the bed's total energy content. `step_hot_at_outlet`
+puts hot material right at the outlet, so it stays near full power for the
+whole 30-minute window regardless of how little energy the rest of the bed
+holds; `step_hot_at_inlet` puts the same total energy where the incoming
+cold fluid meets it first, so a warming front has to propagate the length
+of the bed before any of it reaches the outlet at all, and in this
+30-minute window essentially none of it does. Total energy is the same;
+near-term capability is not remotely the same.
+
+**What this does and does not mean for Phase C/C2.** It does not invalidate
+those results: Phase C/C2's own trajectory (a uniform, fully-charged bed
+discharging continuously) is one specific, reachable state history, and the
+curve is accurate along that specific history -- the piecewise
+construction's own safety checks (against that trajectory's actual data)
+still hold. What it does mean is that the curve should not be read as a
+general `Pmax(SOC)` relation that would also hold for a bed reaching the
+same SOC by a different route (partial discharge/recharge cycling, for
+instance) -- exactly the caveat the roadmap asks this project to carry
+until a state-sufficiency test exists. It also flags a specific, concrete
+limitation for any future work that lets the annual LP's storage cycle
+partially (charge and discharge within an hour, or repeatedly): the
+piecewise limit currently used would not necessarily be trustworthy there,
+since it was never tested against non-uniform states at all.
+
+**Per the roadmap's own instruction not to hide a negative result here**:
+this is reported as a real, structural limitation of the scalar-SOC
+reduction for this bed model, not rounded down or explained away. A fifth
+profile family the roadmap names (states drawn from realistic
+charge/discharge histories) needs a charging dynamic model this project
+does not have and is left undone rather than approximated; see
+`state_sufficiency.py`'s own module docstring.
 
 ## Phase C (original MVP run): archived, diagnostic only
 
@@ -356,13 +443,14 @@ src/tes_screen/   Python package: config schema, profile contract, provenance,
                   synthetic profiles, electricity price source, the annual
                   dispatch LP (constant and SOC-dependent) and its
                   verification, the Phase B packed-bed shadow twin, the
-                  piecewise discharge-curve construction (C1), and the FMU
-                  export adapter
+                  piecewise discharge-curve construction (C1), the P0.3
+                  temperature-field constructors, and the FMU export adapter
 modelica/         Authored Modelica model(s) for Phase B (not yet compiled here)
 scripts/          Run harnesses: run_case.py (Phase A), run_packed_bed_dynamics.py
                   (Phase B curves), run_phase_c_experiment.py (the original,
                   archived paired comparison), run_phase_c2_duration_matched_experiment.py
-                  (the corrected, matched-duration paired comparison)
+                  (the corrected, matched-duration paired comparison),
+                  run_state_sufficiency_experiment.py (P0.3's state-sufficiency test)
 tests/            Physics and contract tests, not syntax tests
 configs/          One YAML per case; no parameter lives in source
 outputs/          Committed run evidence: config + schedule + solver/verification manifest
@@ -387,13 +475,16 @@ Neither is modified; nothing is imported across repositories.
 Phase 0 (scaffold, done) -> A (annual quasi-steady core, constant discharge
 limit; done to its exit criterion) -> B (targeted dynamic sub-model and
 shadow twin; packed bed done to its exit criterion, molten salt and PCM not
-started, FMU cross-check untestable in this environment) -> C (coupling and
-the paired-run experiment; done at MVP scope, one technology/temperature/
-profile pair, not the full 18-run matrix; original run superseded by C2 as
-the shape-isolated comparison) -> C2 (matched-duration-family sizing fix;
-removes the unequal-duration confound in C's original pairing; done, five
-durations swept) -> D (harmonised comparison and sensitivity, optional
-enrichment; not started).
+started, FMU cross-check untestable in this environment) -> P0.3 (state-
+sufficiency test; done -- scalar SOC found insufficient across the
+constructed profile family, so Phase B's curve is documented as
+trajectory-derived, not a general law) -> C (coupling and the paired-run
+experiment; done at MVP scope, one technology/temperature/profile pair, not
+the full 18-run matrix; original run superseded by C2 as the shape-isolated
+comparison) -> C2 (matched-duration-family sizing fix; removes the
+unequal-duration confound in C's original pairing; done, five durations
+swept) -> D (harmonised comparison and sensitivity, optional enrichment;
+not started).
 
 ## Development
 
@@ -408,6 +499,9 @@ python scripts/run_case.py configs/packed_bed_300c_flat.yaml
 
 # Generate and commit Phase B packed-bed discharge curves:
 python scripts/run_packed_bed_dynamics.py
+
+# Run the P0.3 state-sufficiency experiment (is scalar SOC enough?):
+python scripts/run_state_sufficiency_experiment.py
 
 # Run the Phase C paired constant-vs-SOC-dependent experiment (original,
 # archived; unequal sizing degrees of freedom between formulations -- see

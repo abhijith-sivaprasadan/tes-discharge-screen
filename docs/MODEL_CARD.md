@@ -1,6 +1,6 @@
 # Model card
 
-## Status: Phase 0, A, B (packed bed only), C (MVP scope, archived), and C2 (matched-duration fix) built
+## Status: Phase 0, A, B (packed bed only), P0.3 (state-sufficiency test), C (MVP scope, archived), and C2 (matched-duration fix) built
 
 This card documents what is actually built at this commit, not what the project
 intends to build. It will be rewritten section by section as each phase lands,
@@ -99,6 +99,29 @@ describes.
   `find_omc()` pattern, and `tests/test_modelica_contract.py`, a
   toolchain-independent static check on the authored Modelica source (same
   pattern OpenSteamOpt's own `test_modelica_contract.py` uses).
+- **P0.3, the state-sufficiency experiment.** `src/tes_screen/state_sufficiency.py`
+  constructs temperature fields at matched total stored energy but different
+  spatial structure (uniform, a sharp step with the hot block at the inlet,
+  its mirror image with the hot block at the outlet, and a broad linear
+  ramp), verified to hit their target energy fraction via
+  `packed_bed_dynamics.bed_stored_energy_j` (factored out of
+  `simulate_discharge`'s own internal energy accounting so both use exactly
+  the same physics). `simulate_discharge` itself now accepts either a
+  scalar (uniform, every existing call site) or a per-node array initial
+  temperature field. `scripts/run_state_sufficiency_experiment.py` discharges
+  each constructed field briefly (30 min, three energy fractions) and reads
+  deliverable power off several short-term checkpoints
+  (`outputs/state_sufficiency/`). **Finding: scalar SOC is not sufficient**
+  -- deliverable power at matched total energy scatters by up to 220%
+  (115% even restricted to states reachable by discharging alone) across
+  the profile family, against a 5% [assumption] threshold for "adequate."
+  Reported as a real, structural limitation, not hidden or rounded away, per
+  the roadmap's own instruction. Phase B's discharge curve is documented
+  from here on as a **trajectory-derived SOC capability curve** (accurate
+  along the one bed-state history it was built from), not a validated
+  general `Pmax(SOC)` law; this does not invalidate Phase C/C2 below, which
+  both use exactly that one trajectory, consistently. See README's P0.3
+  section for the full physical explanation and numbers.
 - **Phase C, MVP scope (archived; superseded by C2 below).** The
   piecewise-linear discharge-curve construction (`src/tes_screen/discharge_curve.py`,
   C1) and the SOC-dependent dispatch LP (`dispatch.py`'s `soc_dependent`
@@ -170,6 +193,14 @@ describes.
 - A live ENTSO-E price fetch.
 - Sensitivity analysis, the boundary-harmonisation table, or the
   technology-selection map (Phase D).
+- **A reduced-order state beyond scalar SOC.** P0.3 found scalar SOC
+  insufficient but did not build a replacement (e.g. thermocline position/
+  front width, or a useful-energy-weighted SOC, as the roadmap itself
+  suggests); the annual dispatch LP still uses the scalar-SOC piecewise
+  curve, now with that limitation documented rather than resolved.
+- **The fifth state-sufficiency profile family** (states drawn from
+  realistic charge/discharge histories): needs a charging dynamic model,
+  which this project does not have (Phase B is discharge-only).
 
 ## Intended eventual scope, once later phases land
 
@@ -195,7 +226,12 @@ power than the underlying curve shows) against that same curve's own data
 at every design duration swept in C2, and Phase C's original paired-run
 finding was checked for stability across four different segment counts
 before its own confound (unequal sizing degrees of freedom between the two
-formulations) was found and corrected in C2. None of that is validation. Nothing in this repository has
-been checked against measured data from a real storage installation, and the
-current inputs (load profile, electricity price) are declared synthetic, not
-measurements of any real site or market.
+formulations) was found and corrected in C2. P0.3 goes a step further than
+verifying the curve's own construction: it checks whether the curve's
+underlying premise (that total energy determines outlet capability) holds
+at all outside the one trajectory it was fit from, and finds that it does
+not -- a limitation surfaced by testing, not assumed away. None of that is
+validation. Nothing in this repository has been checked against measured
+data from a real storage installation, and the current inputs (load
+profile, electricity price) are declared synthetic, not measurements of any
+real site or market.

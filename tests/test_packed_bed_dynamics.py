@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 from tes_screen.packed_bed_dynamics import (
+    bed_stored_energy_j,
     default_packed_bed_config,
     discharge_power_curve,
     simulate_discharge,
@@ -279,3 +280,41 @@ def test_invalid_porosity_is_rejected() -> None:
     config = dataclasses.replace(default_packed_bed_config(), porosity=1.5)
     with pytest.raises(ValueError, match="porosity"):
         config.validate()
+
+
+# --- P0.3: non-uniform initial temperature fields -----------------------------
+
+
+def test_simulate_discharge_accepts_a_nonuniform_initial_temperature_field() -> None:
+    # A non-uniform field must actually be applied, not silently collapsed to
+    # its mean or otherwise ignored: the t=0 outlet reading (node N-1's fluid
+    # temperature) must equal exactly what was placed there, and the t=0
+    # stored energy must match the field's own energy content, not a
+    # uniform-bed approximation of it.
+    config = default_packed_bed_config()
+    field = np.linspace(320.0, 400.0, config.n_nodes)
+    result = simulate_discharge(
+        config,
+        mass_flow_kg_per_s=2.0,
+        initial_bed_temperature_c=field,
+        inlet_temperature_c=320.0,
+        duration_s=1800,
+        n_steps=100,
+    )
+    assert np.isclose(result.trace["outlet_temperature_c"].iloc[0], field[-1], atol=1e-9)
+    expected_energy = bed_stored_energy_j(config, field, field, 320.0)
+    assert np.isclose(result.trace["bed_stored_energy_j"].iloc[0], expected_energy, rtol=1e-9)
+
+
+def test_simulate_discharge_rejects_a_wrongly_shaped_initial_temperature_field() -> None:
+    config = default_packed_bed_config()
+    field = np.full(config.n_nodes + 1, 350.0)
+    with pytest.raises(ValueError, match="initial_bed_temperature_c"):
+        simulate_discharge(
+            config,
+            mass_flow_kg_per_s=2.0,
+            initial_bed_temperature_c=field,
+            inlet_temperature_c=320.0,
+            duration_s=1800,
+            n_steps=100,
+        )

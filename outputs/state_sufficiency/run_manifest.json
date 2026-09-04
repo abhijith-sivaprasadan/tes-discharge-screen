@@ -1,0 +1,37 @@
+{
+  "case": "packed_bed_300c_flat reference bed (default_packed_bed_config)",
+  "checkpoints_s": [
+    0.0,
+    300.0,
+    600.0,
+    1200.0,
+    1800.0
+  ],
+  "delta_t_min_hot_side_c": 0.0,
+  "energy_fractions_swept": [
+    0.3,
+    0.5,
+    0.7
+  ],
+  "generated_at": "2026-09-04T04:43:33.037850+00:00",
+  "hot_temperature_c": 400.0,
+  "mass_flow_kg_per_s": 3.0,
+  "max_relative_scatter_excluding_t0": 2.1968638171523334,
+  "max_relative_scatter_excluding_t0_and_step_hot_at_inlet": 1.148191870292749,
+  "process_temperature_c": 300.0,
+  "profile_family": [
+    "uniform",
+    "step_hot_at_inlet",
+    "step_hot_at_outlet",
+    "smeared"
+  ],
+  "profile_family_note": "A fifth family the roadmap names (profiles from realistic charge/discharge histories) needs a charging dynamic model this project does not have; left undone rather than approximated.",
+  "research_question": "Is total stored energy (scalar SOC) a sufficient state for predicting near-term deliverable power, or does the spatial arrangement of that energy along the bed also matter?",
+  "return_temperature_c": 320.0,
+  "scalar_soc_adequate_for_screening": false,
+  "scatter_threshold": 0.05,
+  "scatter_threshold_note": "[assumption]; not a literature figure.",
+  "short_horizon_s": 1800.0,
+  "step_hot_at_inlet_reachability_note": "step_hot_at_inlet places the hot block where cold fluid enters first; a real discharge always erodes from the inlet, so this arrangement is not reachable by discharging alone, unlike the other three profiles. Kept in the headline scatter number, not excluded by default -- the restricted number above is reported alongside it, not in place of it.",
+  "t0_checkpoint_caveat": "The t=0 row is not informative on its own: it exactly reflects the temperature assigned to the field's own outlet-end node, so it is expected to scatter regardless of the rest of the bed's structure. The verdict below excludes it."
+}

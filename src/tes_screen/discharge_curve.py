@@ -36,6 +36,7 @@ import pandas as pd
 from tes_screen.packed_bed_dynamics import (
     DischargeResult,
     PackedBedDynamicsConfig,
+    bed_stored_energy_j,
     discharge_power_curve,
 )
 
@@ -194,17 +195,9 @@ def mass_flow_for_target_duration(
             "delta_t_min_hot_side_c, or a fully-charged bed could never serve the process"
         )
 
-    fluid_capacity_per_volume = (
-        config.porosity * config.air_density_kg_per_m3 * config.air_specific_heat_j_per_kgk
-    )
-    solid_capacity_per_volume = (
-        (1 - config.porosity) * config.rock_density_kg_per_m3 * config.rock_specific_heat_j_per_kgk
-    )
-    reference_energy_j = (
-        config.bed_length_m
-        * config.cross_section_area_m2
-        * (fluid_capacity_per_volume + solid_capacity_per_volume)
-        * (initial_bed_temperature_c - inlet_temperature_c)
+    uniform_field = np.full(config.n_nodes, initial_bed_temperature_c)
+    reference_energy_j = bed_stored_energy_j(
+        config, uniform_field, uniform_field, inlet_temperature_c
     )
     reference_energy_mwh = reference_energy_j / 3.6e9
     target_power_mw = reference_energy_mwh / target_duration_hours
