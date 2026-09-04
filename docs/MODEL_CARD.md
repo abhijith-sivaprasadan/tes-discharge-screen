@@ -217,6 +217,46 @@ describes.
   remains every existing case's default. See README's P0.5 section for the
   full numbers.
 
+## Scaling law
+
+The dispatch LP rescales one reference bed's fitted discharge curve to
+whatever storage energy capacity a case actually sizes, linearly
+(`p_dis[t] <= a_i*level[t] + b_i*E_cap`) -- which implicitly assumes the
+*normalized* curve (state of charge vs. fraction of full-charge power) has
+the same shape at any capacity, not just the one the reference bed happens
+to be. Before P1, that rested on an abstract "same duration ratio"
+argument with no stated physical mechanism for why it should hold.
+
+`src/tes_screen/packed_bed_dynamics.py`'s `scale_parallel_bed` gives it
+one, per roadmap P1.1's "modular area scaling" family: cross-sectional
+area and mass flow scale together by the same factor; bed length, particle
+diameter, porosity, material properties, and node count all stay fixed.
+Under this specific family, mass flux `G = m_dot/A` -- and therefore
+Reynolds number, the Wakao-Kaguei Nusselt number, the volumetric heat
+transfer coefficient, and every coefficient in `simulate_discharge`'s
+governing PDE, none of which reference area directly -- stays exactly
+fixed, not merely approximately. The simulated fluid/solid temperature
+field is therefore identical at every scale factor; only the *totals*
+built from it (stored energy, deliverable power) scale with area, and a
+normalized curve -- a ratio of two equally-scaled quantities -- should
+collapse onto the reference exactly.
+
+**Checked, not assumed** (`scripts/run_scaling_law_experiment.py`,
+`tests/test_scaling_law.py`, `outputs/scaling_law/`): swept across five
+scale factors (0.25x, 0.5x, 1x, 2x, 4x of the default reference bed's
+10 m² cross-section), the maximum deviation between each scaled run's
+normalized curve and the reference run's -- in both state of charge and
+power fraction, at every recorded timestep -- is **exactly 0.0**, not just
+below the [assumption] 1e-6 threshold set to catch a real breakdown of the
+family. The fitted curve's own `k = P_reference/E_reference` ratio (what
+`dispatch.py`'s `duration_matched` branch actually checks a curve against)
+is likewise identical to machine precision across all five scale factors.
+**Exit criterion met: the modular-area-scaling approximation is supported**,
+not merely asserted -- this is the specific, defensible geometric family
+the roadmap asked for, replacing the earlier abstract assumption, with the
+invariance proven exact for this bed model rather than approximately
+small.
+
 ## What does not exist yet
 
 - **The FMU-vs-shadow-twin cross-check.** No OpenModelica toolchain (`omc`)

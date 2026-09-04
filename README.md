@@ -101,7 +101,17 @@ pure LP with independent charge/discharge variables can exploit
 pathologically; **[P0.5](#p05-preventing-pathological-simultaneous-cycling-under-negative-prices)**
 adds an optional MILP operating-mode binary (`storage.cycling_prevention_mode
 == "milp_binary"`) that prevents it, ahead of ever actually needing to run
-against negative prices. See [Sequencing](#sequencing) below.
+against negative prices.
+
+**The dispatch LP's own curve-rescaling assumption is now on a stated,
+checked physical footing.** Every case in this repository rescales one
+reference bed's fitted discharge curve linearly to whatever storage
+capacity the LP actually sizes; **[P1](#p1-the-modular-area-scaling-law)**
+gives that a specific geometric mechanism (`scale_parallel_bed`'s modular
+area scaling) rather than an abstract "same duration ratio," and finds the
+normalized curve collapses onto the reference *exactly* -- 0.0 deviation,
+not just below tolerance -- across a 0.25x-4x sweep. See
+[Sequencing](#sequencing) below.
 
 ## Governing rules
 
@@ -586,21 +596,93 @@ mode continues to solve and verify normally under ordinary nonnegative
 synthetic prices, exactly as every other case in this repository already
 relies on.
 
+## P1: the modular-area-scaling law
+
+**The assumption, stated plainly for the first time.** The dispatch LP
+rescales one reference bed's fitted discharge curve to whatever storage
+energy capacity a case actually sizes, linearly
+(`p_dis[t] <= a_i*level[t] + b_i*E_cap`) -- implicitly assuming the
+*normalized* curve (state of charge vs. fraction of full-charge power) has
+the same shape at any physical bed size, not just the one the reference
+bed happens to be. Every result in this repository already depends on this
+holding; before P1 it rested on an abstract "same duration ratio" argument
+with no stated physical mechanism for why it should.
+
+**A specific, defensible scaling family, not an abstract one.**
+`packed_bed_dynamics.scale_parallel_bed(reference_config,
+reference_mass_flow_kg_per_s, scale_factor)` implements the roadmap's own
+"modular area scaling": cross-sectional area and mass flow scale together
+by the same factor; bed length, particle diameter, porosity, material
+properties, and node count all stay fixed. Under this family, mass flux
+`G = m_dot/A` -- and therefore Reynolds number, the Wakao-Kaguei Nusselt
+number, the volumetric heat transfer coefficient, and every coefficient in
+`simulate_discharge`'s governing PDE, none of which reference area
+directly -- stays exactly fixed, not merely approximately. The simulated
+temperature field is therefore identical at every scale factor; only the
+*totals* built from it scale with area, and a normalized curve, a ratio of
+two equally-scaled quantities, should collapse onto the reference exactly.
+The function returns the scaled config *and* the scaled mass flow
+together, not the config alone: scaling area without mass flow by the same
+factor would silently break the fixed-mass-flux invariant the whole family
+depends on.
+
+**Checked, not assumed.** `scripts/run_scaling_law_experiment.py` sweeps
+five scale factors (0.25x, 0.5x, 1x, 2x, 4x of the default reference bed's
+10 m² cross-section) and compares each scaled run's normalized curve
+against the reference (1x) run's, at every recorded timestep, in both
+state of charge and power fraction.
+
+| Scale factor | Area (m²) | Mass flow (kg/s) | k = P_ref/E_ref (MW/MWh) | Max SOC deviation | Max power-fraction deviation |
+|---:|---:|---:|---:|---:|---:|
+| 0.25x | 2.5 | 0.75 | 0.205968 | 0.0 | 0.0 |
+| 0.5x | 5.0 | 1.50 | 0.205968 | 0.0 | 0.0 |
+| 1x | 10.0 | 3.00 | 0.205968 | 0.0 | 0.0 |
+| 2x | 20.0 | 6.00 | 0.205968 | 0.0 | 0.0 |
+| 4x | 40.0 | 12.00 | 0.205968 | 0.0 | 0.0 |
+
+**Exit criterion met, exactly, not just within tolerance**: the maximum
+deviation across every scale factor is `0.0`, against an [assumption]
+threshold of `1e-6` set to actually catch a real breakdown of the family
+rather than pass by construction. The fitted curve's own
+`k = P_reference/E_reference` ratio -- what `dispatch.py`'s
+`duration_matched` branch checks a discharge curve against before
+accepting it (P0.1) -- is likewise identical to machine precision across
+all five scale factors. This is a stronger result than "small enough to
+support the approximation": for this bed model, under this specific
+scaling family, the approximation is exact, because the underlying physics
+genuinely does not depend on cross-sectional area at all. Every number
+above traces to `outputs/scaling_law/`: the full normalized-curve table
+across all five scale factors and a manifest with the exit-criterion
+verdict.
+
+**What this does and does not establish.** This validates the "same
+reference bed, physically bigger or smaller via area" scaling dispatch.py
+already performs implicitly for every case in this repository. It is a
+different operation from P0.1's `mass_flow_for_target_duration`, which
+varies mass flow at *fixed* area to reach a target design duration --
+deliberately changing mass flux (and therefore the curve's own shape) per
+duration, not preserving it. The two are complementary, not competing:
+P0.1 answers "what does a bed of a different *duration* look like,"
+P1 answers "does a bed of a different *size* at the same duration look the
+same, just bigger."
+
 ## Repository layout
 
 ```
 src/tes_screen/   Python package: config schema, profile contract, provenance,
                   synthetic profiles, electricity price source, the annual
                   dispatch LP (constant and SOC-dependent) and its
-                  verification, the Phase B packed-bed shadow twin, the
-                  piecewise discharge-curve construction (C1), the P0.3
-                  temperature-field constructors, and the FMU export adapter
+                  verification, the Phase B packed-bed shadow twin (including
+                  P1's scale_parallel_bed), the piecewise discharge-curve
+                  construction (C1), the P0.3 temperature-field constructors,
+                  and the FMU export adapter
 modelica/         Authored Modelica model(s) for Phase B (not yet compiled here)
 scripts/          Run harnesses: run_case.py (Phase A), run_packed_bed_dynamics.py
                   (Phase B curves), run_phase_c_experiment.py (the original,
                   archived paired comparison), run_phase_c2_duration_matched_experiment.py
                   (the corrected, matched-duration paired comparison),
-                  run_state_sufficiency_experiment.py (P0.3's state-sufficiency test)
+                  run_state_sufficiency_experiment.py (P0.3's state-sufficiency
+                  test), run_scaling_law_experiment.py (P1's scaling-law check)
 tests/            Physics and contract tests, not syntax tests
 configs/          One YAML per case; no parameter lives in source
 outputs/          Committed run evidence: config + schedule + solver/verification manifest
@@ -637,8 +719,11 @@ swept) -> P0.4 (start-of-hour discharge capability reference; done --
 removes a third confound from C's original pairing, folded into C2's own
 sweep) -> P0.5 (MILP simultaneous-cycling prevention; done -- optional
 `cycling_prevention_mode`, ahead of ever running against real, sometimes
-negative, ENTSO-E prices) -> D (harmonised comparison and sensitivity,
-optional enrichment; not started).
+negative, ENTSO-E prices) -> P1 (modular-area-scaling law; done -- a
+specific, checked geometric scaling family, exact 0.0 deviation across a
+0.25x-4x sweep, replacing the earlier abstract "same duration ratio"
+assumption) -> D (harmonised comparison and sensitivity, optional
+enrichment; not started).
 
 ## Development
 
@@ -664,4 +749,8 @@ python scripts/run_phase_c_experiment.py
 
 # Run the Phase C2 matched-duration-family experiment (corrected comparison):
 python scripts/run_phase_c2_duration_matched_experiment.py
+
+# Run the P1 scaling-law exit-criterion check (does the normalized curve
+# collapse across bed sizes?):
+python scripts/run_scaling_law_experiment.py
 ```

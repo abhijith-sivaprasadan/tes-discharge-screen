@@ -1,0 +1,79 @@
+{
+  "case": "packed_bed default config, modular area scaling (roadmap P1.1)",
+  "deviation_threshold": 1e-06,
+  "deviation_threshold_note": "[assumption]; not a literature figure.",
+  "duration_s": 72000.0,
+  "exit_criterion": {
+    "scaling_approximation_supported": true,
+    "text": "Maximum normalized curve deviation is reported and small enough to support the scaling approximation, or the approximation is rejected."
+  },
+  "generated_at": "2026-09-04T11:55:24.693110+00:00",
+  "max_deviation_across_all_scale_factors": 0.0,
+  "n_steps": 1000,
+  "note": "Tests whether the dispatch LP's linear b_i*E_cap rescaling of one reference bed's fitted discharge curve to an arbitrary storage capacity is physically defensible under a specific, stated scaling family: cross-sectional area and mass flow scale together, holding bed length, particle diameter, porosity, material properties, and mass flux (and therefore Reynolds number, the Wakao-Kaguei Nusselt number, and the volumetric heat transfer coefficient) fixed. A normalized curve (state of charge; power as a fraction of that run's own full-charge power) should collapse onto the reference (1x) run's own normalized curve at every scale factor if the family is valid.",
+  "per_scale_results": [
+    {
+      "cross_section_area_m2": 2.5,
+      "k_deviation_from_reference": 0.0,
+      "k_mw_per_mwh": 0.20596826171109867,
+      "mass_flow_kg_per_s": 0.75,
+      "max_power_fraction_deviation": 0.0,
+      "max_state_of_charge_deviation": 0.0,
+      "reference_energy_capacity_mwh": 0.3160681138888889,
+      "reference_rated_power_mw": 0.0651,
+      "scale_factor": 0.25
+    },
+    {
+      "cross_section_area_m2": 5.0,
+      "k_deviation_from_reference": 0.0,
+      "k_mw_per_mwh": 0.20596826171109867,
+      "mass_flow_kg_per_s": 1.5,
+      "max_power_fraction_deviation": 0.0,
+      "max_state_of_charge_deviation": 0.0,
+      "reference_energy_capacity_mwh": 0.6321362277777778,
+      "reference_rated_power_mw": 0.1302,
+      "scale_factor": 0.5
+    },
+    {
+      "cross_section_area_m2": 10.0,
+      "k_deviation_from_reference": 0.0,
+      "k_mw_per_mwh": 0.20596826171109867,
+      "mass_flow_kg_per_s": 3.0,
+      "max_power_fraction_deviation": 0.0,
+      "max_state_of_charge_deviation": 0.0,
+      "reference_energy_capacity_mwh": 1.2642724555555556,
+      "reference_rated_power_mw": 0.2604,
+      "scale_factor": 1.0
+    },
+    {
+      "cross_section_area_m2": 20.0,
+      "k_deviation_from_reference": 0.0,
+      "k_mw_per_mwh": 0.20596826171109867,
+      "mass_flow_kg_per_s": 6.0,
+      "max_power_fraction_deviation": 0.0,
+      "max_state_of_charge_deviation": 0.0,
+      "reference_energy_capacity_mwh": 2.528544911111111,
+      "reference_rated_power_mw": 0.5208,
+      "scale_factor": 2.0
+    },
+    {
+      "cross_section_area_m2": 40.0,
+      "k_deviation_from_reference": 0.0,
+      "k_mw_per_mwh": 0.20596826171109867,
+      "mass_flow_kg_per_s": 12.0,
+      "max_power_fraction_deviation": 0.0,
+      "max_state_of_charge_deviation": 0.0,
+      "reference_energy_capacity_mwh": 5.057089822222222,
+      "reference_rated_power_mw": 1.0416,
+      "scale_factor": 4.0
+    }
+  ],
+  "reference_mass_flow_kg_per_s": 3.0,
+  "scale_factors": [
+    0.25,
+    0.5,
+    1.0,
+    2.0,
+    4.0
+  ]
+}

@@ -25,7 +25,7 @@ coefficient reducing to a well-mixed tank, and exact energy conservation).
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from typing import Any
 
 import numpy as np
@@ -103,6 +103,50 @@ def default_packed_bed_config() -> PackedBedDynamicsConfig:
     )
     config.validate()
     return config
+
+
+def scale_parallel_bed(
+    reference_config: PackedBedDynamicsConfig,
+    reference_mass_flow_kg_per_s: float,
+    scale_factor: float,
+) -> tuple[PackedBedDynamicsConfig, float]:
+    """Modular area scaling (roadmap P1.1): a specific, defensible geometric
+    family for rescaling one reference bed's discharge curve to an
+    arbitrary storage capacity, replacing the vaguer "same duration ratio"
+    assumption the dispatch LP's linear `b_i*E_cap` scaling used to rest on
+    without a stated mechanism.
+
+    Bed length, particle diameter, porosity, material properties and node
+    count all stay fixed; only cross-sectional area `A` and mass flow
+    `m_dot` scale, together, by `scale_factor`, holding the mass flux
+    `G = m_dot/A` -- and therefore Reynolds number, the Wakao-Kaguei
+    Nusselt number, the volumetric heat transfer coefficient, and every
+    coefficient in `simulate_discharge`'s governing PDE, none of which
+    reference `A` directly -- exactly fixed, not merely approximately.
+    Since none of `simulate_discharge`'s physics depends on `A`, the
+    resulting fluid/solid temperature fields `T_f(x,t)`, `T_s(x,t)` are
+    identical to the reference run's at every scale factor; only the
+    *totals* built from them (`bed_stored_energy_j`, `cumulative_outlet_energy_j`,
+    `discharge_power_curve`'s `storage_heat_mw`) scale with `A`. A
+    *normalized* curve (state of charge, a ratio of two `A`-proportional
+    energies; power as a fraction of the reference rated power, a ratio of
+    two `A`-proportional powers) should therefore collapse onto the
+    reference curve exactly, up to floating-point roundoff -- checked, not
+    assumed, in `tests/test_scaling_law.py` and
+    `scripts/run_scaling_law_experiment.py`.
+
+    Returns `(scaled_config, scaled_mass_flow_kg_per_s)` together, not the
+    config alone: scaling area without scaling mass flow by the same factor
+    would silently break the fixed-mass-flux invariant this family depends
+    on, so there is no way to call this and forget the second half.
+    """
+    if scale_factor <= 0:
+        raise ValueError("scale_factor must be positive")
+    scaled_config = replace(
+        reference_config,
+        cross_section_area_m2=reference_config.cross_section_area_m2 * scale_factor,
+    )
+    return scaled_config, reference_mass_flow_kg_per_s * scale_factor
 
 
 def volumetric_heat_transfer_coefficient(
