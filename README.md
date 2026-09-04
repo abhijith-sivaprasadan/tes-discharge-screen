@@ -57,17 +57,21 @@ below. Molten-salt and PCM dynamic sub-models do not exist yet.
 **Phase C (the paired experiment) is done at MVP scope**: one technology
 (packed bed), one process temperature (300 C), one load profile (flat),
 solved under both discharge-limit formulations. Its original run left the
-two formulations with unequal sizing degrees of freedom (see the note at the
-top of [Phase C](#phase-c-original-mvp-run-archived-diagnostic-only)), which
+two formulations with unequal sizing degrees of freedom and mixed the
+process and return temperature references (see the note at the top of
+[Phase C](#phase-c-original-mvp-run-archived-diagnostic-only)), which
 confounded "the discharge-limit shape changed" with "the two runs were also
-allowed different durations." **[Phase C2](#phase-c2-matched-duration-family-experiment-the-corrected-comparison)**
-fixes this by tying power to energy capacity at the same externally chosen
-duration in both formulations, and finds the isolated shape effect is much
-smaller than Phase C's original number: a total-cost delta ranging from
-+0.001% to +0.055% across a 2-12h duration sweep, versus Phase C's original
-+0.22% at its own (confounded, unequal) durations. This is not the full
-18-run technology-ranking matrix (only packed bed has a Phase B dynamic
-sub-model yet), so whether the technology ranking itself changes is not
+allowed different durations" and inflated deliverable power with enthalpy
+already present in the return stream. **[Phase C2](#phase-c2-matched-duration-family-experiment-the-corrected-comparison)**
+fixes both (roadmap P0.1 and P0.2): ties power to energy capacity at the
+same externally chosen duration in both formulations, and references
+deliverable power consistently to the store's own return temperature. The
+isolated shape effect is much smaller than Phase C's original number: a
+total-cost delta ranging from +0.013% to +0.080% across a 2-12h duration
+sweep, versus Phase C's original +0.22% at its own (confounded,
+mis-referenced) durations. This is not the full 18-run technology-ranking
+matrix (only packed bed has a Phase B dynamic sub-model yet), so whether the
+technology ranking itself changes is not
 answerable from this result.
 
 Electricity prices are synthetic in every run so far: this working environment
@@ -148,9 +152,34 @@ spec's B4), all passing:
 | Infinite heat transfer coefficient: single-node bed reduces to a well-mixed tank's closed-form exponential response | pass, matches to 1e-3 relative / 1e-2 C absolute |
 | Energy conservation: cumulative outlet enthalpy flow equals stored-energy loss | pass, to 1e-9 relative (near machine precision) |
 
-Discharge curves (state of charge vs. deliverable power above the 300 C
-process temperature) were generated at three draw rates and committed with
-their generating bed config: `outputs/packed_bed_dynamics/`.
+Discharge curves (state of charge vs. deliverable power) were generated at
+three draw rates and committed with their generating bed config:
+`outputs/packed_bed_dynamics/`.
+
+**Temperature semantics (roadmap P0.2).** `discharge_power_curve` separates
+three temperatures an earlier version of this module conflated: `T_process`
+(the process's service temperature), `delta_T_min_hot_side` (minimum
+heat-exchanger approach above it, `0.0` throughout this repository --
+`docs/DATA.md`'s own [assumption] note), and `T_return` (the HTF
+temperature entering the bed, an explicit simulation input, never derived
+from `T_process`). `storage_heat_mw` (net thermal power extracted from the
+bed, `m_dot * cp * (T_out - T_return)`) is referenced to the same
+temperature the bed's own stored-energy accounting uses, so a fully
+depleted bed reports exactly zero rather than a negative number that
+happened to get clipped, and integrating it against time now reproduces
+the bed's own stored-energy drop (checked directly, not assumed:
+`test_integrated_storage_heat_matches_the_beds_own_stored_energy_drop`).
+`deliverable_power_mw` then applies a quality gate on top of that --
+zero whenever the outlet cannot clear `T_required_out = T_process +
+delta_T_min_hot_side`, even though the bed still holds recoverable
+sensible energy at that point -- and it is this gated stream, not the
+ungated `storage_heat_mw`, that Phase C's piecewise construction fits and
+the dispatch LP sees. Before this fix, deliverable power was computed
+against `T_process` while stored energy was computed against `T_return`,
+so whenever the two differed, enthalpy already present in the return
+stream was counted as if storage had supplied it -- inflating every
+SOC-dependent sizing result derived from this curve, including Phase C's
+original one.
 
 **What has not been done, and why.** No OpenModelica toolchain (`omc`) or
 `fmpy` is installed in this working environment, so the Modelica model above
@@ -247,24 +276,26 @@ full segment-count robustness table.
 
 **The finding, stated first and plainly:** once both formulations are tied
 to the same design duration (`storage.design_duration_hours`, so power is
-always `E_cap / tau` in both, identically) rather than each choosing its own
-independent power rating, the isolated effect of the SOC-dependent
-discharge limit is much smaller than Phase C's original (confounded,
-unequal-duration) estimate. Swept across five design durations from 2h to
-12h, the SOC-dependent formulation costs **+0.001% to +0.055%** more than
-the constant-limit baseline at the same duration -- real, and always in the
-direction Phase A's constant-limit assumption predicted (SOC-dependent
-never costs less), but roughly an order of magnitude smaller than the
-+0.22% Phase C originally reported, because that number also carried the
-duration mismatch documented above.
+always `E_cap / tau` in both, identically) and deliverable power is
+referenced consistently to the store's own return temperature rather than
+mixed with the process temperature (P0.1 and P0.2, both applied here), the
+isolated effect of the SOC-dependent discharge limit is much smaller than
+Phase C's original (confounded, unequal-duration, mis-referenced) estimate.
+Swept across five design durations from 2h to 12h, the SOC-dependent
+formulation costs **+0.013% to +0.080%** more than the constant-limit
+baseline at the same duration -- real, and always in the direction Phase
+A's constant-limit assumption predicted (SOC-dependent never costs less),
+but still roughly an order of magnitude smaller than the +0.22% Phase C
+originally reported, because that number also carried the duration
+mismatch and temperature-reference bug documented above.
 
 | Design duration (tau) | Constant limit cost (EUR/yr) | SOC-dependent cost (EUR/yr) | Delta | Constant E_cap (MWh) | SOC-dependent E_cap (MWh) |
 |---:|---:|---:|---:|---:|---:|
-| 2h | 4,019,225.76 | 4,019,279.97 | +0.001% | 45.87 | 45.87 |
-| 4h | 4,000,234.86 | 4,000,707.13 | +0.012% | 50.43 | 50.43 |
-| 6h | 3,993,618.08 | 3,995,095.95 | +0.037% | 54.99 | 54.99 |
-| 8h | 3,992,555.33 | 3,994,748.68 | +0.055% | 54.99 | 57.16 |
-| 12h | 3,996,426.99 | 3,998,018.38 | +0.040% | 60.75 | 62.36 |
+| 2h | 4,019,225.76 | 4,019,765.19 | +0.013% | 45.87 | 45.87 |
+| 4h | 4,000,234.86 | 4,001,593.65 | +0.034% | 50.43 | 50.99 |
+| 6h | 3,993,618.08 | 3,996,217.31 | +0.065% | 54.99 | 55.71 |
+| 8h | 3,992,555.33 | 3,995,758.35 | +0.080% | 54.99 | 58.85 |
+| 12h | 3,996,426.99 | 3,999,416.67 | +0.075% | 60.75 | 63.38 |
 
 All ten runs (five durations x two formulations) solved to `optimal` and
 passed every independent verification check. The headline duration (6h,
@@ -275,24 +306,28 @@ safety, solver status, and delta is in the run manifest.
 | | Constant limit (tau=6h) | SOC-dependent (tau=6h) | Delta |
 |---|---:|---:|---:|
 | Termination | optimal | optimal | |
-| Annualised total cost (EUR/yr) | 3,993,618.08 | 3,995,095.95 | +1,477.88 (+0.037%) |
-| Storage energy capacity (MWh-th) | 54.99 | 54.99 | 0.00 (tied by construction here) |
-| Storage power capacity (MW) | 9.16 | 9.16 | 0.00 (E_cap/tau, identical) |
-| Backup fuel cost (EUR/yr) | 1,014,756.09 | 1,029,753.29 | +14,997.21 |
-| Electricity cost (EUR/yr) | 2,524,452.26 | 2,504,874.05 | -19,578.21 |
-| Emissions (tCO2/yr) | 5,124.52 | 5,200.25 | +75.74 |
-| Solve time | 10.5 s | 30.9 s | |
+| Annualised total cost (EUR/yr) | 3,993,618.08 | 3,996,217.31 | +2,599.23 (+0.065%) |
+| Storage energy capacity (MWh-th) | 54.99 | 55.71 | +0.73 (+1.3%) |
+| Storage power capacity (MW) | 9.16 | 9.29 | +0.12 (E_cap/tau, so it moves with E_cap) |
+| Backup fuel cost (EUR/yr) | 1,014,756.09 | 1,030,227.14 | +15,471.05 |
+| Electricity cost (EUR/yr) | 2,524,452.26 | 2,504,742.39 | -19,709.87 |
+| Emissions (tCO2/yr) | 5,124.52 | 5,202.65 | +78.13 |
+| Solve time | 10.8 s | 19.7 s | |
 
-**Why energy capacity, not just power, can still differ between the two
-formulations at a given tau (8h and 12h above).** `design_duration_hours`
-ties power to `E_cap / tau` identically in both -- the one degree of
-freedom Phase C's original run left unequal -- but `E_cap` itself is still
-a free decision variable in each formulation. At 8h and 12h the optimiser
-chooses a slightly larger store under the SOC-dependent limit than under
-the constant one, which is exactly the effect this comparison is meant to
-isolate: the discharge-limit shape alone, at matched duration, still
-nudges the solver toward more storage, just far less dramatically than
-Phase C's original (also-duration-driven) result suggested.
+**Why energy capacity (and, through it, power) can still differ between the
+two formulations at every tau in this table, more visibly than the P0.1-only
+version of this experiment showed.** `design_duration_hours` ties power to
+`E_cap / tau` identically in both -- the one degree of freedom Phase C's
+original run left unequal -- but `E_cap` itself is still a free decision
+variable in each formulation, and with P0.2's corrected reference the
+SOC-dependent curve's power declines faster with state of charge than the
+pre-P0.2 curve did (it no longer gets credited with enthalpy already
+present in the return stream), so the optimiser leans on a somewhat larger
+store to compensate. This is exactly the effect this comparison is meant to
+isolate: the discharge-limit shape alone, at matched duration and with a
+consistent temperature reference, still nudges the solver toward more
+storage, just far less dramatically than Phase C's original (duration- and
+reference-mismatched) result suggested.
 
 **How the matched curves were built.** For each swept tau, the discharge
 mass flow is solved for directly (`discharge_curve.mass_flow_for_target_duration`)
@@ -301,13 +336,13 @@ so the resulting curve's own reference power/energy ratio already equals
 piecewise curve fit -- a curve genuinely specific to that duration, not one
 curve rescaled after the fact. `dispatch.py`'s `duration_matched` branch
 checks this equality at model-build time and refuses a mismatched curve
-rather than silently accepting one.
-
-**Scope this does not cover.** This fix reuses the existing deliverable-power
-reference (`discharge_power_curve`'s definition, referenced to the process
-temperature) unchanged; a separate, already-tracked issue in that reference
-mixing the process and return temperatures is out of scope here, by design,
-so as not to conflate two independent corrections in one change.
+rather than silently accepting one. Deliverable power (and, through
+`mass_flow_for_target_duration`, the reference power this solves against)
+is now computed per P0.2: referenced to the bed's own return temperature
+`T_return`, with a quality gate at `T_process + delta_T_min_hot_side`
+(`delta_T_min_hot_side = 0` here; see docs/DATA.md) applied on top, rather
+than mixing the process and return temperature references the way Phase C's
+original run did.
 
 Every number above traces to `outputs/phase_c2_duration_matched/`: the
 headline (6h) duration's hourly schedules and fitted curve breakpoints, and

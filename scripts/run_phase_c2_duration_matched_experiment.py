@@ -1,4 +1,4 @@
-"""Phase C2: the matched-duration-family paired experiment (roadmap fix P0.1).
+"""Phase C2: the matched-duration-family paired experiment (roadmap fixes P0.1/P0.2).
 
 Usage: python scripts/run_phase_c2_duration_matched_experiment.py
 
@@ -19,12 +19,18 @@ SOC-dependent curve at each tau is refit from a bed re-simulated at the mass
 flow `discharge_curve.mass_flow_for_target_duration` solves for, so its own
 k also equals 1/tau exactly (dispatch.py enforces this at build time).
 
-This does not resolve the separate P0.2 issue (the discharge curve's
-reference power mixes the process and return temperature references); see
-discharge_curve.py's `mass_flow_for_target_duration` docstring for that
-scope decision. It also does not overwrite Phase C's original (confounded)
-result at outputs/phase_c_packed_bed_300c_flat/, kept as an archived,
-diagnostic-only baseline per the roadmap's own instruction.
+Also applies P0.2's temperature-reference fix: `discharge_power_curve`
+(and, through it, `mass_flow_for_target_duration` and the piecewise fit)
+now reference deliverable power to T_return (the bed's own HTF return
+temperature, `REFERENCE_INLET_TEMPERATURE_C`), the same reference the
+bed's own stored-energy accounting uses, rather than mixing it with
+T_process; a quality gate on top of that (`T_required_out = T_process +
+delta_T_min_hot_side`) still zeroes deliverable power once the outlet can
+no longer serve the process, matching the earlier behaviour when
+`delta_t_min_hot_side_c = 0`. This script's own output supersedes its own
+earlier (P0.1-only) run; it does not overwrite Phase C's original
+(confounded) result at outputs/phase_c_packed_bed_300c_flat/, kept as an
+archived, diagnostic-only baseline per the roadmap's own instruction.
 """
 
 from __future__ import annotations
@@ -57,7 +63,10 @@ from tes_screen.verification import verify_schedule  # noqa: E402
 
 CONFIG_PATH = Path("configs/packed_bed_300c_flat.yaml")
 REFERENCE_INITIAL_BED_TEMPERATURE_C = 400.0
-REFERENCE_INLET_TEMPERATURE_C = 320.0
+REFERENCE_INLET_TEMPERATURE_C = 320.0  # T_return: explicit, not derived from T_process (P0.2)
+# [assumption] no heat-exchanger approach modelled explicitly yet; see
+# run_packed_bed_dynamics.py's own note.
+DELTA_T_MIN_HOT_SIDE_C = 0.0
 REFERENCE_N_STEPS = 1500
 PRIMARY_N_SEGMENTS = 5
 DESIGN_DURATIONS_HOURS = [2.0, 4.0, 6.0, 8.0, 12.0]
@@ -88,6 +97,7 @@ def _curve_for_duration(design_duration_hours: float, process_temperature_c: flo
         initial_bed_temperature_c=REFERENCE_INITIAL_BED_TEMPERATURE_C,
         inlet_temperature_c=REFERENCE_INLET_TEMPERATURE_C,
         process_temperature_c=process_temperature_c,
+        delta_t_min_hot_side_c=DELTA_T_MIN_HOT_SIDE_C,
     )
     result = simulate_discharge(
         bed_config,
@@ -98,9 +108,11 @@ def _curve_for_duration(design_duration_hours: float, process_temperature_c: flo
         n_steps=REFERENCE_N_STEPS,
     )
     curve = fit_piecewise_discharge_curve(
-        result, process_temperature_c, n_segments=PRIMARY_N_SEGMENTS
+        result, process_temperature_c, DELTA_T_MIN_HOT_SIDE_C, n_segments=PRIMARY_N_SEGMENTS
     )
-    safety = verify_piecewise_curve_is_safe(curve, result, process_temperature_c)
+    safety = verify_piecewise_curve_is_safe(
+        curve, result, process_temperature_c, DELTA_T_MIN_HOT_SIDE_C
+    )
     return curve, mass_flow, safety
 
 
@@ -193,23 +205,30 @@ def main() -> None:
     manifest = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "case": "packed_bed_300c_flat",
-        "fix": "roadmap P0.1: matched-duration-family sizing",
+        "fix": "roadmap P0.1 (matched-duration-family sizing) + P0.2 (temperature-reference fix)",
         "note": (
             "Supersedes outputs/phase_c_packed_bed_300c_flat/ as the paired "
             "comparison of discharge-limit shape: that run left the two "
             "formulations with unequal sizing degrees of freedom (constant "
             "tau=7.41h vs soc_dependent tau=3.88h from its own manifest), so "
             "part of its 'soc_dependent needs more power' result could be "
-            "duration, not shape. Here storage.design_duration_hours ties "
-            "power to E_cap/tau identically in both formulations at each "
-            "swept tau (dispatch.py's duration_matched branch), and the "
-            "soc_dependent curve at each tau is refit at the matched mass "
-            "flow (discharge_curve.mass_flow_for_target_duration) so its own "
-            "k=P/E ratio equals 1/tau exactly, not reused from one bed run "
-            "across all durations. The original phase_c_packed_bed_300c_flat "
-            "run is kept in place, unmodified, as an archived/diagnostic "
-            "result, not deleted or overwritten -- see its own directory."
+            "duration, not shape (P0.1). It also computed deliverable power "
+            "against T_process while the bed's own stored-energy accounting "
+            "used T_return, counting enthalpy already present in the return "
+            "stream as if storage supplied it (P0.2). Here "
+            "storage.design_duration_hours ties power to E_cap/tau "
+            "identically in both formulations at each swept tau (dispatch.py's "
+            "duration_matched branch, P0.1), the soc_dependent curve at each "
+            "tau is refit at the matched mass flow "
+            "(discharge_curve.mass_flow_for_target_duration) so its own k=P/E "
+            "ratio equals 1/tau exactly, and discharge_power_curve references "
+            "deliverable power to T_return with an explicit quality gate at "
+            "T_process + delta_T_min_hot_side (P0.2, packed_bed_dynamics.py). "
+            "The original phase_c_packed_bed_300c_flat run is kept in place, "
+            "unmodified, as an archived/diagnostic result, not deleted or "
+            "overwritten -- see its own directory."
         ),
+        "delta_t_min_hot_side_c": DELTA_T_MIN_HOT_SIDE_C,
         "design_durations_swept_hours": DESIGN_DURATIONS_HOURS,
         "headline_duration_hours": HEADLINE_DURATION_HOURS,
         "sweep": sweep,

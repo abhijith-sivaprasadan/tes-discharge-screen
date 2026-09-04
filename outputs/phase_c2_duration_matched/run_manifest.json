@@ -1,6 +1,7 @@
 {
   "all_runs_verified": true,
   "case": "packed_bed_300c_flat",
+  "delta_t_min_hot_side_c": 0.0,
   "design_durations_swept_hours": [
     2.0,
     4.0,
@@ -8,10 +9,10 @@
     8.0,
     12.0
   ],
-  "fix": "roadmap P0.1: matched-duration-family sizing",
-  "generated_at": "2026-09-04T02:53:58.584539+00:00",
+  "fix": "roadmap P0.1 (matched-duration-family sizing) + P0.2 (temperature-reference fix)",
+  "generated_at": "2026-09-04T04:02:11.565484+00:00",
   "headline_duration_hours": 6.0,
-  "note": "Supersedes outputs/phase_c_packed_bed_300c_flat/ as the paired comparison of discharge-limit shape: that run left the two formulations with unequal sizing degrees of freedom (constant tau=7.41h vs soc_dependent tau=3.88h from its own manifest), so part of its 'soc_dependent needs more power' result could be duration, not shape. Here storage.design_duration_hours ties power to E_cap/tau identically in both formulations at each swept tau (dispatch.py's duration_matched branch), and the soc_dependent curve at each tau is refit at the matched mass flow (discharge_curve.mass_flow_for_target_duration) so its own k=P/E ratio equals 1/tau exactly, not reused from one bed run across all durations. The original phase_c_packed_bed_300c_flat run is kept in place, unmodified, as an archived/diagnostic result, not deleted or overwritten -- see its own directory.",
+  "note": "Supersedes outputs/phase_c_packed_bed_300c_flat/ as the paired comparison of discharge-limit shape: that run left the two formulations with unequal sizing degrees of freedom (constant tau=7.41h vs soc_dependent tau=3.88h from its own manifest), so part of its 'soc_dependent needs more power' result could be duration, not shape (P0.1). It also computed deliverable power against T_process while the bed's own stored-energy accounting used T_return, counting enthalpy already present in the return stream as if storage supplied it (P0.2). Here storage.design_duration_hours ties power to E_cap/tau identically in both formulations at each swept tau (dispatch.py's duration_matched branch, P0.1), the soc_dependent curve at each tau is refit at the matched mass flow (discharge_curve.mass_flow_for_target_duration) so its own k=P/E ratio equals 1/tau exactly, and discharge_power_curve references deliverable power to T_return with an explicit quality gate at T_process + delta_T_min_hot_side (P0.2, packed_bed_dynamics.py). The original phase_c_packed_bed_300c_flat run is kept in place, unmodified, as an archived/diagnostic result, not deleted or overwritten -- see its own directory.",
   "sweep": [
     {
       "constant_limit": {
@@ -32,38 +33,38 @@
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 11.110352872000021
+          "wall_time_seconds": 11.399271009000017
         },
         "verification_passed": true
       },
-      "curve_fit_max_overestimate_mw": 0.0023140447383070972,
-      "curve_fit_mean_absolute_error_mw": 0.015643580179231086,
+      "curve_fit_max_overestimate_mw": 6.777977566433212e-05,
+      "curve_fit_mean_absolute_error_mw": 0.017526686152903537,
       "delta_soc_dependent_minus_constant": {
         "e_cap_mwh": 0.0,
-        "total_cost_eur": 54.21670330595225,
-        "total_cost_pct": 0.001348934013044828
+        "total_cost_eur": 539.4284338997677,
+        "total_cost_pct": 0.013421202650125244
       },
       "design_duration_hours": 2.0,
-      "mass_flow_kg_per_s": 5.826140348182284,
+      "mass_flow_kg_per_s": 7.282675435227855,
       "soc_dependent": {
         "kpis": {
-          "carbon_cost_eur": 419034.3078775336,
+          "carbon_cost_eur": 421528.7561612662,
           "e_cap_mwh": 45.86821443358512,
-          "electricity_cost_eur": 2502033.9950601677,
-          "emissions_tco2": 5237.92884846917,
-          "fuel_cost_eur": 1037213.6333602316,
+          "electricity_cost_eur": 2493850.381567189,
+          "emissions_tco2": 5269.109452015828,
+          "fuel_cost_eur": 1043388.0103001638,
           "max_heat_balance_residual_mw": 8.881784197001252e-16,
           "power_rating_mw": 22.93410721679256,
-          "total_cost_eur": 4019279.9743498005,
+          "total_cost_eur": 4019765.1860803943,
           "unmet_heat_mwh": 0.0
         },
         "solver": {
           "name": "HiGHS",
-          "objective_eur": 4019279.9743498005,
+          "objective_eur": 4019765.1860803943,
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 27.76761145499995
+          "wall_time_seconds": 23.64797269999997
         },
         "verification_passed": true
       }
@@ -87,38 +88,38 @@
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 10.036485447999894
+          "wall_time_seconds": 9.907173479999983
         },
         "verification_passed": true
       },
-      "curve_fit_max_overestimate_mw": 0.0006932909761165201,
-      "curve_fit_mean_absolute_error_mw": 0.008496399596903403,
+      "curve_fit_max_overestimate_mw": 1.19128936688501e-05,
+      "curve_fit_mean_absolute_error_mw": 0.00911426750932247,
       "delta_soc_dependent_minus_constant": {
-        "e_cap_mwh": 0.0,
-        "total_cost_eur": 472.2718742368743,
-        "total_cost_pct": 0.011806103653119676
+        "e_cap_mwh": 0.5598417962978814,
+        "total_cost_eur": 1358.7876920150593,
+        "total_cost_pct": 0.03396769786563019
       },
       "design_duration_hours": 4.0,
-      "mass_flow_kg_per_s": 2.913070174091142,
+      "mass_flow_kg_per_s": 3.6413377176139274,
       "soc_dependent": {
         "kpis": {
-          "carbon_cost_eur": 415919.4012426195,
-          "e_cap_mwh": 50.42984621915154,
-          "electricity_cost_eur": 2507944.728289117,
-          "emissions_tco2": 5198.992515532744,
-          "fuel_cost_eur": 1029503.4684223254,
+          "carbon_cost_eur": 417311.22556033346,
+          "e_cap_mwh": 50.989688015449424,
+          "electricity_cost_eur": 2503468.775054706,
+          "emissions_tco2": 5216.3903195041685,
+          "fuel_cost_eur": 1032948.5781196372,
           "max_heat_balance_residual_mw": 8.881784197001252e-16,
-          "power_rating_mw": 12.607461554787886,
-          "total_cost_eur": 4000707.134390287,
+          "power_rating_mw": 12.747422003862356,
+          "total_cost_eur": 4001593.6502080653,
           "unmet_heat_mwh": 0.0
         },
         "solver": {
           "name": "HiGHS",
-          "objective_eur": 4000707.134390287,
+          "objective_eur": 4001593.6502080653,
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 28.2321406210001
+          "wall_time_seconds": 22.758605183999975
         },
         "verification_passed": true
       }
@@ -142,38 +143,38 @@
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 10.53971969500003
+          "wall_time_seconds": 10.806318853999983
         },
         "verification_passed": true
       },
-      "curve_fit_max_overestimate_mw": 0.0003445218414138418,
-      "curve_fit_mean_absolute_error_mw": 0.0058754534797706105,
+      "curve_fit_max_overestimate_mw": 4.341537767808951e-06,
+      "curve_fit_mean_absolute_error_mw": 0.006193856920972547,
       "delta_soc_dependent_minus_constant": {
-        "e_cap_mwh": 0.0,
-        "total_cost_eur": 1477.8760505076498,
-        "total_cost_pct": 0.03700594352290931
+        "e_cap_mwh": 0.7270979652415903,
+        "total_cost_eur": 2599.228717780672,
+        "total_cost_pct": 0.06508455908753334
       },
       "design_duration_hours": 6.0,
-      "mass_flow_kg_per_s": 1.942046782727428,
+      "mass_flow_kg_per_s": 2.427558478409285,
       "soc_dependent": {
         "kpis": {
-          "carbon_cost_eur": 416020.3307612999,
-          "e_cap_mwh": 54.98691637293239,
-          "electricity_cost_eur": 2504874.0539775565,
-          "emissions_tco2": 5200.254134516248,
-          "fuel_cost_eur": 1029753.2939636135,
-          "max_heat_balance_residual_mw": 1.7763568394002505e-15,
-          "power_rating_mw": 9.1644860621554,
-          "total_cost_eur": 3995095.9541647416,
+          "carbon_cost_eur": 416211.7637424036,
+          "e_cap_mwh": 55.71401433817398,
+          "electricity_cost_eur": 2504742.385278906,
+          "emissions_tco2": 5202.6470467800455,
+          "fuel_cost_eur": 1030227.1379762465,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 9.28566905636233,
+          "total_cost_eur": 3996217.3068320146,
           "unmet_heat_mwh": 0.0
         },
         "solver": {
           "name": "HiGHS",
-          "objective_eur": 3995095.9541647416,
+          "objective_eur": 3996217.3068320146,
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 30.891446934999976
+          "wall_time_seconds": 19.73851550800009
         },
         "verification_passed": true
       }
@@ -197,38 +198,38 @@
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 11.768933038999876
+          "wall_time_seconds": 11.474472336000076
         },
         "verification_passed": true
       },
-      "curve_fit_max_overestimate_mw": 0.00021080336866193677,
-      "curve_fit_mean_absolute_error_mw": 0.004504090645596574,
+      "curve_fit_max_overestimate_mw": 2.139095930435257e-06,
+      "curve_fit_mean_absolute_error_mw": 0.004702673923078034,
       "delta_soc_dependent_minus_constant": {
-        "e_cap_mwh": 2.1738183933893893,
-        "total_cost_eur": 2193.34215180669,
-        "total_cost_pct": 0.05493579846947285
+        "e_cap_mwh": 3.8628190906820237,
+        "total_cost_eur": 3203.018428058829,
+        "total_cost_pct": 0.08022477236983125
       },
       "design_duration_hours": 8.0,
-      "mass_flow_kg_per_s": 1.456535087045571,
+      "mass_flow_kg_per_s": 1.8206688588069637,
       "soc_dependent": {
         "kpis": {
-          "carbon_cost_eur": 421220.07525579195,
-          "e_cap_mwh": 57.16073476632178,
-          "electricity_cost_eur": 2488425.4331984986,
-          "emissions_tco2": 5265.250940697399,
-          "fuel_cost_eur": 1042623.9486529503,
-          "max_heat_balance_residual_mw": 1.7763568394002505e-15,
-          "power_rating_mw": 7.145091845790223,
-          "total_cost_eur": 3994748.675675362,
+          "carbon_cost_eur": 420277.42642266216,
+          "e_cap_mwh": 58.849735463614415,
+          "electricity_cost_eur": 2491455.8601736124,
+          "emissions_tco2": 5253.467830283276,
+          "fuel_cost_eur": 1040290.6594620352,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 7.356216932951802,
+          "total_cost_eur": 3995758.351951614,
           "unmet_heat_mwh": 0.0
         },
         "solver": {
           "name": "HiGHS",
-          "objective_eur": 3994748.675675362,
+          "objective_eur": 3995758.351951614,
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 28.91324177399997
+          "wall_time_seconds": 28.761671243000023
         },
         "verification_passed": true
       }
@@ -252,38 +253,38 @@
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 11.900409836000108
+          "wall_time_seconds": 11.827349498999979
         },
         "verification_passed": true
       },
-      "curve_fit_max_overestimate_mw": 0.00010647678718151213,
-      "curve_fit_mean_absolute_error_mw": 0.00308224880681972,
+      "curve_fit_max_overestimate_mw": 8.022162204946008e-07,
+      "curve_fit_mean_absolute_error_mw": 0.003184443476879712,
       "delta_soc_dependent_minus_constant": {
-        "e_cap_mwh": 1.6121085669070467,
-        "total_cost_eur": 1591.390214398969,
-        "total_cost_pct": 0.03982032493355679
+        "e_cap_mwh": 2.624692257029686,
+        "total_cost_eur": 2989.6816123174503,
+        "total_cost_pct": 0.07480886345359568
       },
       "design_duration_hours": 12.0,
-      "mass_flow_kg_per_s": 0.971023391363714,
+      "mass_flow_kg_per_s": 1.2137792392046425,
       "soc_dependent": {
         "kpis": {
-          "carbon_cost_eur": 428065.5347985048,
-          "e_cap_mwh": 62.36463275105358,
-          "electricity_cost_eur": 2468103.6616535033,
-          "emissions_tco2": 5350.819184981309,
-          "fuel_cost_eur": 1059568.1554418434,
+          "carbon_cost_eur": 430447.82857402955,
+          "e_cap_mwh": 63.377216441176216,
+          "electricity_cost_eur": 2460536.396313549,
+          "emissions_tco2": 5380.597857175369,
+          "fuel_cost_eur": 1065464.9222129444,
           "max_heat_balance_residual_mw": 8.881784197001252e-16,
-          "power_rating_mw": 5.197052729254465,
-          "total_cost_eur": 3998018.3833499984,
+          "power_rating_mw": 5.281434703431351,
+          "total_cost_eur": 3999416.674747917,
           "unmet_heat_mwh": 0.0
         },
         "solver": {
           "name": "HiGHS",
-          "objective_eur": 3998018.3833499984,
+          "objective_eur": 3999416.674747917,
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 29.802837282999917
+          "wall_time_seconds": 33.594471823999925
         },
         "verification_passed": true
       }

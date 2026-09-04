@@ -7,26 +7,27 @@
   "analytic_checks_passed": true,
   "curves": [
     {
-      "breakthrough_soc": null,
+      "breakthrough_soc": 4.401302742495583e-10,
       "file": "discharge_curve_1.5kgps.csv",
       "final_state_of_charge": 1.7575075506941434e-13,
       "mass_flow_kg_per_s": 1.5
     },
     {
-      "breakthrough_soc": null,
+      "breakthrough_soc": 2.402968150109157e-10,
       "file": "discharge_curve_3kgps.csv",
       "final_state_of_charge": 5.845963561647137e-14,
       "mass_flow_kg_per_s": 3.0
     },
     {
-      "breakthrough_soc": null,
+      "breakthrough_soc": 1.2682021850182648e-10,
       "file": "discharge_curve_6kgps.csv",
       "final_state_of_charge": 4.4763989462684646e-14,
       "mass_flow_kg_per_s": 6.0
     }
   ],
+  "delta_t_min_hot_side_c": 0.0,
   "duration_s": 108000.0,
-  "generated_at": "2026-09-03T21:09:25.727823+00:00",
+  "generated_at": "2026-09-04T03:58:39.766265+00:00",
   "initial_bed_temperature_c": 400.0,
   "inlet_temperature_c": 320.0,
   "n_steps": 1500,

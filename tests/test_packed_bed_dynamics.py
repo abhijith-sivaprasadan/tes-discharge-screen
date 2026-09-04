@@ -128,8 +128,12 @@ def test_higher_draw_rate_breaks_through_sooner() -> None:
     # process_temperature_c must sit strictly between inlet (320) and
     # initial (400) or the outlet asymptotes above it and never actually
     # reaches zero deliverable power.
-    slow_curve = discharge_power_curve(slow, process_temperature_c=350.0)
-    fast_curve = discharge_power_curve(fast, process_temperature_c=350.0)
+    slow_curve = discharge_power_curve(
+        slow, process_temperature_c=350.0, delta_t_min_hot_side_c=0.0
+    )
+    fast_curve = discharge_power_curve(
+        fast, process_temperature_c=350.0, delta_t_min_hot_side_c=0.0
+    )
     # SOC at which the outlet first drops below the process temperature.
     slow_breakthrough_soc = slow_curve.loc[
         slow_curve["deliverable_power_mw"] <= 1e-9, "state_of_charge"
@@ -150,10 +154,101 @@ def test_deliverable_power_never_negative_and_clips_below_process_temperature() 
         duration_s=8 * 3600,
         n_steps=800,
     )
-    curve = discharge_power_curve(result, process_temperature_c=350.0)
+    curve = discharge_power_curve(result, process_temperature_c=350.0, delta_t_min_hot_side_c=0.0)
     assert (curve["deliverable_power_mw"] >= 0).all()
     below_process = curve["outlet_temperature_c"] < 350.0
     assert (curve.loc[below_process, "deliverable_power_mw"] == 0).all()
+
+
+# --- P0.2: temperature semantics and the useful-power definition -------------
+
+
+def test_fully_depleted_bed_reports_zero_net_storage_heat() -> None:
+    # Roadmap P0.2 acceptance test 1: a bed discharged long enough that the
+    # outlet has relaxed onto T_return must report exactly zero storage_heat,
+    # not a small negative number that happens to get clipped -- the same
+    # reference (T_return) the bed's own stored-energy accounting uses.
+    config = default_packed_bed_config()
+    result = simulate_discharge(
+        config,
+        mass_flow_kg_per_s=3.0,
+        initial_bed_temperature_c=400.0,
+        inlet_temperature_c=320.0,
+        duration_s=200 * 3600,  # far past breakthrough: outlet relaxes onto T_return
+        n_steps=4000,
+    )
+    curve = discharge_power_curve(result, process_temperature_c=300.0, delta_t_min_hot_side_c=0.0)
+    assert np.isclose(curve["outlet_temperature_c"].iloc[-1], 320.0, atol=0.5)
+    assert np.isclose(curve["storage_heat_mw"].iloc[-1], 0.0, atol=1e-6)
+
+
+def test_low_grade_heat_below_required_outlet_is_unusable_but_not_absent() -> None:
+    # Roadmap P0.2 acceptance test 2: once the outlet falls below
+    # T_required_out = T_process + delta_T_min_hot_side, the process cannot
+    # be served directly (deliverable_power_mw == 0) even though the bed
+    # still holds recoverable sensible energy above T_return
+    # (storage_heat_mw > 0). The two must diverge in exactly this window, or
+    # the quality gate isn't doing anything the plain T_return reference
+    # didn't already do.
+    config = default_packed_bed_config()
+    result = simulate_discharge(
+        config,
+        mass_flow_kg_per_s=3.0,
+        initial_bed_temperature_c=400.0,
+        inlet_temperature_c=320.0,
+        duration_s=30 * 3600,
+        n_steps=1500,
+    )
+    curve = discharge_power_curve(result, process_temperature_c=350.0, delta_t_min_hot_side_c=5.0)
+    low_grade = (curve["outlet_temperature_c"] < 355.0) & (curve["outlet_temperature_c"] > 320.0)
+    assert low_grade.any(), "test setup should reach the low-grade window"
+    assert (curve.loc[low_grade, "deliverable_power_mw"] == 0).all()
+    assert (curve.loc[low_grade, "storage_heat_mw"] > 0).all()
+
+
+def test_integrated_storage_heat_matches_the_beds_own_stored_energy_drop() -> None:
+    # Roadmap P0.2 acceptance test 3: energy removed from the dynamic bed
+    # and the integrated Q_storage must be consistent, now that both are
+    # referenced to T_return. This is a stronger, independent check than
+    # simulate_discharge's own energy_conservation_residual_j (which never
+    # mentions discharge_power_curve at all): it confirms the *downstream*
+    # deliverable-power calculation, not just the simulation's internal
+    # bookkeeping, actually agrees with the bed's own energy accounting.
+    config = default_packed_bed_config()
+    # n_steps=3000, not the usual 800: this test's own numerical error is a
+    # trapezoidal integration of storage_heat_mw against time, coarser than
+    # simulate_discharge's own per-step energy_conservation_residual_j check,
+    # so it needs finer time resolution to converge to the same tolerance.
+    result = simulate_discharge(
+        config,
+        mass_flow_kg_per_s=3.0,
+        initial_bed_temperature_c=400.0,
+        inlet_temperature_c=320.0,
+        duration_s=8 * 3600,
+        n_steps=3000,
+    )
+    curve = discharge_power_curve(result, process_temperature_c=300.0, delta_t_min_hot_side_c=0.0)
+    time_s = curve["time_s"].to_numpy()
+    storage_heat_w = curve["storage_heat_mw"].to_numpy() * 1e6
+    integrated_j = np.trapezoid(storage_heat_w, time_s)
+    bed_energy_drop_j = (
+        result.trace["bed_stored_energy_j"].iloc[0] - result.trace["bed_stored_energy_j"].iloc[-1]
+    )
+    assert np.isclose(integrated_j, bed_energy_drop_j, rtol=1e-3)
+
+
+def test_discharge_power_curve_rejects_negative_hot_side_approach() -> None:
+    config = default_packed_bed_config()
+    result = simulate_discharge(
+        config,
+        mass_flow_kg_per_s=3.0,
+        initial_bed_temperature_c=400.0,
+        inlet_temperature_c=320.0,
+        duration_s=3600,
+        n_steps=50,
+    )
+    with pytest.raises(ValueError, match="delta_t_min_hot_side_c"):
+        discharge_power_curve(result, process_temperature_c=300.0, delta_t_min_hot_side_c=-1.0)
 
 
 def test_volumetric_heat_transfer_coefficient_is_zero_at_zero_flow() -> None:

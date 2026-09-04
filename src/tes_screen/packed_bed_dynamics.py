@@ -280,29 +280,63 @@ def simulate_discharge(
     )
 
 
-def discharge_power_curve(result: DischargeResult, process_temperature_c: float) -> pd.DataFrame:
+def discharge_power_curve(
+    result: DischargeResult,
+    process_temperature_c: float,
+    delta_t_min_hot_side_c: float,
+) -> pd.DataFrame:
     """Convert a discharge trace into a state-of-charge vs deliverable-power curve.
 
-    State of charge is the bed's remaining stored energy (relative to the
-    inlet/return temperature) as a fraction of its initial value. Deliverable
-    power is the outlet enthalpy flow above `process_temperature_c`; zero once
-    the outlet falls below the process requirement, per this project's core
-    hypothesis, not `p_dis_max` regardless of temperature. This is the curve
-    Phase C's piecewise-linear construction (rto.py's technique) will turn
-    into `p_dis[t] <= f_pw(level[t])`.
+    Three separate temperatures, not one ambiguous "process temperature"
+    (roadmap P0.2, fixing an enthalpy-reference mismatch): `T_process`
+    (`process_temperature_c`, the process's own service temperature),
+    `delta_T_min_hot_side` (`delta_t_min_hot_side_c`, the minimum
+    heat-exchanger approach/headroom above it a delivered stream must clear),
+    and `T_return` (`result.inlet_temperature_c`, the HTF temperature
+    entering the bed -- an explicit simulation input, never derived from
+    `T_process`; see `simulate_discharge`).
+
+    State of charge and `storage_heat_mw` are both referenced to `T_return`:
+    the same temperature the bed's own `bed_stored_energy_j` accounting
+    uses (`simulate_discharge`). Before this fix, deliverable power was
+    computed against `T_process` while stored energy was computed against
+    `T_return`, so enthalpy already present in the return stream (whenever
+    `T_return != T_process`) was counted as if storage had supplied it,
+    inflating deliverable power and, through it, every SOC-dependent sizing
+    result derived from this curve. `storage_heat_mw` and the bed's own
+    stored-energy drop are now on the same reference, so integrating one
+    against time reproduces the other (checked in
+    test_packed_bed_dynamics.py's energy-consistency test), and a fully
+    depleted bed (`T_out == T_return`) reports exactly zero, not a negative
+    number that happened to get clipped away.
+
+    `deliverable_power_mw` then applies a quality gate on top of
+    `storage_heat_mw`: zero whenever the outlet cannot clear
+    `T_required_out = T_process + delta_T_min_hot_side`, even though the bed
+    still holds recoverable (`storage_heat_mw > 0`) sensible energy at that
+    point -- lower-grade heat the process cannot use directly. This is the
+    curve Phase C's piecewise-linear construction (rto.py's technique) turns
+    into `p_dis[t] <= f_pw(level[t])`; the LP sees `deliverable_power_mw`,
+    the quality-gated stream, never the ungated `storage_heat_mw`.
     """
+    if delta_t_min_hot_side_c < 0:
+        raise ValueError("delta_t_min_hot_side_c must be nonnegative")
     trace = result.trace
     initial_energy = trace["bed_stored_energy_j"].iloc[0]
     soc = trace["bed_stored_energy_j"] / initial_energy
     mass_flow = result.mass_flow_kg_per_s
     cp = result.config.air_specific_heat_j_per_kgk
-    deliverable_w = mass_flow * cp * (trace["outlet_temperature_c"] - process_temperature_c)
-    deliverable_w = deliverable_w.clip(lower=0.0)
+    t_return = result.inlet_temperature_c
+    storage_heat_w = (mass_flow * cp * (trace["outlet_temperature_c"] - t_return)).clip(lower=0.0)
+    t_required_out = process_temperature_c + delta_t_min_hot_side_c
+    meets_quality = trace["outlet_temperature_c"] >= t_required_out
+    deliverable_w = storage_heat_w.where(meets_quality, 0.0)
     return pd.DataFrame(
         {
             "time_s": trace["time_s"],
             "state_of_charge": soc,
             "outlet_temperature_c": trace["outlet_temperature_c"],
+            "storage_heat_mw": storage_heat_w / 1e6,
             "deliverable_power_mw": deliverable_w / 1e6,
         }
     )

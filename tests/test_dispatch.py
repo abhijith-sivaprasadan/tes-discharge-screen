@@ -53,7 +53,9 @@ def _reference_discharge_curve() -> PiecewiseDischargeCurve:
         duration_s=30 * 3600,
         n_steps=1500,
     )
-    return fit_piecewise_discharge_curve(result, process_temperature_c=300.0, n_segments=5)
+    return fit_piecewise_discharge_curve(
+        result, process_temperature_c=300.0, delta_t_min_hot_side_c=0.0, n_segments=5
+    )
 
 
 def _duration_matched_curve(design_duration_hours: float) -> PiecewiseDischargeCurve:
@@ -68,6 +70,7 @@ def _duration_matched_curve(design_duration_hours: float) -> PiecewiseDischargeC
         initial_bed_temperature_c=400.0,
         inlet_temperature_c=320.0,
         process_temperature_c=300.0,
+        delta_t_min_hot_side_c=0.0,
     )
     result = simulate_discharge(
         bed_config,
@@ -77,7 +80,9 @@ def _duration_matched_curve(design_duration_hours: float) -> PiecewiseDischargeC
         duration_s=design_duration_hours * 2 * 3600,
         n_steps=1500,
     )
-    return fit_piecewise_discharge_curve(result, process_temperature_c=300.0, n_segments=5)
+    return fit_piecewise_discharge_curve(
+        result, process_temperature_c=300.0, delta_t_min_hot_side_c=0.0, n_segments=5
+    )
 
 
 def _short_case_duration_matched(design_duration_hours: float, **economics_overrides: float):

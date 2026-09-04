@@ -16,6 +16,13 @@ load profile (flat), both formulations. It is not the full 18-run matrix
 dynamic sub-model, so a technology-ranking comparison is not answerable yet.
 See the run manifest and the project README for what this result does and
 does not show.
+
+**Archived (README/MODEL_CARD): its committed output is superseded by
+run_phase_c2_duration_matched_experiment.py, kept unmodified rather than
+re-run.** Its calls are still updated to match discharge_power_curve's
+current signature (P0.2), so re-running this script does not error, but it
+now uses the corrected physics and will not reproduce the committed
+`outputs/phase_c_packed_bed_300c_flat/` numbers if actually run again.
 """
 
 from __future__ import annotations
@@ -51,6 +58,7 @@ REFERENCE_INITIAL_BED_TEMPERATURE_C = 400.0
 REFERENCE_INLET_TEMPERATURE_C = 320.0
 REFERENCE_DURATION_S = 30 * 3600.0
 REFERENCE_N_STEPS = 1500
+DELTA_T_MIN_HOT_SIDE_C = 0.0  # [assumption]; see run_packed_bed_dynamics.py's own note (P0.2)
 PRIMARY_N_SEGMENTS = 5
 ROBUSTNESS_N_SEGMENTS = [3, 5, 8, 12]
 
@@ -89,10 +97,13 @@ def main() -> None:
     robustness = []
     for n_segments in ROBUSTNESS_N_SEGMENTS:
         curve = fit_piecewise_discharge_curve(
-            discharge_result, config.process.delivery_temperature_c, n_segments=n_segments
+            discharge_result,
+            config.process.delivery_temperature_c,
+            DELTA_T_MIN_HOT_SIDE_C,
+            n_segments=n_segments,
         )
         safety = verify_piecewise_curve_is_safe(
-            curve, discharge_result, config.process.delivery_temperature_c
+            curve, discharge_result, config.process.delivery_temperature_c, DELTA_T_MIN_HOT_SIDE_C
         )
         soc_config = dataclasses.replace(
             config,

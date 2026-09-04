@@ -119,6 +119,25 @@ superheat than a sensible store does to approach temperature alone; using equal
 efficiencies here is a deliberate simplification, stated plainly rather than
 disguised as a finding.
 
+## Phase B/C useful-power temperature semantics (roadmap P0.2)
+
+`discharge_power_curve` (`packed_bed_dynamics.py`) separates three
+temperatures that an earlier version of this module conflated into one:
+`T_process` (the process's service temperature), `delta_T_min_hot_side`
+(minimum heat-exchanger approach/headroom above it a delivered stream must
+clear), and `T_return` (the HTF temperature entering the bed,
+`simulate_discharge`'s own `inlet_temperature_c`, an explicit simulation
+input in every call site, never derived from `T_process`).
+`delta_t_min_hot_side_c = 0.0` throughout this repository's scripts and
+tests is **[assumption]**: no explicit heat-exchanger model exists yet
+(the roadmap's own "for later sophistication" note), and the annual
+dispatch LP's `storage.eta_charge`/`eta_discharge` above already represent
+HX approach losses in a harmonised way; a second, separate nonzero approach
+penalty here, on top of that one, would double-count it in the same way a
+second ambient-loss term inside the Phase B sub-model would double-count
+`storage.standing_loss_fraction_per_hour` (see "Phase B scope" above).
+Revisit once an explicit heat-exchanger model exists.
+
 ## Synthetic load profiles
 
 `src/tes_screen/synthetic_profiles.py` generates three load shapes: flat

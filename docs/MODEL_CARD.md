@@ -68,11 +68,27 @@ describes.
   closed-form forward sweep at each step) and a Modelica model of the
   identical continuous governing equations
   (`modelica/tes_screen/package.mo`). Discharge curves (state of charge vs.
-  deliverable power above the process temperature) at three draw rates are
-  generated and committed with their generating config
-  (`outputs/packed_bed_dynamics/`, `scripts/run_packed_bed_dynamics.py`).
-  The heat transfer coefficient is derived from the Wakao-Kaguei correlation
-  (docs/DATA.md) rather than assumed as a bare number.
+  deliverable power) at three draw rates are generated and committed with
+  their generating config (`outputs/packed_bed_dynamics/`,
+  `scripts/run_packed_bed_dynamics.py`). The heat transfer coefficient is
+  derived from the Wakao-Kaguei correlation (docs/DATA.md) rather than
+  assumed as a bare number.
+- **Temperature semantics fix (roadmap P0.2).** `discharge_power_curve`
+  (`packed_bed_dynamics.py`) separates `T_process`, `delta_T_min_hot_side`
+  (`0.0` throughout, [assumption]; docs/DATA.md), and `T_return`
+  (`simulate_discharge`'s own `inlet_temperature_c`, an explicit input,
+  never derived from `T_process`). Net storage heat is now referenced to
+  T_return -- the same reference the bed's own stored-energy accounting
+  uses -- with a quality gate (`deliverable_power_mw`, zero below
+  `T_process + delta_T_min_hot_side`) applied on top, rather than computing
+  deliverable power directly against T_process while stored energy used
+  T_return. Before this fix, whenever the two references differed, enthalpy
+  already present in the return stream was counted as if storage had
+  supplied it. Checked, not assumed: a fully depleted bed now reports
+  exactly zero net storage heat, low-grade heat below the quality gate is
+  distinguished from heat that is genuinely gone, and the integral of net
+  storage heat over time reproduces the bed's own stored-energy drop
+  (`tests/test_packed_bed_dynamics.py`'s P0.2 test block).
 - **Three analytic checks (B4), all passing**: zero draw rate holds the
   outlet at the initial temperature exactly; a single-node bed with h_v to
   infinity matches the closed-form well-mixed-tank exponential response to
@@ -113,15 +129,16 @@ describes.
   `scripts/run_phase_c2_duration_matched_experiment.py` sweeps five design
   durations (2h-12h), all ten runs (five durations x two formulations)
   terminate optimal with every verification check passing
-  (`outputs/phase_c2_duration_matched/`). **The corrected finding**: the
-  shape-isolated cost delta is +0.001% to +0.055% across the sweep, roughly
-  an order of magnitude smaller than Phase C's original (confounded) +0.22%
-  -- still real, and still in the direction Phase A's constant-limit
-  assumption predicted, but far more modest once duration is held equal.
-  See README's Phase C2 section for the full sweep table. This fix
-  deliberately does not touch the separate, already-tracked issue of the
-  discharge curve's reference power mixing the process and return
-  temperatures (`discharge_power_curve`'s own definition, unchanged here).
+  (`outputs/phase_c2_duration_matched/`). This run also incorporates P0.2's
+  temperature-reference fix (above), re-run against the corrected
+  `discharge_power_curve` and superseding this same script's earlier
+  (P0.1-only) output. **The corrected finding**: the shape-isolated cost
+  delta is +0.013% to +0.080% across the sweep, still roughly an order of
+  magnitude smaller than Phase C's original (confounded, mis-referenced)
+  +0.22% -- real, and still in the direction Phase A's constant-limit
+  assumption predicted, but far more modest once duration is held equal and
+  the temperature reference is consistent. See README's Phase C2 section
+  for the full sweep table.
 
 ## What does not exist yet
 
@@ -140,11 +157,11 @@ describes.
   started. Only packed bed has a Phase B dynamic sub-model, so there is no
   second technology to rank against yet; "does the ranking change" is not
   answerable from the one MVP case run so far.
-- **The P0.2 temperature-reference fix.** `discharge_power_curve`'s
-  deliverable-power definition references the process temperature for the
-  power side but the bed's own inlet/return temperature for the energy side
-  (`bed_stored_energy_j`); C2 reuses this definition unchanged, by design, to
-  keep the two roadmap fixes independent. Not yet addressed.
+- **Explicit heat-exchanger modelling.** `delta_T_min_hot_side` (P0.2) is
+  carried as an explicit parameter but set to `0.0` everywhere in this
+  repository ([assumption]; docs/DATA.md); a real HX approach-temperature
+  model, if added, would replace that placeholder rather than the
+  parameter itself.
 - PCM at 400 C: no common nitrate-salt PCM composition was found in this
   session's research with a melting point usefully close to 400 C, so that
   combination is left undone rather than forced (docs/DATA.md, README).

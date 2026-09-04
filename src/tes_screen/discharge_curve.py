@@ -64,12 +64,22 @@ class PiecewiseDischargeCurve:
 
 
 def fit_piecewise_discharge_curve(
-    result: DischargeResult, process_temperature_c: float, n_segments: int = 5
+    result: DischargeResult,
+    process_temperature_c: float,
+    delta_t_min_hot_side_c: float,
+    n_segments: int = 5,
 ) -> PiecewiseDischargeCurve:
-    """Fit an n_segments piecewise-linear approximation from one Phase B discharge run."""
+    """Fit an n_segments piecewise-linear approximation from one Phase B discharge run.
+
+    `process_temperature_c` and `delta_t_min_hot_side_c` are passed straight
+    through to `discharge_power_curve` (P0.2): the fit is of the
+    quality-gated `deliverable_power_mw` stream, not the ungated
+    `storage_heat_mw` one, since the LP this curve feeds must never be
+    allowed to claim heat the process cannot actually use.
+    """
     if n_segments < 1:
         raise ValueError("n_segments must be at least 1")
-    curve = discharge_power_curve(result, process_temperature_c)
+    curve = discharge_power_curve(result, process_temperature_c, delta_t_min_hot_side_c)
     reference_energy_capacity_mwh = float(result.trace["bed_stored_energy_j"].iloc[0]) / 3.6e9
     reference_rated_power_mw = float(curve["deliverable_power_mw"].iloc[0])
     if reference_energy_capacity_mwh <= 0 or reference_rated_power_mw <= 0:
@@ -111,7 +121,10 @@ def fit_piecewise_discharge_curve(
 
 
 def verify_piecewise_curve_is_safe(
-    curve: PiecewiseDischargeCurve, result: DischargeResult, process_temperature_c: float
+    curve: PiecewiseDischargeCurve,
+    result: DischargeResult,
+    process_temperature_c: float,
+    delta_t_min_hot_side_c: float,
 ) -> dict[str, float]:
     """Check the fit against the underlying discharge data it was fit from.
 
@@ -121,7 +134,7 @@ def verify_piecewise_curve_is_safe(
     conservative the approximation is where it is not exact). Call this
     before trusting a fit; do not assume safety from the construction alone.
     """
-    power_curve = discharge_power_curve(result, process_temperature_c)
+    power_curve = discharge_power_curve(result, process_temperature_c, delta_t_min_hot_side_c)
     e_cap = curve.reference_energy_capacity_mwh
     level = power_curve["state_of_charge"].to_numpy() * e_cap
     true_power = power_curve["deliverable_power_mw"].to_numpy()
@@ -140,6 +153,7 @@ def mass_flow_for_target_duration(
     initial_bed_temperature_c: float,
     inlet_temperature_c: float,
     process_temperature_c: float,
+    delta_t_min_hot_side_c: float,
 ) -> float:
     """The discharge mass flow whose reference power/energy ratio is 1/target_duration_hours.
 
@@ -149,25 +163,36 @@ def mass_flow_for_target_duration(
     curve fit at an arbitrary mass flow after the fact. This is possible in
     closed form because, for this bed model, the fully-charged bed's stored
     energy (`simulate_discharge`'s `bed_stored_energy_j` at t=0, referenced
-    to `inlet_temperature_c`) depends only on geometry, material properties
-    and the two temperatures -- not on mass flow -- while the reference
-    deliverable power (`discharge_power_curve`'s value at t=0, referenced to
-    `process_temperature_c`) scales linearly with mass flow. So the mass flow
-    for any target duration can be solved for directly, then used to
-    re-simulate the discharge and fit a curve genuinely specific to that
-    duration, rather than reusing one bed's curve across all durations.
+    to `inlet_temperature_c`, i.e. T_return) depends only on geometry,
+    material properties and the two temperatures -- not on mass flow -- while
+    the reference deliverable power at full charge scales linearly with mass
+    flow. So the mass flow for any target duration can be solved for
+    directly, then used to re-simulate the discharge and fit a curve
+    genuinely specific to that duration, rather than reusing one bed's curve
+    across all durations.
 
-    Deliberately reuses `discharge_power_curve`'s existing reference-power
-    definition (deliverable enthalpy flow above `process_temperature_c`) as
-    the P0.1 fix's own scope: this does not address the separate,
-    already-tracked P0.2 issue of that definition mixing the process and
-    return temperature references. Fixing P0.1 without also silently
-    changing P0.2's behaviour keeps the two roadmap items independent.
+    Post-P0.2: the reference power at t=0 is `m_dot * cp * (T_initial -
+    T_return)` -- `discharge_power_curve`'s `storage_heat_mw` reference,
+    the same T_return the reference energy above is computed against --
+    not `T_initial - T_process` as an earlier version of this function
+    used. `process_temperature_c`/`delta_t_min_hot_side_c` still matter
+    here only as a validity check: the full-charge outlet must actually
+    clear `T_required_out` or the reference "power" this solves for would
+    not even be deliverable, making the requested duration unreachable at
+    any mass flow for this bed/temperature combination.
     """
     if target_duration_hours <= 0:
         raise ValueError("target_duration_hours must be positive")
-    if initial_bed_temperature_c <= process_temperature_c:
-        raise ValueError("initial_bed_temperature_c must exceed process_temperature_c")
+    if delta_t_min_hot_side_c < 0:
+        raise ValueError("delta_t_min_hot_side_c must be nonnegative")
+    if initial_bed_temperature_c <= inlet_temperature_c:
+        raise ValueError("initial_bed_temperature_c must exceed inlet_temperature_c")
+    t_required_out = process_temperature_c + delta_t_min_hot_side_c
+    if initial_bed_temperature_c <= t_required_out:
+        raise ValueError(
+            "initial_bed_temperature_c must reach process_temperature_c + "
+            "delta_t_min_hot_side_c, or a fully-charged bed could never serve the process"
+        )
 
     fluid_capacity_per_volume = (
         config.porosity * config.air_density_kg_per_m3 * config.air_specific_heat_j_per_kgk
@@ -183,7 +208,7 @@ def mass_flow_for_target_duration(
     )
     reference_energy_mwh = reference_energy_j / 3.6e9
     target_power_mw = reference_energy_mwh / target_duration_hours
-    temperature_drop = initial_bed_temperature_c - process_temperature_c
+    temperature_drop = initial_bed_temperature_c - inlet_temperature_c
     return target_power_mw * 1e6 / (config.air_specific_heat_j_per_kgk * temperature_drop)
 
 

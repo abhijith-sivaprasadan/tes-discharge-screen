@@ -29,7 +29,12 @@ from tes_screen.packed_bed_dynamics import (  # noqa: E402
 
 PROCESS_TEMPERATURE_C = 300.0
 INITIAL_BED_TEMPERATURE_C = 400.0
-INLET_TEMPERATURE_C = 320.0
+INLET_TEMPERATURE_C = 320.0  # T_return: an explicit simulation input, not derived from T_process
+# [assumption] no heat-exchanger approach modelled explicitly yet (P0.2); the
+# annual LP's storage.eta_charge/eta_discharge already represent HX losses in
+# a harmonised way (docs/DATA.md), so a second, separate approach penalty
+# here would double-count it. Revisit once an explicit HX model exists.
+DELTA_T_MIN_HOT_SIDE_C = 0.0
 DRAW_RATES_KG_PER_S = [1.5, 3.0, 6.0]
 DURATION_S = 30 * 3600.0
 N_STEPS = 1500
@@ -114,7 +119,7 @@ def main() -> None:
             DURATION_S,
             n_steps=N_STEPS,
         )
-        curve = discharge_power_curve(result, PROCESS_TEMPERATURE_C)
+        curve = discharge_power_curve(result, PROCESS_TEMPERATURE_C, DELTA_T_MIN_HOT_SIDE_C)
         filename = f"discharge_curve_{rate:g}kgps.csv"
         curve.to_csv(output_dir / filename, index=False)
         curves_written.append(
@@ -134,6 +139,7 @@ def main() -> None:
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "technology": "packed_bed",
         "process_temperature_c": PROCESS_TEMPERATURE_C,
+        "delta_t_min_hot_side_c": DELTA_T_MIN_HOT_SIDE_C,
         "initial_bed_temperature_c": INITIAL_BED_TEMPERATURE_C,
         "inlet_temperature_c": INLET_TEMPERATURE_C,
         "duration_s": DURATION_S,
