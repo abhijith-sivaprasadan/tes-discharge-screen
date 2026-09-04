@@ -1,0 +1,227 @@
+{
+  "case": "packed_bed_300c_flat",
+  "constant_limit_baseline_kpis": {
+    "e_cap_mwh": 54.98691637293239,
+    "power_rating_mw": 9.1644860621554,
+    "total_cost_eur": 3993618.078114234
+  },
+  "decision_converged_at_project_default": true,
+  "decision_convergence_threshold_pct": 1.0,
+  "design_duration_hours": 6.0,
+  "generated_at": "2026-09-04T19:52:54.186236+00:00",
+  "mass_flow_kg_per_s": 2.427558478409285,
+  "project_default": {
+    "breakthrough_time_deviation_s": -118.80000000000291,
+    "breakthrough_time_s": 21340.8,
+    "label": "project_default",
+    "max_outlet_temperature_deviation_c": 5.714256651037886,
+    "max_power_fraction_breakpoint_deviation": 0.09020308012506983,
+    "n_nodes": 40,
+    "n_steps": 1500,
+    "soc_dependent": {
+      "e_cap_mwh": 55.20434128496135,
+      "power_rating_mw": 9.200723547493558,
+      "total_cost_eur": 3994416.321542864
+    },
+    "soc_dependent_deviation_from_reference": {
+      "e_cap_mwh": 0.13584239217866667,
+      "power_rating_mw": 0.022640398696443853,
+      "total_cost_eur": 284.64456670731306,
+      "total_cost_pct": 0.007126569420535713
+    },
+    "useful_energy_fraction": 0.9999947916434194,
+    "useful_energy_fraction_deviation": -5.198072858036973e-06
+  },
+  "reference_breakthrough_time_s": 21459.600000000002,
+  "reference_resolution": {
+    "n_nodes": 160,
+    "n_steps": 4000
+  },
+  "reference_soc_dependent_kpis": {
+    "e_cap_mwh": 55.068498892782685,
+    "power_rating_mw": 9.178083148797114,
+    "total_cost_eur": 3994131.676976157
+  },
+  "reference_useful_energy_fraction": 0.9999999897162775,
+  "roadmap_item": "P3.1 (spatial and temporal convergence)",
+  "spatial_sweep": [
+    {
+      "breakthrough_time_deviation_s": -291.6000000000022,
+      "breakthrough_time_s": 21168.0,
+      "label": "spatial_N20",
+      "max_outlet_temperature_deviation_c": 10.231630882210993,
+      "max_power_fraction_breakpoint_deviation": 0.17211694447501102,
+      "n_nodes": 20,
+      "n_steps": 4000,
+      "soc_dependent": {
+        "e_cap_mwh": 55.325251717156185,
+        "power_rating_mw": 9.220875286192697,
+        "total_cost_eur": 3994748.0738387574
+      },
+      "soc_dependent_deviation_from_reference": {
+        "e_cap_mwh": 0.2567528243734998,
+        "power_rating_mw": 0.042792137395583296,
+        "total_cost_eur": 616.3968626004644,
+        "total_cost_pct": 0.015432562380294904
+      },
+      "useful_energy_fraction": 0.9998850135392751,
+      "useful_energy_fraction_deviation": -0.00011497617700240159
+    },
+    {
+      "breakthrough_time_deviation_s": -118.79999999999927,
+      "breakthrough_time_s": 21340.800000000003,
+      "label": "spatial_N40",
+      "max_outlet_temperature_deviation_c": 5.572174269632285,
+      "max_power_fraction_breakpoint_deviation": 0.08746796568475113,
+      "n_nodes": 40,
+      "n_steps": 4000,
+      "soc_dependent": {
+        "e_cap_mwh": 55.199267783058495,
+        "power_rating_mw": 9.199877963843083,
+        "total_cost_eur": 3994406.483708532
+      },
+      "soc_dependent_deviation_from_reference": {
+        "e_cap_mwh": 0.13076889027581018,
+        "power_rating_mw": 0.021794815045968363,
+        "total_cost_eur": 274.80673237517476,
+        "total_cost_pct": 0.00688026220966313
+      },
+      "useful_energy_fraction": 0.9999954788409336,
+      "useful_energy_fraction_deviation": -4.510875343810561e-06
+    },
+    {
+      "breakthrough_time_deviation_s": -43.20000000000073,
+      "breakthrough_time_s": 21416.4,
+      "label": "spatial_N80",
+      "max_outlet_temperature_deviation_c": 2.1861410184650367,
+      "max_power_fraction_breakpoint_deviation": 0.03215249304025425,
+      "n_nodes": 80,
+      "n_steps": 4000,
+      "soc_dependent": {
+        "e_cap_mwh": 55.10674594517977,
+        "power_rating_mw": 9.184457657529961,
+        "total_cost_eur": 3994224.8489731937
+      },
+      "soc_dependent_deviation_from_reference": {
+        "e_cap_mwh": 0.03824705239708237,
+        "power_rating_mw": 0.006374508732847062,
+        "total_cost_eur": 93.17199703678489,
+        "total_cost_pct": 0.0023327222177943504
+      },
+      "useful_energy_fraction": 0.9999998385607607,
+      "useful_energy_fraction_deviation": -1.5115551676991856e-07
+    },
+    {
+      "breakthrough_time_deviation_s": 0.0,
+      "breakthrough_time_s": 21459.600000000002,
+      "label": "spatial_N160",
+      "max_outlet_temperature_deviation_c": 0.0,
+      "max_power_fraction_breakpoint_deviation": 0.0,
+      "n_nodes": 160,
+      "n_steps": 4000,
+      "soc_dependent": {
+        "e_cap_mwh": 55.068498892782685,
+        "power_rating_mw": 9.178083148797114,
+        "total_cost_eur": 3994131.676976157
+      },
+      "soc_dependent_deviation_from_reference": {
+        "e_cap_mwh": 0.0,
+        "power_rating_mw": 0.0,
+        "total_cost_eur": 0.0,
+        "total_cost_pct": 0.0
+      },
+      "useful_energy_fraction": 0.9999999897162775,
+      "useful_energy_fraction_deviation": 0.0
+    }
+  ],
+  "temporal_sweep": [
+    {
+      "breakthrough_time_deviation_s": 54.0,
+      "breakthrough_time_s": 21513.600000000002,
+      "label": "temporal_steps500",
+      "max_outlet_temperature_deviation_c": 1.2612814373160859,
+      "max_power_fraction_breakpoint_deviation": 0.016198023092367064,
+      "n_nodes": 160,
+      "n_steps": 500,
+      "soc_dependent": {
+        "e_cap_mwh": 55.08618590220399,
+        "power_rating_mw": 9.181030983700664,
+        "total_cost_eur": 3994177.8124927427
+      },
+      "soc_dependent_deviation_from_reference": {
+        "e_cap_mwh": 0.017687009421301525,
+        "power_rating_mw": 0.002947834903549662,
+        "total_cost_eur": 46.13551658578217,
+        "total_cost_pct": 0.00115508251397235
+      },
+      "useful_energy_fraction": 0.9999999512341671,
+      "useful_energy_fraction_deviation": -3.8482110387150215e-08
+    },
+    {
+      "breakthrough_time_deviation_s": 10.799999999999272,
+      "breakthrough_time_s": 21470.4,
+      "label": "temporal_steps1000",
+      "max_outlet_temperature_deviation_c": 0.5584513283920955,
+      "max_power_fraction_breakpoint_deviation": 0.007083606432814471,
+      "n_nodes": 160,
+      "n_steps": 1000,
+      "soc_dependent": {
+        "e_cap_mwh": 55.07597770325569,
+        "power_rating_mw": 9.179329617209282,
+        "total_cost_eur": 3994151.6254002037
+      },
+      "soc_dependent_deviation_from_reference": {
+        "e_cap_mwh": 0.00747881047300325,
+        "power_rating_mw": 0.0012464684121678005,
+        "total_cost_eur": 19.948424046859145,
+        "total_cost_pct": 0.0004994433248620768
+      },
+      "useful_energy_fraction": 0.9999999790031542,
+      "useful_energy_fraction_deviation": -1.071312327738383e-08
+    },
+    {
+      "breakthrough_time_deviation_s": 10.799999999999272,
+      "breakthrough_time_s": 21470.4,
+      "label": "temporal_steps2000",
+      "max_outlet_temperature_deviation_c": 0.18934906598224188,
+      "max_power_fraction_breakpoint_deviation": 0.0023850329875910736,
+      "n_nodes": 160,
+      "n_steps": 2000,
+      "soc_dependent": {
+        "e_cap_mwh": 55.07096385064895,
+        "power_rating_mw": 9.17849397510816,
+        "total_cost_eur": 3994138.338281263
+      },
+      "soc_dependent_deviation_from_reference": {
+        "e_cap_mwh": 0.0024649578662661042,
+        "power_rating_mw": 0.0004108263110449428,
+        "total_cost_eur": 6.661305106244981,
+        "total_cost_pct": 0.00016677730342851553
+      },
+      "useful_energy_fraction": 0.9999999868396673,
+      "useful_energy_fraction_deviation": -2.8766101722865756e-09
+    },
+    {
+      "breakthrough_time_deviation_s": 0.0,
+      "breakthrough_time_s": 21459.600000000002,
+      "label": "temporal_steps4000",
+      "max_outlet_temperature_deviation_c": 0.0,
+      "max_power_fraction_breakpoint_deviation": 0.0,
+      "n_nodes": 160,
+      "n_steps": 4000,
+      "soc_dependent": {
+        "e_cap_mwh": 55.068498892782685,
+        "power_rating_mw": 9.178083148797114,
+        "total_cost_eur": 3994131.676976157
+      },
+      "soc_dependent_deviation_from_reference": {
+        "e_cap_mwh": 0.0,
+        "power_rating_mw": 0.0,
+        "total_cost_eur": 0.0,
+        "total_cost_pct": 0.0
+      },
+      "useful_energy_fraction": 0.9999999897162775,
+      "useful_energy_fraction_deviation": 0.0
+    }
+  ]
+}

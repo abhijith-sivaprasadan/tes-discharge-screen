@@ -9,6 +9,7 @@ from tes_screen.packed_bed_dynamics import (
     bed_stored_energy_j,
     default_packed_bed_config,
     discharge_power_curve,
+    ergun_pressure_drop_and_blower_power,
     flow_diagnostics,
     simulate_discharge,
     volumetric_heat_transfer_coefficient,
@@ -272,6 +273,30 @@ def test_flow_diagnostics_is_zero_at_zero_flow() -> None:
     assert diagnostics.prandtl == 0.0
     assert diagnostics.nusselt == 0.0
     assert diagnostics.volumetric_heat_transfer_coefficient_w_per_m3k == 0.0
+    # zero flow is a deliberate static case, not a correlation evaluation
+    # outside its validity domain (roadmap P3.2) -- trivially "in range".
+    assert diagnostics.reynolds_within_correlation_validity_range is True
+
+
+def test_flow_diagnostics_reports_reynolds_within_validity_range_for_normal_flow() -> None:
+    # roadmap P3.2: every run's Re should fall inside the Wakao-Kaguei
+    # correlation's own stated domain [15, 8500] at the mass fluxes this
+    # project's own case configs actually use.
+    config = default_packed_bed_config()
+    diagnostics = flow_diagnostics(config, 0.5)
+    assert 15.0 <= diagnostics.reynolds <= 8500.0
+    assert diagnostics.reynolds_within_correlation_validity_range is True
+
+
+def test_flow_diagnostics_warns_and_flags_reynolds_outside_validity_range() -> None:
+    # roadmap P3.2: "fail or warn loudly when a scenario leaves the
+    # declared validity domain" -- a very small mass flux drives Re below
+    # the correlation's own stated floor of 15.
+    config = default_packed_bed_config()
+    with pytest.warns(RuntimeWarning, match="validity range"):
+        diagnostics = flow_diagnostics(config, 1e-6)
+    assert diagnostics.reynolds < 15.0
+    assert diagnostics.reynolds_within_correlation_validity_range is False
 
 
 def test_flow_diagnostics_h_v_matches_volumetric_heat_transfer_coefficient() -> None:
@@ -351,3 +376,65 @@ def test_simulate_discharge_rejects_a_wrongly_shaped_initial_temperature_field()
             duration_s=1800,
             n_steps=100,
         )
+
+
+def test_ergun_pressure_drop_is_zero_at_zero_flow() -> None:
+    config = default_packed_bed_config()
+    diagnostics = ergun_pressure_drop_and_blower_power(config, 0.0)
+    assert diagnostics.superficial_velocity_m_per_s == 0.0
+    assert diagnostics.pressure_drop_pa == 0.0
+    assert diagnostics.blower_power_w == 0.0
+
+
+def test_ergun_pressure_drop_increases_with_flow() -> None:
+    config = default_packed_bed_config()
+    low = ergun_pressure_drop_and_blower_power(config, 1.0)
+    high = ergun_pressure_drop_and_blower_power(config, 5.0)
+    assert high.pressure_drop_pa > low.pressure_drop_pa > 0
+    assert high.blower_power_w > low.blower_power_w > 0
+
+
+def test_ergun_pressure_drop_matches_the_ergun_equation_by_hand() -> None:
+    # Recompute dP/L = 150*mu*(1-eps)^2/(eps^3*dp^2)*v_s
+    #               + 1.75*rho*(1-eps)/(eps^3*dp)*v_s^2
+    # independently from the config's own properties, at a known mass
+    # flow, and check it matches the function's own output exactly --
+    # roadmap P3.3's own stated formula, not a paraphrase of it.
+    config = default_packed_bed_config()
+    mass_flow = 2.43
+    mass_flux = mass_flow / config.cross_section_area_m2
+    v_s = mass_flux / config.air_density_kg_per_m3
+    eps = config.porosity
+    dp = config.particle_diameter_m
+    expected_dp_per_l = (
+        150 * config.air_viscosity_pa_s * (1 - eps) ** 2 / (eps**3 * dp**2) * v_s
+        + 1.75 * config.air_density_kg_per_m3 * (1 - eps) / (eps**3 * dp) * v_s**2
+    )
+    diagnostics = ergun_pressure_drop_and_blower_power(config, mass_flow)
+    assert diagnostics.superficial_velocity_m_per_s == pytest.approx(v_s, rel=1e-12)
+    assert diagnostics.pressure_drop_pa_per_m == pytest.approx(expected_dp_per_l, rel=1e-12)
+    assert diagnostics.pressure_drop_pa == pytest.approx(
+        expected_dp_per_l * config.bed_length_m, rel=1e-12
+    )
+
+
+def test_ergun_blower_power_scales_inversely_with_blower_efficiency() -> None:
+    high_efficiency = default_packed_bed_config()
+    low_efficiency = dataclasses.replace(high_efficiency, blower_efficiency=0.325)
+    high = ergun_pressure_drop_and_blower_power(high_efficiency, 2.43)
+    low = ergun_pressure_drop_and_blower_power(low_efficiency, 2.43)
+    # halving efficiency doubles blower power at the same flow, since
+    # pressure drop and volumetric flow are themselves efficiency-independent
+    assert low.blower_power_w == pytest.approx(2 * high.blower_power_w, rel=1e-9)
+
+
+def test_ergun_pressure_drop_rejects_negative_mass_flow() -> None:
+    config = default_packed_bed_config()
+    with pytest.raises(ValueError, match="nonnegative"):
+        ergun_pressure_drop_and_blower_power(config, -1.0)
+
+
+def test_blower_efficiency_outside_unit_interval_is_rejected() -> None:
+    config = dataclasses.replace(default_packed_bed_config(), blower_efficiency=1.5)
+    with pytest.raises(ValueError, match="blower_efficiency"):
+        config.validate()

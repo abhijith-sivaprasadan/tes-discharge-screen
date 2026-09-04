@@ -25,6 +25,14 @@
           "mass_flux_kg_per_m2s": 0.7282675435227854,
           "nusselt": 52.90981528119424,
           "prandtl": 0.7408590308370043,
+          "pressure_drop": {
+            "blower_efficiency": 0.65,
+            "blower_power_fraction_of_reference_rated_power": 0.08639691593968563,
+            "blower_power_w": 54614.62053374664,
+            "pressure_drop_pa": 2754.1004084841406,
+            "superficial_velocity_m_per_s": 1.2889691035801514,
+            "volumetric_flow_m3_per_s": 12.889691035801514
+          },
           "process_quality_threshold_c": 300.0,
           "reference_energy_capacity_mwh": 1.2642724555555556,
           "reference_rated_power_mw": 0.6321362277777778,
@@ -34,6 +42,11 @@
             "n_steps": 1500
           },
           "reynolds": 704.7750421188246,
+          "reynolds_correlation_validity_range": [
+            15.0,
+            8500.0
+          ],
+          "reynolds_within_correlation_validity_range": true,
           "temperatures_c": {
             "initial_bed_temperature_c": 400.0,
             "inlet_temperature_c_t_return": 320.0,
@@ -62,6 +75,14 @@
           "mass_flux_kg_per_m2s": 0.3641337717613927,
           "nusselt": 35.587951999761295,
           "prandtl": 0.7408590308370043,
+          "pressure_drop": {
+            "blower_efficiency": 0.65,
+            "blower_power_fraction_of_reference_rated_power": 0.02306816866036436,
+            "blower_power_w": 7291.11255935214,
+            "pressure_drop_pa": 735.3509328370328,
+            "superficial_velocity_m_per_s": 0.6444845517900757,
+            "volumetric_flow_m3_per_s": 6.444845517900757
+          },
           "process_quality_threshold_c": 300.0,
           "reference_energy_capacity_mwh": 1.2642724555555556,
           "reference_rated_power_mw": 0.3160681138888889,
@@ -71,6 +92,11 @@
             "n_steps": 1500
           },
           "reynolds": 352.3875210594123,
+          "reynolds_correlation_validity_range": [
+            15.0,
+            8500.0
+          ],
+          "reynolds_within_correlation_validity_range": true,
           "temperatures_c": {
             "initial_bed_temperature_c": 400.0,
             "inlet_temperature_c_t_return": 320.0,
@@ -99,6 +125,14 @@
           "mass_flux_kg_per_m2s": 0.2427558478409285,
           "nusselt": 28.334723837656608,
           "prandtl": 0.7408590308370043,
+          "pressure_drop": {
+            "blower_efficiency": 0.65,
+            "blower_power_fraction_of_reference_rated_power": 0.010905381482581031,
+            "blower_power_w": 2297.895570958801,
+            "pressure_drop_pa": 347.63411713468025,
+            "superficial_velocity_m_per_s": 0.42965636786005046,
+            "volumetric_flow_m3_per_s": 4.296563678600505
+          },
           "process_quality_threshold_c": 300.0,
           "reference_energy_capacity_mwh": 1.2642724555555556,
           "reference_rated_power_mw": 0.21071207592592592,
@@ -108,6 +142,11 @@
             "n_steps": 1500
           },
           "reynolds": 234.9250140396082,
+          "reynolds_correlation_validity_range": [
+            15.0,
+            8500.0
+          ],
+          "reynolds_within_correlation_validity_range": true,
           "temperatures_c": {
             "initial_bed_temperature_c": 400.0,
             "inlet_temperature_c_t_return": 320.0,
@@ -136,6 +175,14 @@
           "mass_flux_kg_per_m2s": 0.18206688588069636,
           "nusselt": 24.159784185172636,
           "prandtl": 0.7408590308370043,
+          "pressure_drop": {
+            "blower_efficiency": 0.65,
+            "blower_power_fraction_of_reference_rated_power": 0.006501512002812566,
+            "blower_power_w": 1027.4603180774702,
+            "pressure_drop_pa": 207.25064856725706,
+            "superficial_velocity_m_per_s": 0.32224227589503784,
+            "volumetric_flow_m3_per_s": 3.2224227589503784
+          },
           "process_quality_threshold_c": 300.0,
           "reference_energy_capacity_mwh": 1.2642724555555556,
           "reference_rated_power_mw": 0.15803405694444445,
@@ -145,6 +192,11 @@
             "n_steps": 1500
           },
           "reynolds": 176.19376052970614,
+          "reynolds_correlation_validity_range": [
+            15.0,
+            8500.0
+          ],
+          "reynolds_within_correlation_validity_range": true,
           "temperatures_c": {
             "initial_bed_temperature_c": 400.0,
             "inlet_temperature_c_t_return": 320.0,
@@ -173,6 +225,14 @@
           "mass_flux_kg_per_m2s": 0.12137792392046425,
           "nusselt": 19.374438215903705,
           "prandtl": 0.7408590308370043,
+          "pressure_drop": {
+            "blower_efficiency": 0.65,
+            "blower_power_fraction_of_reference_rated_power": 0.003215991929126242,
+            "blower_power_w": 338.82416777360686,
+            "pressure_drop_pa": 102.51713952233595,
+            "superficial_velocity_m_per_s": 0.21482818393002523,
+            "volumetric_flow_m3_per_s": 2.1482818393002523
+          },
           "process_quality_threshold_c": 300.0,
           "reference_energy_capacity_mwh": 1.2642724555555556,
           "reference_rated_power_mw": 0.10535603796296296,
@@ -182,6 +242,11 @@
             "n_steps": 1500
           },
           "reynolds": 117.4625070198041,
+          "reynolds_correlation_validity_range": [
+            15.0,
+            8500.0
+          ],
+          "reynolds_within_correlation_validity_range": true,
           "temperatures_c": {
             "initial_bed_temperature_c": 400.0,
             "inlet_temperature_c_t_return": 320.0,
@@ -216,6 +281,14 @@
           "mass_flux_kg_per_m2s": 0.7282675435227854,
           "nusselt": 52.90981528119424,
           "prandtl": 0.7408590308370043,
+          "pressure_drop": {
+            "blower_efficiency": 0.65,
+            "blower_power_fraction_of_reference_rated_power": 0.08639691593968563,
+            "blower_power_w": 54614.62053374664,
+            "pressure_drop_pa": 2754.1004084841406,
+            "superficial_velocity_m_per_s": 1.2889691035801514,
+            "volumetric_flow_m3_per_s": 12.889691035801514
+          },
           "process_quality_threshold_c": 400.0,
           "reference_energy_capacity_mwh": 1.2642724555555556,
           "reference_rated_power_mw": 0.6321362277777778,
@@ -225,6 +298,11 @@
             "n_steps": 1500
           },
           "reynolds": 704.7750421188246,
+          "reynolds_correlation_validity_range": [
+            15.0,
+            8500.0
+          ],
+          "reynolds_within_correlation_validity_range": true,
           "temperatures_c": {
             "initial_bed_temperature_c": 500.0,
             "inlet_temperature_c_t_return": 420.0,
@@ -253,6 +331,14 @@
           "mass_flux_kg_per_m2s": 0.3641337717613927,
           "nusselt": 35.587951999761295,
           "prandtl": 0.7408590308370043,
+          "pressure_drop": {
+            "blower_efficiency": 0.65,
+            "blower_power_fraction_of_reference_rated_power": 0.02306816866036436,
+            "blower_power_w": 7291.11255935214,
+            "pressure_drop_pa": 735.3509328370328,
+            "superficial_velocity_m_per_s": 0.6444845517900757,
+            "volumetric_flow_m3_per_s": 6.444845517900757
+          },
           "process_quality_threshold_c": 400.0,
           "reference_energy_capacity_mwh": 1.2642724555555556,
           "reference_rated_power_mw": 0.3160681138888889,
@@ -262,6 +348,11 @@
             "n_steps": 1500
           },
           "reynolds": 352.3875210594123,
+          "reynolds_correlation_validity_range": [
+            15.0,
+            8500.0
+          ],
+          "reynolds_within_correlation_validity_range": true,
           "temperatures_c": {
             "initial_bed_temperature_c": 500.0,
             "inlet_temperature_c_t_return": 420.0,
@@ -290,6 +381,14 @@
           "mass_flux_kg_per_m2s": 0.2427558478409285,
           "nusselt": 28.334723837656608,
           "prandtl": 0.7408590308370043,
+          "pressure_drop": {
+            "blower_efficiency": 0.65,
+            "blower_power_fraction_of_reference_rated_power": 0.010905381482581031,
+            "blower_power_w": 2297.895570958801,
+            "pressure_drop_pa": 347.63411713468025,
+            "superficial_velocity_m_per_s": 0.42965636786005046,
+            "volumetric_flow_m3_per_s": 4.296563678600505
+          },
           "process_quality_threshold_c": 400.0,
           "reference_energy_capacity_mwh": 1.2642724555555556,
           "reference_rated_power_mw": 0.21071207592592592,
@@ -299,6 +398,11 @@
             "n_steps": 1500
           },
           "reynolds": 234.9250140396082,
+          "reynolds_correlation_validity_range": [
+            15.0,
+            8500.0
+          ],
+          "reynolds_within_correlation_validity_range": true,
           "temperatures_c": {
             "initial_bed_temperature_c": 500.0,
             "inlet_temperature_c_t_return": 420.0,
@@ -327,6 +431,14 @@
           "mass_flux_kg_per_m2s": 0.18206688588069636,
           "nusselt": 24.159784185172636,
           "prandtl": 0.7408590308370043,
+          "pressure_drop": {
+            "blower_efficiency": 0.65,
+            "blower_power_fraction_of_reference_rated_power": 0.006501512002812566,
+            "blower_power_w": 1027.4603180774702,
+            "pressure_drop_pa": 207.25064856725706,
+            "superficial_velocity_m_per_s": 0.32224227589503784,
+            "volumetric_flow_m3_per_s": 3.2224227589503784
+          },
           "process_quality_threshold_c": 400.0,
           "reference_energy_capacity_mwh": 1.2642724555555556,
           "reference_rated_power_mw": 0.15803405694444445,
@@ -336,6 +448,11 @@
             "n_steps": 1500
           },
           "reynolds": 176.19376052970614,
+          "reynolds_correlation_validity_range": [
+            15.0,
+            8500.0
+          ],
+          "reynolds_within_correlation_validity_range": true,
           "temperatures_c": {
             "initial_bed_temperature_c": 500.0,
             "inlet_temperature_c_t_return": 420.0,
@@ -364,6 +481,14 @@
           "mass_flux_kg_per_m2s": 0.12137792392046425,
           "nusselt": 19.374438215903705,
           "prandtl": 0.7408590308370043,
+          "pressure_drop": {
+            "blower_efficiency": 0.65,
+            "blower_power_fraction_of_reference_rated_power": 0.003215991929126242,
+            "blower_power_w": 338.82416777360686,
+            "pressure_drop_pa": 102.51713952233595,
+            "superficial_velocity_m_per_s": 0.21482818393002523,
+            "volumetric_flow_m3_per_s": 2.1482818393002523
+          },
           "process_quality_threshold_c": 400.0,
           "reference_energy_capacity_mwh": 1.2642724555555556,
           "reference_rated_power_mw": 0.10535603796296296,
@@ -373,6 +498,11 @@
             "n_steps": 1500
           },
           "reynolds": 117.4625070198041,
+          "reynolds_correlation_validity_range": [
+            15.0,
+            8500.0
+          ],
+          "reynolds_within_correlation_validity_range": true,
           "temperatures_c": {
             "initial_bed_temperature_c": 500.0,
             "inlet_temperature_c_t_return": 420.0,
@@ -391,8 +521,12 @@
     8.0,
     12.0
   ],
-  "generated_at": "2026-09-04T19:36:45.364355+00:00",
+  "generated_at": "2026-09-04T19:55:02.626363+00:00",
   "n_segments": 5,
+  "reynolds_correlation_validity_range": [
+    15.0,
+    8500.0
+  ],
   "roadmap_item": "P2.1 (duration-family curve generation)",
   "scaling_family_definition": "Duration family (roadmap P0.1/P2.1): geometry (bed_length_m, cross_section_area_m2, particle_diameter_m, porosity, n_nodes) is held fixed at the default reference bed's own values across every duration; only mass flow (and therefore mass flux) varies, solved in closed form so the resulting curve's own power/energy ratio k equals 1/tau exactly (discharge_curve.mass_flow_for_target_duration). This is a different family from P1's modular-area scaling (which varies cross-sectional area and mass flow together, at fixed mass flux, to change store size at fixed duration): P0.1/P2.1 deliberately varies mass flux per duration, changing the curve's own shape; P1 deliberately holds mass flux fixed, preserving it.",
   "scope_note": "Packed bed only, both process-temperature cases (300 C and 400 C): the roadmap's own framing of P2 is specific to the packed bed's mass-flow/thermocline trade-off. Molten salt (no thermocline) and PCM (near-isothermal latent plateau) are not covered here; see this script's own module docstring."

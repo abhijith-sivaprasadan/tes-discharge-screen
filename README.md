@@ -904,6 +904,136 @@ modular-area family -- fixed mass flux, area varies at fixed duration --
 restated here since P2.1 is the section that actually asked for it to be
 recorded alongside the curve data).
 
+## P3: dynamic-model hardening
+
+### P3.1: spatial and temporal discretisation convergence
+
+**The finding, stated first and plainly: this project's own default
+resolution (`n_nodes=40`) already gives the same annual dispatch decision
+a much finer grid would, even though its raw discharge-curve shape carries
+a real, non-trivial local error.** `scripts/run_convergence_experiment.py`
+sweeps node count (20, 40, 80, 160) and timestep count (500, 1000, 2000,
+4000) independently against a finer reference (`n_nodes=160,
+n_steps=4000`), then -- per the roadmap's own instruction that this is
+"the strongest metric" -- checks whether the SOC-dependent duration-matched
+dispatch LP's own sized `E_cap`, power rating, and total cost move with
+resolution, not just the raw curve.
+
+| Sweep | Max outlet-temperature deviation (C) | Breakthrough-time deviation (h) | E_cap deviation (MWh) | Total-cost deviation |
+|---|---:|---:|---:|---:|
+| Spatial, N=20 (steps=4000) | 10.23 | -0.081 | +0.257 | +0.0154% |
+| Spatial, N=40 (steps=4000) | 5.57 | -0.033 | +0.131 | +0.0069% |
+| Spatial, N=80 (steps=4000) | 2.19 | -0.012 | +0.038 | +0.0023% |
+| Temporal, steps=500 (N=160) | 1.26 | +0.015 | +0.018 | +0.0012% |
+| Temporal, steps=1000 (N=160) | 0.56 | +0.003 | +0.008 | +0.0005% |
+| Temporal, steps=2000 (N=160) | 0.19 | +0.003 | +0.003 | +0.0002% |
+| **Project default (N=40, steps=1500)** | **5.71** | **-0.033** | **+0.136** | **+0.0071%** |
+
+(Reference: N=160, steps=4000 -- 0 deviation from itself by construction,
+omitted. "Breakthrough time" here is the standard packed-bed-literature
+midpoint definition -- outlet temperature crossing halfway between the
+initial and inlet temperatures -- not this project's own process-quality
+threshold: every packed-bed config in this repository holds
+`inlet_temperature_c` a fixed 20 C above its own `process_temperature_c`
+by design, so outlet temperature, which only ever approaches the inlet
+temperature from above, can never actually cross that threshold in any
+finite discharge; a threshold tied to it would report "never breaks
+through" at every resolution and say nothing about discretisation error.)
+
+**Two real, separable results here.** First: node count, not timestep
+count, dominates the discretisation error -- the spatial sweep's outlet
+deviation (10.23 C at N=20) is an order of magnitude larger than the
+temporal sweep's (1.26 C at the coarsest, 500-step, point), consistent with
+`simulate_discharge`'s own backward-Euler time-stepping being
+unconditionally stable (temporal error shrinks fast) while spatial
+resolution controls how sharply the thermocline front itself is resolved.
+Second, and more important: **despite a genuinely large ~5.7 C / ~9-10
+percentage-point curve-shape error at the project's own default N=40 (see
+the breakpoint deviations in `outputs/convergence/run_manifest.json`), the
+downstream annual dispatch decision moves by only 0.007% in total cost and
+0.14 MWh in sized energy capacity relative to the fine-grid reference** --
+against a deliberately strict [assumption] 1.0% convergence threshold.
+**Every prior Phase C/C2/C3/P2.1 result in this repository, all of which
+used this same N=40 default, is therefore validated as already converged
+at the level that actually matters (the sizing/cost decision), not merely
+assumed to be** -- the project's own documented "verified is not
+validated" ethos, applied to its own numerical resolution choice rather
+than only its governing physics.
+
+Every number above traces to `outputs/convergence/run_manifest.json`: the
+full spatial sweep, temporal sweep, and project-default entry, each with
+its own curve-shape deviations and paired dispatch-LP KPIs.
+
+### P3.2: correlation-domain validity checks
+
+The Wakao-Kaguei correlation `flow_diagnostics` uses (`Nu = 2 +
+1.1*Re^0.6*Pr^(1/3)`) is only stated valid over `15 < Re < 8500`
+(`WAKAO_KAGUEI_REYNOLDS_VALIDITY_RANGE`, `packed_bed_dynamics.py`). Every
+call now records whether its own Reynolds number actually falls inside
+that range (`FlowDiagnostics.reynolds_within_correlation_validity_range`)
+and raises a loud `RuntimeWarning` -- not a silent extrapolation -- the
+moment it does not (`tests/test_packed_bed_dynamics.py`'s own P3.2 block
+forces this with a deliberately tiny mass flux and checks the warning
+fires). Every mass flow this repository's own case configs and duration
+sweeps actually use stays comfortably inside the validity domain: Re
+ranges from 117 (12h design duration) to 705 (2h design duration) across
+the full `outputs/capability_curves/` duration grid, both well clear of
+the [15, 8500] bounds -- recorded explicitly in each duration's own
+`manifest.json`, not merely asserted.
+
+### P3.3: Ergun pressure drop and blower parasitic power
+
+**What this adds.** `ergun_pressure_drop_and_blower_power` computes the
+Ergun-equation pressure drop across the bed (Ergun, 1952 -- the textbook-
+standard laminar-plus-turbulent packed-bed correlation) at a given mass
+flow, and the blower electric power it implies at an explicit, [assumption]-
+labelled `blower_efficiency` (0.65, typical industrial centrifugal blower
+range 0.55-0.75; `docs/DATA.md`) -- an optional, documented extension per
+the roadmap's own instruction, reported alongside each duration's discharge
+curve in `outputs/capability_curves/`, **not wired into `dispatch.py`'s own
+economics**: every case's objective still uses
+`economics.storage_capex_eur_per_mw` as its blower/ducting/HX capital-cost
+proxy exactly as before, so no existing committed result changes. This
+makes that proxy's *operating*-cost counterpart computable and reportable
+for the first time, rather than silently replacing it.
+
+| Design duration (tau) | Mass flow (kg/s) | Blower power (W) | Blower power / reference rated thermal power |
+|---:|---:|---:|---:|
+| 2h | 7.28 | 54,615 | 8.64% |
+| 4h | 3.64 | 7,291 | 2.31% |
+| 6h | 2.43 | 2,298 | 1.09% |
+| 8h | 1.82 | 1,027 | 0.65% |
+| 12h | 1.21 | 339 | 0.32% |
+
+**This is exactly the physical trade-off the roadmap named as the reason
+to add it.** Shorter design durations mean higher mass flow for the same
+reference energy capacity, and Ergun's own turbulent term scales with the
+*square* of superficial velocity: blower parasitic power at the shortest
+(2h) duration is over 25x larger, as a fraction of rated thermal power,
+than at the longest (12h) duration tested. In absolute terms it stays
+small throughout this project's own reference-bed scale (tens of watts to
+tens of kilowatts against a store rated in the hundreds of kW to low MW),
+but the *trend* -- parasitic losses growing sharply as design duration
+shortens -- is a real, physically grounded operating penalty this
+project's economics did not previously capture at all, exactly the
+"vague blower/ducting/HX power CAPEX story" the roadmap names. Wiring it
+into the dispatch LP's own objective (so shorter-duration, higher-flow
+designs pay for their own parasitic losses in the annual cost, not just an
+external observation) is a natural next step, not attempted here.
+
+Every number above traces to each duration's own `manifest.json` under
+`outputs/capability_curves/tau_{X}h/{case_name}/pressure_drop`.
+
+### P3.4: temperature-dependent properties -- deliberately not attempted
+
+The roadmap's own instruction for this item is "do not rush this," and
+explicitly asks that current air-property values be re-verified against a
+primary/open source *first*, before deciding whether constant properties
+are even inadequate: "a constant-property model with a sensitivity check
+is preferable to a black-box property dependency nobody can explain in an
+interview." Not attempted in this pass, consistent with that instruction
+rather than as an oversight.
+
 ## Repository layout
 
 ```
@@ -926,7 +1056,10 @@ scripts/          Run harnesses: run_case.py (Phase A), run_packed_bed_dynamics.
                   full technology-ranking matrix), run_state_sufficiency_experiment.py
                   (P0.3's state-sufficiency test), run_scaling_law_experiment.py
                   (P1's scaling-law check), run_capability_curves_experiment.py
-                  (P2.1's duration-family capability curves, packed bed only)
+                  (P2.1's duration-family capability curves and P3.3's
+                  Ergun/blower diagnostics, packed bed only),
+                  run_convergence_experiment.py (P3.1's spatial/temporal
+                  discretisation convergence check)
 tests/            Physics and contract tests, not syntax tests
 configs/          One YAML per case; no parameter lives in source
 outputs/          Committed run evidence: config + schedule + solver/verification manifest
@@ -976,7 +1109,18 @@ zero-effect result is a sizing artifact at this design duration, not
 evidence its discharge shape does not matter -- stated plainly, not hidden)
 -> P2.1 (duration-family capability curves committed as standalone
 evidence; done, packed bed only -- P2.2's full swept envelope explicitly
-deferred by the roadmap itself, not attempted) -> D (harmonised comparison
+deferred by the roadmap itself, not attempted) -> P3.1 (spatial/temporal
+discretisation convergence; done -- the project's own default resolution
+reproduces the fine-grid annual dispatch decision to 0.007% cost / 0.14
+MWh sizing, validating every prior committed result's numerical resolution
+choice rather than merely assuming it) -> P3.2 (correlation-domain
+validity checks; done -- every run now records whether its own Reynolds
+number falls inside the Wakao-Kaguei correlation's stated domain and warns
+loudly if not; every case config in this repository does) -> P3.3 (Ergun
+pressure drop and blower parasitic power; done -- reported alongside each
+duration's discharge curve, not wired into dispatch.py's own economics;
+P3.4, temperature-dependent properties, deliberately not attempted per the
+roadmap's own "do not rush this" instruction) -> D (harmonised comparison
 and sensitivity, optional enrichment; not started). Real ENTSO-E price data
 (the roadmap's own P7) is being pulled forward ahead of its default
 sequencing, at explicit user request; not yet wired in as of this commit
@@ -1018,6 +1162,11 @@ python scripts/run_scaling_law_experiment.py
 python scripts/run_phase_c_full_matrix_experiment.py
 
 # Run the P2.1 duration-family capability-curve experiment (packed bed
-# only; writes outputs/capability_curves/tau_{X}h/{case_name}/):
+# only; also reports P3.2/P3.3's correlation-validity and Ergun/blower
+# diagnostics; writes outputs/capability_curves/tau_{X}h/{case_name}/):
 python scripts/run_capability_curves_experiment.py
+
+# Run the P3.1 spatial/temporal discretisation convergence check (does
+# resolution change the annual dispatch LP's own sizing/cost decision?):
+python scripts/run_convergence_experiment.py
 ```

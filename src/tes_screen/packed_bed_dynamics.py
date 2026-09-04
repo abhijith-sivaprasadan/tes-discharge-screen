@@ -25,6 +25,7 @@ coefficient reducing to a well-mixed tank, and exact energy conservation).
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import asdict, dataclass, replace
 from typing import Any
 
@@ -52,6 +53,15 @@ class PackedBedDynamicsConfig:
     air_viscosity_pa_s: float
     air_thermal_conductivity_w_per_mk: float
     n_nodes: int = 40
+    # Blower/fan efficiency for the Ergun pressure-drop parasitic-power
+    # calculation (roadmap P3.3). Carries a dataclass default the same way
+    # n_nodes does (both are algorithm/equipment choices, not literature
+    # material properties), but per this project's own rule ("assumptions
+    # live in config, never in source") `default_packed_bed_config` still
+    # sets it explicitly with its own citation tier below, rather than
+    # relying on this default silently: [assumption] until a sourced
+    # figure replaces it.
+    blower_efficiency: float = 0.65
 
     def validate(self) -> None:
         positive = (
@@ -71,6 +81,8 @@ class PackedBedDynamicsConfig:
             raise ValueError("porosity must be in (0, 1)")
         if self.n_nodes < 1:
             raise ValueError("n_nodes must be at least 1")
+        if not 0 < self.blower_efficiency <= 1:
+            raise ValueError("blower_efficiency must be in (0, 1]")
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -100,6 +112,7 @@ def default_packed_bed_config() -> PackedBedDynamicsConfig:
         air_viscosity_pa_s=3.1e-5,
         air_thermal_conductivity_w_per_mk=0.0454,
         n_nodes=40,
+        blower_efficiency=0.65,  # [assumption] typical industrial centrifugal blower, 0.55-0.75
     )
     config.validate()
     return config
@@ -149,18 +162,28 @@ def scale_parallel_bed(
     return scaled_config, reference_mass_flow_kg_per_s * scale_factor
 
 
+# Wakao-Kaguei's own stated validity domain (Wakao & Kaguei, 1982): the
+# correlation was fit to data over this Reynolds range, and roadmap P3.2
+# asks that every run record this range alongside Re/Pr/Nu and warn loudly
+# when a scenario falls outside it, rather than silently extrapolating.
+WAKAO_KAGUEI_REYNOLDS_VALIDITY_RANGE = (15.0, 8500.0)
+
+
 @dataclass(frozen=True)
 class FlowDiagnostics:
     """The Wakao-Kaguei correlation's own intermediate dimensionless groups,
     alongside the volumetric coefficient they produce -- roadmap P2.1's own
     required manifest fields (Re, Pr, Nu, h_v), factored out as a named
     result so a capability-curve run can record them directly rather than
-    recomputing the correlation a second time from scratch."""
+    recomputing the correlation a second time from scratch. `reynolds_
+    within_correlation_validity_range` is P3.2's own required field: whether
+    this run's Re actually falls inside `WAKAO_KAGUEI_REYNOLDS_VALIDITY_RANGE`."""
 
     reynolds: float
     prandtl: float
     nusselt: float
     volumetric_heat_transfer_coefficient_w_per_m3k: float
+    reynolds_within_correlation_validity_range: bool
 
 
 def flow_diagnostics(
@@ -177,9 +200,18 @@ def flow_diagnostics(
 
     scaled to a volumetric coefficient by the packing's specific surface area
     per unit bed volume, a_v = 6(1-eps)/d_p for spherical particles.
+
+    Roadmap P3.2: whenever Re falls outside `WAKAO_KAGUEI_REYNOLDS_VALIDITY_RANGE`,
+    this warns loudly (`RuntimeWarning`) rather than silently extrapolating
+    the correlation beyond where it was actually fit, and always records the
+    in/out-of-range verdict on the returned `FlowDiagnostics` so a caller can
+    check it without parsing warnings. Zero flow (`mass_flux_kg_per_m2s <= 0`)
+    is a deliberate, already-tested static case, not a correlation
+    evaluation, so it is reported as trivially "within range" rather than
+    a violation.
     """
     if mass_flux_kg_per_m2s <= 0:
-        return FlowDiagnostics(0.0, 0.0, 0.0, 0.0)
+        return FlowDiagnostics(0.0, 0.0, 0.0, 0.0, True)
     reynolds = mass_flux_kg_per_m2s * config.particle_diameter_m / config.air_viscosity_pa_s
     prandtl = (
         config.air_viscosity_pa_s
@@ -190,7 +222,19 @@ def flow_diagnostics(
     h_particle = nusselt * config.air_thermal_conductivity_w_per_mk / config.particle_diameter_m
     specific_surface_area = 6 * (1 - config.porosity) / config.particle_diameter_m
     h_v = h_particle * specific_surface_area
-    return FlowDiagnostics(reynolds, prandtl, nusselt, h_v)
+
+    reynolds_lo, reynolds_hi = WAKAO_KAGUEI_REYNOLDS_VALIDITY_RANGE
+    within_range = reynolds_lo <= reynolds <= reynolds_hi
+    if not within_range:
+        warnings.warn(
+            f"Reynolds number {reynolds:.2f} is outside the Wakao-Kaguei "
+            f"correlation's stated validity range [{reynolds_lo:.0f}, "
+            f"{reynolds_hi:.0f}] (roadmap P3.2); h_v is being extrapolated "
+            "beyond where the correlation was actually fit.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
+    return FlowDiagnostics(reynolds, prandtl, nusselt, h_v, within_range)
 
 
 def volumetric_heat_transfer_coefficient(
@@ -205,6 +249,82 @@ def volumetric_heat_transfer_coefficient(
     return flow_diagnostics(
         config, mass_flux_kg_per_m2s
     ).volumetric_heat_transfer_coefficient_w_per_m3k
+
+
+@dataclass(frozen=True)
+class PressureDropDiagnostics:
+    """Ergun pressure drop and the blower electric power it implies
+    (roadmap P3.3) -- an optional, documented extension, not wired into
+    the annual dispatch LP's own economics: `dispatch.py`'s objective
+    still uses `economics.storage_capex_eur_per_mw` as its blower/ducting/
+    HX capital-cost proxy exactly as before, unchanged, so every already-
+    committed result in this repository is unaffected by this addition.
+    This makes that proxy's *operating*-cost counterpart computable and
+    reportable alongside a discharge curve, not a silent replacement for it."""
+
+    superficial_velocity_m_per_s: float
+    pressure_drop_pa_per_m: float
+    pressure_drop_pa: float
+    volumetric_flow_m3_per_s: float
+    blower_power_w: float
+
+
+def ergun_pressure_drop_and_blower_power(
+    config: PackedBedDynamicsConfig, mass_flow_kg_per_s: float
+) -> PressureDropDiagnostics:
+    """Ergun equation pressure drop across the bed length, and the blower
+    electric power it implies at `config.blower_efficiency`.
+
+    Ergun, S., 1952, "Fluid flow through packed columns," Chemical
+    Engineering Progress 48(2), 89-94 -- textbook-standard, widely used for
+    packed-bed pressure drop, combining laminar (Blake-Kozeny) and
+    turbulent (Burke-Plummer) terms:
+
+        dP/L = 150 * mu * (1-eps)^2 / (eps^3 * dp^2) * v_s
+             + 1.75 * rho * (1-eps) / (eps^3 * dp) * v_s^2
+
+    where `v_s` is the *superficial* velocity (volumetric flow divided by
+    the empty cross-section, not the interstitial pore velocity) --
+    `mass_flux_kg_per_m2s / air_density_kg_per_m3`, the same mass flux
+    `flow_diagnostics` already uses for Re/Nu, so this stays exactly
+    consistent with the heat-transfer side of the model rather than a
+    second, independently-derived flow quantity.
+
+    Blower electric power approximates the pressure drop as a simple
+    isentropic-free hydraulic power divided by a blower efficiency
+    (`P_blower = dP * volumetric_flow / eta_blower`, roadmap P3.3's own
+    formula) -- a first-order approximation (no compressibility, no fan
+    curve), adequate for the air-density, low-pressure-drop regime this
+    project's own reference bed operates in, not a detailed blower design.
+    """
+    config.validate()
+    if mass_flow_kg_per_s < 0:
+        raise ValueError("mass_flow_kg_per_s must be nonnegative")
+    mass_flux = mass_flow_kg_per_s / config.cross_section_area_m2
+    superficial_velocity = mass_flux / config.air_density_kg_per_m3
+    eps = config.porosity
+    dp = config.particle_diameter_m
+    laminar_term = (
+        150 * config.air_viscosity_pa_s * (1 - eps) ** 2 / (eps**3 * dp**2) * superficial_velocity
+    )
+    turbulent_term = (
+        1.75
+        * config.air_density_kg_per_m3
+        * (1 - eps)
+        / (eps**3 * dp)
+        * superficial_velocity**2
+    )
+    pressure_drop_per_length = laminar_term + turbulent_term
+    pressure_drop_pa = pressure_drop_per_length * config.bed_length_m
+    volumetric_flow = mass_flow_kg_per_s / config.air_density_kg_per_m3
+    blower_power_w = pressure_drop_pa * volumetric_flow / config.blower_efficiency
+    return PressureDropDiagnostics(
+        superficial_velocity_m_per_s=superficial_velocity,
+        pressure_drop_pa_per_m=pressure_drop_per_length,
+        pressure_drop_pa=pressure_drop_pa,
+        volumetric_flow_m3_per_s=volumetric_flow,
+        blower_power_w=blower_power_w,
+    )
 
 
 @dataclass(frozen=True)

@@ -52,8 +52,10 @@ from tes_screen.discharge_curve import (  # noqa: E402
     verify_piecewise_curve_is_safe,
 )
 from tes_screen.packed_bed_dynamics import (  # noqa: E402
+    WAKAO_KAGUEI_REYNOLDS_VALIDITY_RANGE,
     default_packed_bed_config,
     discharge_power_curve,
+    ergun_pressure_drop_and_blower_power,
     flow_diagnostics,
     simulate_discharge,
 )
@@ -92,6 +94,7 @@ def _curve_for_duration(
     )
     mass_flux = mass_flow / bed_config.cross_section_area_m2
     diagnostics = flow_diagnostics(bed_config, mass_flux)
+    pressure_drop = ergun_pressure_drop_and_blower_power(bed_config, mass_flow)
     result = simulate_discharge(
         bed_config,
         mass_flow_kg_per_s=mass_flow,
@@ -107,7 +110,17 @@ def _curve_for_duration(
         curve, result, process_temperature_c, DELTA_T_MIN_HOT_SIDE_C
     )
     power_curve = discharge_power_curve(result, process_temperature_c, DELTA_T_MIN_HOT_SIDE_C)
-    return bed_config, mass_flow, mass_flux, diagnostics, result, curve, safety, power_curve
+    return (
+        bed_config,
+        mass_flow,
+        mass_flux,
+        diagnostics,
+        pressure_drop,
+        result,
+        curve,
+        safety,
+        power_curve,
+    )
 
 
 def main() -> None:
@@ -127,6 +140,7 @@ def main() -> None:
         "design_durations_swept_hours": DESIGN_DURATIONS_HOURS,
         "delta_t_min_hot_side_c": DELTA_T_MIN_HOT_SIDE_C,
         "n_segments": PRIMARY_N_SEGMENTS,
+        "reynolds_correlation_validity_range": list(WAKAO_KAGUEI_REYNOLDS_VALIDITY_RANGE),
         "scaling_family_definition": (
             "Duration family (roadmap P0.1/P2.1): geometry (bed_length_m, "
             "cross_section_area_m2, particle_diameter_m, porosity, n_nodes) "
@@ -153,6 +167,7 @@ def main() -> None:
                 mass_flow,
                 mass_flux,
                 diagnostics,
+                pressure_drop,
                 result,
                 curve,
                 safety,
@@ -185,6 +200,26 @@ def main() -> None:
                 "volumetric_heat_transfer_coefficient_w_per_m3k": (
                     diagnostics.volumetric_heat_transfer_coefficient_w_per_m3k
                 ),
+                # Roadmap P3.2: the correlation's own stated validity domain,
+                # recorded alongside Re/Pr/Nu rather than left implicit.
+                "reynolds_correlation_validity_range": list(WAKAO_KAGUEI_REYNOLDS_VALIDITY_RANGE),
+                "reynolds_within_correlation_validity_range": (
+                    diagnostics.reynolds_within_correlation_validity_range
+                ),
+                # Roadmap P3.3: Ergun pressure drop and the blower electric
+                # power it implies -- reported alongside the curve, not fed
+                # into dispatch.py's own economics (see
+                # ergun_pressure_drop_and_blower_power's own docstring).
+                "pressure_drop": {
+                    "blower_efficiency": bed_config.blower_efficiency,
+                    "superficial_velocity_m_per_s": pressure_drop.superficial_velocity_m_per_s,
+                    "pressure_drop_pa": pressure_drop.pressure_drop_pa,
+                    "volumetric_flow_m3_per_s": pressure_drop.volumetric_flow_m3_per_s,
+                    "blower_power_w": pressure_drop.blower_power_w,
+                    "blower_power_fraction_of_reference_rated_power": (
+                        pressure_drop.blower_power_w / (curve.reference_rated_power_mw * 1e6)
+                    ),
+                },
                 "temperatures_c": {
                     "initial_bed_temperature_c": initial_temp_c,
                     "inlet_temperature_c_t_return": inlet_temp_c,
@@ -209,12 +244,16 @@ def main() -> None:
                 json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
             )
             case_summary["durations"].append(manifest)
+            blower_fraction = manifest["pressure_drop"][
+                "blower_power_fraction_of_reference_rated_power"
+            ]
             print(
                 f"{case_name:20s} tau={tau:5.2f}h  mass_flow={mass_flow:6.3f} kg/s  "
                 f"mass_flux={mass_flux:6.4f} kg/m2s  Re={diagnostics.reynolds:8.2f}  "
                 f"Pr={diagnostics.prandtl:.4f}  Nu={diagnostics.nusselt:7.3f}  "
                 f"h_v={diagnostics.volumetric_heat_transfer_coefficient_w_per_m3k:10.2f} W/m3K  "
-                f"overestimate={safety['max_overestimate_mw']:.2e} MW"
+                f"overestimate={safety['max_overestimate_mw']:.2e} MW  "
+                f"blower={pressure_drop.blower_power_w:7.2f} W ({blower_fraction:.4%} of P_ref)"
             )
         top_level_manifest["cases"].append(case_summary)
 
