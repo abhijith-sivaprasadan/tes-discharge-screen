@@ -1,6 +1,6 @@
 # Model card
 
-## Status: Phase 0, A, B (packed bed only), P0.3 (state-sufficiency test), C (MVP scope, archived), C2 (matched-duration fix), P0.4 (start-of-hour capability fix), and P0.5 (MILP cycling prevention) built
+## Status: Phase 0, A, B (packed bed with full verification; molten salt and PCM with closed-form sub-models only), P0.3 (state-sufficiency test), C (MVP scope, archived), C2 (matched-duration fix, packed bed only), P0.4 (start-of-hour capability fix), P0.5 (MILP cycling prevention), and C3 (full technology-ranking matrix) built
 
 This card documents what is actually built at this commit, not what the project
 intends to build. It will be rewritten section by section as each phase lands,
@@ -216,6 +216,74 @@ describes.
   pathology's value. The original LP mode (`"none"`) is unchanged and
   remains every existing case's default. See README's P0.5 section for the
   full numbers.
+- **Molten-salt and PCM dynamic sub-models (`src/tes_screen/molten_salt_dynamics.py`,
+  `src/tes_screen/pcm_dynamics.py`).** Closed-form, not time-stepped PDEs
+  like the packed bed: a two-tank molten salt store's outlet temperature is
+  exactly the hot-tank temperature for as long as any usable inventory
+  remains (no thermocline mechanism exists in a two-tank system), so
+  discharge capability declining near depletion is modelled as a flow
+  taper across a small `heel_fraction` ([assumption]) rather than a
+  temperature one; a PCM store discharges through three physically real
+  regimes (superheat sensible, latent, subcooled sensible), each a simple
+  closed-form energy balance. Both share the packed bed's own piecewise-fit
+  contract (`(state_of_charge, deliverable_power_mw)` in, a
+  `PiecewiseDischargeCurve` out) via `discharge_curve.py`'s
+  now-technology-agnostic `fit_piecewise_curve_from_power_curve`/
+  `verify_piecewise_curve_against_power_curve` (factored out of the
+  packed-bed-specific wrappers, verified non-breaking by the full existing
+  test suite before either new module was written). Because these models
+  are closed-form rather than discretized, their own tests
+  (`tests/test_molten_salt_dynamics.py`, `tests/test_pcm_dynamics.py`, 25
+  tests total) check that the implementation matches its own specified
+  physics (outlet temperature holds exactly at the hot-tank/melting-point
+  value where the physics says it should, mass flow solved for a target
+  duration reproduces that duration to `1e-9` relative, and so on) rather
+  than checking numerical accuracy against an independent analytic limit
+  the way the packed bed's B4 checks do -- **neither has a Modelica twin or
+  an FMU cross-check**, a real, stated difference in verification depth
+  from Phase B's own packed-bed treatment, not an oversight. PCM's
+  piecewise fit is worth a specific note: its three-regime curve is not
+  globally concave (a convex corner where the flat latent plateau meets the
+  rising superheat ramp), so the fit's usual "exact for a concave curve"
+  safety argument does not apply on its own; verified empirically instead
+  (`test_piecewise_fit_safety_is_checked_not_assumed`, swept over 3-30
+  segments) that the construction's actual mechanism -- taking the minimum
+  over every segment's own secant line extended across the whole domain,
+  not just the nominally containing one -- still gives exactly 0.0
+  overestimate, and the module docstring/test comment explain why.
+- **Phase C3, the full technology-ranking matrix
+  (`scripts/run_phase_c_full_matrix_experiment.py`,
+  `outputs/phase_c_full_matrix/`).** The comparison C2 could not run (only
+  packed bed had a Phase B dynamic sub-model): every technology x every
+  process temperature it is configured for x every synthetic load profile,
+  at the same matched `design_duration_hours = 6h` and the same P0.2/P0.4
+  corrections C2 established. 5 valid technology/temperature combinations
+  (packed bed and molten salt at 300 C and 400 C; PCM only at 300 C, no
+  suitable high-temperature nitrate-salt PCM composition found) x 3
+  profiles (`flat`, `two_shift`, `seasonal`) = 15 paired cases, 30 solves,
+  all `optimal` and independently verified. **Finding, stated plainly: the
+  SOC-dependent correction never changes which technology is cheapest** --
+  packed bed remains cheapest in all 6 (temperature, profile) groups under
+  both formulations, with a total-cost delta of at most +0.031% anywhere in
+  the matrix. Molten salt's own delta is smaller than packed bed's at every
+  matched pair (e.g. +0.006% vs. +0.020% at 300 C flat), consistent with
+  this project's own control-case hypothesis. **PCM's delta is exactly
+  0.000% in every case, but this is a sizing artifact, not evidence its
+  discharge shape is inconsequential**: the optimiser builds exactly zero
+  PCM storage capacity at this design duration, under both formulations, in
+  every profile -- PCM's combined capex (80,000 EUR/MWh-th +
+  40,000 EUR/MW) is far above packed bed's or molten salt's, so it is
+  cheaper to serve the load entirely from the heater/boiler than to build
+  any PCM store at all, and the SOC-dependent constraint is therefore never
+  exercised. The 300 C and 400 C rows are pairwise numerically identical
+  for packed bed and for molten salt, each for its own stated,
+  parameter-choice reason (identical 80 C span in both packed-bed configs;
+  molten salt's fixed 565 C/290 C tank temperatures and a pass/fail quality
+  gate both process temperatures clear trivially), not a bug. One
+  matplotlib figure per technology (`outputs/phase_c_full_matrix/figures/`)
+  overlays each curve's analytic shape, its piecewise fit, and the
+  constant-limit reference. See README's Phase C3 section for the full
+  15-row and 6-row tables.
 
 ## Scaling law
 
@@ -265,15 +333,11 @@ small.
   strongest verification story (the build spec's own words) has not been
   run. `fmu.py` fails loudly and specifically when the toolchain is absent
   rather than silently skipping.
-- Molten-salt and PCM dynamic sub-models: not started. Packed bed is the
-  technology the project's hypothesis expects to show the largest effect
-  from the SOC-dependent correction, so it was prioritised alone rather than
-  leaving three unfinished.
-- **The full 18-run technology-ranking matrix** (3 technologies x 2 process
-  temperatures x 3 load profiles, both discharge-limit formulations): not
-  started. Only packed bed has a Phase B dynamic sub-model, so there is no
-  second technology to rank against yet; "does the ranking change" is not
-  answerable from the one MVP case run so far.
+- **A Modelica twin or FMU cross-check for molten salt or PCM.** Both are
+  closed-form models (see Phase C3 above), verified against their own
+  specified physics, not against an independent analytic limit or a
+  compiled FMU the way the packed bed's B4 checks are -- a real,
+  stated difference in verification depth, not an oversight.
 - **Explicit heat-exchanger modelling.** `delta_T_min_hot_side` (P0.2) is
   carried as an explicit parameter but set to `0.0` everywhere in this
   repository ([assumption]; docs/DATA.md); a real HX approach-temperature
@@ -282,8 +346,11 @@ small.
 - PCM at 400 C: no common nitrate-salt PCM composition was found in this
   session's research with a melting point usefully close to 400 C, so that
   combination is left undone rather than forced (docs/DATA.md, README).
-- Runs for the two-shift and seasonal load profiles: built
-  (`synthetic_profiles.py`) but only the flat profile has been run so far.
+- **A duration or economics sweep for Phase C3's PCM null result.** PCM's
+  optimal storage capacity is exactly zero at the one design duration
+  (6h) and one set of capex assumptions C3 tested; whether a different
+  duration or a different PCM capex figure would make it competitive
+  enough to actually exercise the SOC-dependent correction is not tested.
 - A live ENTSO-E price fetch.
 - Sensitivity analysis, the boundary-harmonisation table, or the
   technology-selection map (Phase D).
@@ -314,13 +381,20 @@ solver's own reported numbers (`verification.py`), for both the constant and
 SOC-dependent formulations, and that check is run on every solve, not only
 once. The Phase B packed-bed shadow twin is checked against three closed-form
 analytic limits, not against a compiled FMU (no OpenModelica toolchain here)
-and not against any measurement. The Phase C/C2 piecewise discharge-curve
-construction is checked for safety (it must never claim more deliverable
-power than the underlying curve shows) against that same curve's own data
-at every design duration swept in C2, and Phase C's original paired-run
-finding was checked for stability across four different segment counts
-before its own confound (unequal sizing degrees of freedom between the two
-formulations) was found and corrected in C2. P0.3 goes a step further than
+and not against any measurement. The molten-salt and PCM dynamic sub-models (Phase C3) are closed-form, not
+discretized, so their own checks confirm the implementation matches its
+specified physics rather than checking numerical accuracy against an
+analytic limit; neither has a Modelica twin or an FMU cross-check. The
+Phase C/C2/C3 piecewise discharge-curve construction is checked for safety
+(it must never claim more deliverable power than the underlying curve
+shows) against that same curve's own data at every design duration swept
+in C2 and every technology/temperature combination in C3 -- including PCM,
+whose curve is not globally concave, where safety was verified empirically
+across 3-30 segments rather than assumed from the curve's shape -- and
+Phase C's original paired-run finding was checked for stability across
+four different segment counts before its own confound (unequal sizing
+degrees of freedom between the two formulations) was found and corrected
+in C2. P0.3 goes a step further than
 verifying the curve's own construction: it checks whether the curve's
 underlying premise (that total energy determines outlet capability) holds
 at all outside the one trajectory it was fit from, and finds that it does

@@ -1,0 +1,7 @@
+temperature_c,profile_shape,technologies_compared,cheapest_technology_constant,cheapest_technology_soc_dependent,ranking_flipped
+300.0,flat,"molten_salt, packed_bed, pcm",packed_bed,packed_bed,False
+300.0,seasonal,"molten_salt, packed_bed, pcm",packed_bed,packed_bed,False
+300.0,two_shift,"molten_salt, packed_bed, pcm",packed_bed,packed_bed,False
+400.0,flat,"molten_salt, packed_bed",packed_bed,packed_bed,False
+400.0,seasonal,"molten_salt, packed_bed",packed_bed,packed_bed,False
+400.0,two_shift,"molten_salt, packed_bed",packed_bed,packed_bed,False

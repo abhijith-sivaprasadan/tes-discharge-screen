@@ -1,0 +1,937 @@
+{
+  "all_runs_verified": true,
+  "any_ranking_flip": false,
+  "cases": [
+    {
+      "constant_limit": {
+        "kpis": {
+          "carbon_cost_eur": 409961.4583755109,
+          "e_cap_mwh": 54.98691637293239,
+          "electricity_cost_eur": 2524452.2591885687,
+          "emissions_tco2": 5124.518229693886,
+          "fuel_cost_eur": 1014756.0850878982,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 9.1644860621554,
+          "total_cost_eur": 3993618.078114234,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 3993618.078114234,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 6.009056257000111
+        },
+        "verification_passed": true
+      },
+      "curve_fit_max_overestimate_mw": 4.341537767808951e-06,
+      "curve_fit_mean_absolute_error_mw": 0.006193856920972547,
+      "delta_soc_dependent_minus_constant": {
+        "e_cap_mwh": 0.2174249120289602,
+        "power_rating_mw": 0.03623748533815885,
+        "total_cost_eur": 798.2434286302887,
+        "total_cost_pct": 0.019987976141354388
+      },
+      "mass_flow_kg_per_s": 2.427558478409285,
+      "profile_shape": "flat",
+      "soc_dependent": {
+        "kpis": {
+          "carbon_cost_eur": 412691.70006000606,
+          "e_cap_mwh": 55.20434128496135,
+          "electricity_cost_eur": 2515586.4831088833,
+          "emissions_tco2": 5158.6462507500755,
+          "fuel_cost_eur": 1021514.1090594208,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 9.200723547493558,
+          "total_cost_eur": 3994416.321542864,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 3994416.321542864,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 17.615685302999964
+        },
+        "verification_passed": true
+      },
+      "technology": "packed_bed",
+      "temperature_c": 300.0
+    },
+    {
+      "constant_limit": {
+        "kpis": {
+          "carbon_cost_eur": 173255.4622836875,
+          "e_cap_mwh": 78.22632071187732,
+          "electricity_cost_eur": 2135533.2214383883,
+          "emissions_tco2": 2165.6932785460936,
+          "fuel_cost_eur": 428850.1541675433,
+          "max_heat_balance_residual_mw": 1.7763568394002505e-15,
+          "power_rating_mw": 13.03772011864622,
+          "total_cost_eur": 2800872.517476454,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 2800872.517476454,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 7.296659256999874
+        },
+        "verification_passed": true
+      },
+      "curve_fit_max_overestimate_mw": 4.341537767808951e-06,
+      "curve_fit_mean_absolute_error_mw": 0.006193856920972547,
+      "delta_soc_dependent_minus_constant": {
+        "e_cap_mwh": 0.48880338910997523,
+        "power_rating_mw": 0.0814672315183298,
+        "total_cost_eur": 271.2410646658391,
+        "total_cost_pct": 0.009684163166063102
+      },
+      "mass_flow_kg_per_s": 2.427558478409285,
+      "profile_shape": "two_shift",
+      "soc_dependent": {
+        "kpis": {
+          "carbon_cost_eur": 172756.62323653942,
+          "e_cap_mwh": 78.7151241009873,
+          "electricity_cost_eur": 2137142.93098879,
+          "emissions_tco2": 2159.4577904567427,
+          "fuel_cost_eur": 427615.4040508401,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 13.11918735016455,
+          "total_cost_eur": 2801143.7585411198,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 2801143.7585411198,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 17.853746082000043
+        },
+        "verification_passed": true
+      },
+      "technology": "packed_bed",
+      "temperature_c": 300.0
+    },
+    {
+      "constant_limit": {
+        "kpis": {
+          "carbon_cost_eur": 185812.91039537836,
+          "e_cap_mwh": 70.57876950383753,
+          "electricity_cost_eur": 2171920.8977902248,
+          "emissions_tco2": 2322.66137994223,
+          "fuel_cost_eur": 459932.9465232139,
+          "max_heat_balance_residual_mw": 1.7763568394002505e-15,
+          "power_rating_mw": 11.76312825063959,
+          "total_cost_eur": 2874718.591684194,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 2874718.591684194,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 7.587034426000173
+        },
+        "verification_passed": true
+      },
+      "curve_fit_max_overestimate_mw": 4.341537767808951e-06,
+      "curve_fit_mean_absolute_error_mw": 0.006193856920972547,
+      "delta_soc_dependent_minus_constant": {
+        "e_cap_mwh": 0.5533508656337744,
+        "power_rating_mw": 0.09222514427229633,
+        "total_cost_eur": 884.8996367142536,
+        "total_cost_pct": 0.030782130789220062
+      },
+      "mass_flow_kg_per_s": 2.427558478409285,
+      "profile_shape": "seasonal",
+      "soc_dependent": {
+        "kpis": {
+          "carbon_cost_eur": 186919.11026099906,
+          "e_cap_mwh": 71.13212036947131,
+          "electricity_cost_eur": 2168514.181918929,
+          "emissions_tco2": 2336.4888782624885,
+          "fuel_cost_eur": 462671.0650024729,
+          "max_heat_balance_residual_mw": 1.7763568394002505e-15,
+          "power_rating_mw": 11.855353394911885,
+          "total_cost_eur": 2875603.491320908,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 2875603.491320908,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 19.116900548999865
+        },
+        "verification_passed": true
+      },
+      "technology": "packed_bed",
+      "temperature_c": 300.0
+    },
+    {
+      "constant_limit": {
+        "kpis": {
+          "carbon_cost_eur": 409961.4583755109,
+          "e_cap_mwh": 54.98691637293239,
+          "electricity_cost_eur": 2524452.2591885687,
+          "emissions_tco2": 5124.518229693886,
+          "fuel_cost_eur": 1014756.0850878982,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 9.1644860621554,
+          "total_cost_eur": 3993618.078114234,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 3993618.078114234,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 6.826650321999978
+        },
+        "verification_passed": true
+      },
+      "curve_fit_max_overestimate_mw": 4.341537774709022e-06,
+      "curve_fit_mean_absolute_error_mw": 0.006193856920971062,
+      "delta_soc_dependent_minus_constant": {
+        "e_cap_mwh": 0.21742491202892467,
+        "power_rating_mw": 0.03623748533815352,
+        "total_cost_eur": 798.2434286302887,
+        "total_cost_pct": 0.019987976141354388
+      },
+      "mass_flow_kg_per_s": 2.427558478409285,
+      "profile_shape": "flat",
+      "soc_dependent": {
+        "kpis": {
+          "carbon_cost_eur": 412691.70006000606,
+          "e_cap_mwh": 55.204341284961316,
+          "electricity_cost_eur": 2515586.4831088833,
+          "emissions_tco2": 5158.646250750076,
+          "fuel_cost_eur": 1021514.109059421,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 9.200723547493553,
+          "total_cost_eur": 3994416.321542864,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 3994416.321542864,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 17.234978143000035
+        },
+        "verification_passed": true
+      },
+      "technology": "packed_bed",
+      "temperature_c": 400.0
+    },
+    {
+      "constant_limit": {
+        "kpis": {
+          "carbon_cost_eur": 173255.4622836875,
+          "e_cap_mwh": 78.22632071187732,
+          "electricity_cost_eur": 2135533.2214383883,
+          "emissions_tco2": 2165.6932785460936,
+          "fuel_cost_eur": 428850.1541675433,
+          "max_heat_balance_residual_mw": 1.7763568394002505e-15,
+          "power_rating_mw": 13.03772011864622,
+          "total_cost_eur": 2800872.517476454,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 2800872.517476454,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 8.738501022000037
+        },
+        "verification_passed": true
+      },
+      "curve_fit_max_overestimate_mw": 4.341537774709022e-06,
+      "curve_fit_mean_absolute_error_mw": 0.006193856920971062,
+      "delta_soc_dependent_minus_constant": {
+        "e_cap_mwh": 0.4888033891100889,
+        "power_rating_mw": 0.08146723151834756,
+        "total_cost_eur": 271.24106466630474,
+        "total_cost_pct": 0.009684163166079727
+      },
+      "mass_flow_kg_per_s": 2.427558478409285,
+      "profile_shape": "two_shift",
+      "soc_dependent": {
+        "kpis": {
+          "carbon_cost_eur": 172756.62323653925,
+          "e_cap_mwh": 78.71512410098741,
+          "electricity_cost_eur": 2137142.93098879,
+          "emissions_tco2": 2159.457790456741,
+          "fuel_cost_eur": 427615.4040508398,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 13.119187350164568,
+          "total_cost_eur": 2801143.75854112,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 2801143.75854112,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 17.483409418999827
+        },
+        "verification_passed": true
+      },
+      "technology": "packed_bed",
+      "temperature_c": 400.0
+    },
+    {
+      "constant_limit": {
+        "kpis": {
+          "carbon_cost_eur": 185812.91039537836,
+          "e_cap_mwh": 70.57876950383753,
+          "electricity_cost_eur": 2171920.8977902248,
+          "emissions_tco2": 2322.66137994223,
+          "fuel_cost_eur": 459932.9465232139,
+          "max_heat_balance_residual_mw": 1.7763568394002505e-15,
+          "power_rating_mw": 11.76312825063959,
+          "total_cost_eur": 2874718.591684194,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 2874718.591684194,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 8.352911257000187
+        },
+        "verification_passed": true
+      },
+      "curve_fit_max_overestimate_mw": 4.341537774709022e-06,
+      "curve_fit_mean_absolute_error_mw": 0.006193856920971062,
+      "delta_soc_dependent_minus_constant": {
+        "e_cap_mwh": 0.5533508656336892,
+        "power_rating_mw": 0.09222514427228212,
+        "total_cost_eur": 884.8996367151849,
+        "total_cost_pct": 0.03078213078925246
+      },
+      "mass_flow_kg_per_s": 2.427558478409285,
+      "profile_shape": "seasonal",
+      "soc_dependent": {
+        "kpis": {
+          "carbon_cost_eur": 186919.11026099906,
+          "e_cap_mwh": 71.13212036947122,
+          "electricity_cost_eur": 2168514.1819189284,
+          "emissions_tco2": 2336.488878262488,
+          "fuel_cost_eur": 462671.065002473,
+          "max_heat_balance_residual_mw": 1.7763568394002505e-15,
+          "power_rating_mw": 11.855353394911871,
+          "total_cost_eur": 2875603.491320909,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 2875603.491320909,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 18.623377666999886
+        },
+        "verification_passed": true
+      },
+      "technology": "packed_bed",
+      "temperature_c": 400.0
+    },
+    {
+      "constant_limit": {
+        "kpis": {
+          "carbon_cost_eur": 445261.42955583835,
+          "e_cap_mwh": 36.779465434968145,
+          "electricity_cost_eur": 2424742.6500051483,
+          "emissions_tco2": 5565.76786944798,
+          "fuel_cost_eur": 1102132.2513758377,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 6.129910905828024,
+          "total_cost_eur": 4075713.2585656545,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 4075713.2585656545,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 7.530332417999944
+        },
+        "verification_passed": true
+      },
+      "curve_fit_max_overestimate_mw": 0.0,
+      "curve_fit_mean_absolute_error_mw": 0.06719592813740854,
+      "delta_soc_dependent_minus_constant": {
+        "e_cap_mwh": 2.708259927430845e-08,
+        "power_rating_mw": 4.5137671378370214e-09,
+        "total_cost_eur": 244.07993856118992,
+        "total_cost_pct": 0.005988643534925412
+      },
+      "mass_flow_kg_per_s": 2.1029774305555553,
+      "profile_shape": "flat",
+      "soc_dependent": {
+        "kpis": {
+          "carbon_cost_eur": 446661.2680141666,
+          "e_cap_mwh": 36.779465462050744,
+          "electricity_cost_eur": 2420121.9447300383,
+          "emissions_tco2": 5583.265850177082,
+          "fuel_cost_eur": 1105597.1980548678,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 6.129910910341791,
+          "total_cost_eur": 4075957.3385042157,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 4075957.3385042157,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 13.557994952999934
+        },
+        "verification_passed": true
+      },
+      "technology": "molten_salt",
+      "temperature_c": 300.0
+    },
+    {
+      "constant_limit": {
+        "kpis": {
+          "carbon_cost_eur": 206980.44871360593,
+          "e_cap_mwh": 60.0,
+          "electricity_cost_eur": 2055752.1582742096,
+          "emissions_tco2": 2587.255608920074,
+          "fuel_cost_eur": 512327.8433505097,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 10.0,
+          "total_cost_eur": 2944030.1616768646,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 2944030.1616768646,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 8.094518434000065
+        },
+        "verification_passed": true
+      },
+      "curve_fit_max_overestimate_mw": 0.0,
+      "curve_fit_mean_absolute_error_mw": 0.06719592813740854,
+      "delta_soc_dependent_minus_constant": {
+        "e_cap_mwh": 0.0,
+        "power_rating_mw": 0.0,
+        "total_cost_eur": 110.78306302195415,
+        "total_cost_pct": 0.0037629730993942734
+      },
+      "mass_flow_kg_per_s": 2.1029774305555553,
+      "profile_shape": "two_shift",
+      "soc_dependent": {
+        "kpis": {
+          "carbon_cost_eur": 207507.34511200374,
+          "e_cap_mwh": 60.0,
+          "electricity_cost_eur": 2054031.8459329368,
+          "emissions_tco2": 2593.841813900047,
+          "fuel_cost_eur": 513632.0423564449,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 10.0,
+          "total_cost_eur": 2944140.9447398866,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 2944140.9447398866,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 13.368080708999969
+        },
+        "verification_passed": true
+      },
+      "technology": "molten_salt",
+      "temperature_c": 300.0
+    },
+    {
+      "constant_limit": {
+        "kpis": {
+          "carbon_cost_eur": 213155.97963689198,
+          "e_cap_mwh": 54.502324339540216,
+          "electricity_cost_eur": 2096851.3286201146,
+          "emissions_tco2": 2664.4497454611496,
+          "fuel_cost_eur": 527613.8109824058,
+          "max_heat_balance_residual_mw": 1.7763568394002505e-15,
+          "power_rating_mw": 9.083720723256702,
+          "total_cost_eur": 2991108.4860882657,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 2991108.4860882657,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 8.432822563999935
+        },
+        "verification_passed": true
+      },
+      "curve_fit_max_overestimate_mw": 0.0,
+      "curve_fit_mean_absolute_error_mw": 0.06719592813740854,
+      "delta_soc_dependent_minus_constant": {
+        "e_cap_mwh": 0.07438656714317915,
+        "power_rating_mw": 0.012397761190531043,
+        "total_cost_eur": 315.3330905572511,
+        "total_cost_pct": 0.010542348832343416
+      },
+      "mass_flow_kg_per_s": 2.1029774305555553,
+      "profile_shape": "seasonal",
+      "soc_dependent": {
+        "kpis": {
+          "carbon_cost_eur": 214026.2372565278,
+          "e_cap_mwh": 54.576710906683395,
+          "electricity_cost_eur": 2093932.81645918,
+          "emissions_tco2": 2675.3279657065973,
+          "fuel_cost_eur": 529767.9140013064,
+          "max_heat_balance_residual_mw": 1.7763568394002505e-15,
+          "power_rating_mw": 9.096118484447233,
+          "total_cost_eur": 2991423.819178823,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 2991423.819178823,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 12.286121316999925
+        },
+        "verification_passed": true
+      },
+      "technology": "molten_salt",
+      "temperature_c": 300.0
+    },
+    {
+      "constant_limit": {
+        "kpis": {
+          "carbon_cost_eur": 445261.42955583835,
+          "e_cap_mwh": 36.779465434968145,
+          "electricity_cost_eur": 2424742.6500051483,
+          "emissions_tco2": 5565.76786944798,
+          "fuel_cost_eur": 1102132.2513758377,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 6.129910905828024,
+          "total_cost_eur": 4075713.2585656545,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 4075713.2585656545,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 7.1772268029999395
+        },
+        "verification_passed": true
+      },
+      "curve_fit_max_overestimate_mw": 0.0,
+      "curve_fit_mean_absolute_error_mw": 0.06719592813740854,
+      "delta_soc_dependent_minus_constant": {
+        "e_cap_mwh": 2.708259927430845e-08,
+        "power_rating_mw": 4.5137671378370214e-09,
+        "total_cost_eur": 244.07993856118992,
+        "total_cost_pct": 0.005988643534925412
+      },
+      "mass_flow_kg_per_s": 2.1029774305555553,
+      "profile_shape": "flat",
+      "soc_dependent": {
+        "kpis": {
+          "carbon_cost_eur": 446661.2680141666,
+          "e_cap_mwh": 36.779465462050744,
+          "electricity_cost_eur": 2420121.9447300383,
+          "emissions_tco2": 5583.265850177082,
+          "fuel_cost_eur": 1105597.1980548678,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 6.129910910341791,
+          "total_cost_eur": 4075957.3385042157,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 4075957.3385042157,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 13.205507433000093
+        },
+        "verification_passed": true
+      },
+      "technology": "molten_salt",
+      "temperature_c": 400.0
+    },
+    {
+      "constant_limit": {
+        "kpis": {
+          "carbon_cost_eur": 206980.44871360593,
+          "e_cap_mwh": 60.0,
+          "electricity_cost_eur": 2055752.1582742096,
+          "emissions_tco2": 2587.255608920074,
+          "fuel_cost_eur": 512327.8433505097,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 10.0,
+          "total_cost_eur": 2944030.1616768646,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 2944030.1616768646,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 7.455992004999871
+        },
+        "verification_passed": true
+      },
+      "curve_fit_max_overestimate_mw": 0.0,
+      "curve_fit_mean_absolute_error_mw": 0.06719592813740854,
+      "delta_soc_dependent_minus_constant": {
+        "e_cap_mwh": 0.0,
+        "power_rating_mw": 0.0,
+        "total_cost_eur": 110.78306302195415,
+        "total_cost_pct": 0.0037629730993942734
+      },
+      "mass_flow_kg_per_s": 2.1029774305555553,
+      "profile_shape": "two_shift",
+      "soc_dependent": {
+        "kpis": {
+          "carbon_cost_eur": 207507.34511200374,
+          "e_cap_mwh": 60.0,
+          "electricity_cost_eur": 2054031.8459329368,
+          "emissions_tco2": 2593.841813900047,
+          "fuel_cost_eur": 513632.0423564449,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 10.0,
+          "total_cost_eur": 2944140.9447398866,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 2944140.9447398866,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 10.810103336999873
+        },
+        "verification_passed": true
+      },
+      "technology": "molten_salt",
+      "temperature_c": 400.0
+    },
+    {
+      "constant_limit": {
+        "kpis": {
+          "carbon_cost_eur": 213155.97963689198,
+          "e_cap_mwh": 54.502324339540216,
+          "electricity_cost_eur": 2096851.3286201146,
+          "emissions_tco2": 2664.4497454611496,
+          "fuel_cost_eur": 527613.8109824058,
+          "max_heat_balance_residual_mw": 1.7763568394002505e-15,
+          "power_rating_mw": 9.083720723256702,
+          "total_cost_eur": 2991108.4860882657,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 2991108.4860882657,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 8.180457703000002
+        },
+        "verification_passed": true
+      },
+      "curve_fit_max_overestimate_mw": 0.0,
+      "curve_fit_mean_absolute_error_mw": 0.06719592813740854,
+      "delta_soc_dependent_minus_constant": {
+        "e_cap_mwh": 0.07438656714317915,
+        "power_rating_mw": 0.012397761190531043,
+        "total_cost_eur": 315.3330905572511,
+        "total_cost_pct": 0.010542348832343416
+      },
+      "mass_flow_kg_per_s": 2.1029774305555553,
+      "profile_shape": "seasonal",
+      "soc_dependent": {
+        "kpis": {
+          "carbon_cost_eur": 214026.2372565278,
+          "e_cap_mwh": 54.576710906683395,
+          "electricity_cost_eur": 2093932.81645918,
+          "emissions_tco2": 2675.3279657065973,
+          "fuel_cost_eur": 529767.9140013064,
+          "max_heat_balance_residual_mw": 1.7763568394002505e-15,
+          "power_rating_mw": 9.096118484447233,
+          "total_cost_eur": 2991423.819178823,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 2991423.819178823,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 10.232995464000169
+        },
+        "verification_passed": true
+      },
+      "technology": "molten_salt",
+      "temperature_c": 400.0
+    },
+    {
+      "constant_limit": {
+        "kpis": {
+          "carbon_cost_eur": 643814.4,
+          "e_cap_mwh": -0.0,
+          "electricity_cost_eur": 1940614.4416014154,
+          "emissions_tco2": 8047.679999999999,
+          "fuel_cost_eur": 1593600.0,
+          "max_heat_balance_residual_mw": 0.0,
+          "power_rating_mw": -0.0,
+          "total_cost_eur": 4178028.841601672,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 4178028.841601672,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 6.62462735400004
+        },
+        "verification_passed": true
+      },
+      "curve_fit_max_overestimate_mw": 0.0,
+      "curve_fit_mean_absolute_error_mw": 0.34897677183331827,
+      "delta_soc_dependent_minus_constant": {
+        "e_cap_mwh": 0.0,
+        "power_rating_mw": 0.0,
+        "total_cost_eur": 0.0,
+        "total_cost_pct": 0.0
+      },
+      "mass_flow_kg_per_s": 7.97295650921659,
+      "profile_shape": "flat",
+      "soc_dependent": {
+        "kpis": {
+          "carbon_cost_eur": 643814.4,
+          "e_cap_mwh": -0.0,
+          "electricity_cost_eur": 1940614.4416014154,
+          "emissions_tco2": 8047.679999999999,
+          "fuel_cost_eur": 1593600.0,
+          "max_heat_balance_residual_mw": 0.0,
+          "power_rating_mw": -0.0,
+          "total_cost_eur": 4178028.841601672,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 4178028.841601672,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 4.669283396000083
+        },
+        "verification_passed": true
+      },
+      "technology": "pcm",
+      "temperature_c": 300.0
+    },
+    {
+      "constant_limit": {
+        "kpis": {
+          "carbon_cost_eur": 496176.64,
+          "e_cap_mwh": -0.0,
+          "electricity_cost_eur": 1335191.2642009442,
+          "emissions_tco2": 6202.2080000000005,
+          "fuel_cost_eur": 1228160.0,
+          "max_heat_balance_residual_mw": 0.0,
+          "power_rating_mw": -0.0,
+          "total_cost_eur": 3059527.904201058,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 3059527.904201058,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 9.631462064000061
+        },
+        "verification_passed": true
+      },
+      "curve_fit_max_overestimate_mw": 0.0,
+      "curve_fit_mean_absolute_error_mw": 0.34897677183331827,
+      "delta_soc_dependent_minus_constant": {
+        "e_cap_mwh": 0.0,
+        "power_rating_mw": 0.0,
+        "total_cost_eur": 0.0,
+        "total_cost_pct": 0.0
+      },
+      "mass_flow_kg_per_s": 7.97295650921659,
+      "profile_shape": "two_shift",
+      "soc_dependent": {
+        "kpis": {
+          "carbon_cost_eur": 496176.64,
+          "e_cap_mwh": -0.0,
+          "electricity_cost_eur": 1335191.2642009442,
+          "emissions_tco2": 6202.2080000000005,
+          "fuel_cost_eur": 1228160.0,
+          "max_heat_balance_residual_mw": 0.0,
+          "power_rating_mw": -0.0,
+          "total_cost_eur": 3059527.904201058,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 3059527.904201058,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 4.16369743700011
+        },
+        "verification_passed": true
+      },
+      "technology": "pcm",
+      "temperature_c": 300.0
+    },
+    {
+      "constant_limit": {
+        "kpis": {
+          "carbon_cost_eur": 483049.3933200143,
+          "e_cap_mwh": -0.0,
+          "electricity_cost_eur": 1453706.1339327432,
+          "emissions_tco2": 6038.1174165001785,
+          "fuel_cost_eur": 1195666.8151485503,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": -0.0,
+          "total_cost_eur": 3132422.3424013215,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 3132422.3424013215,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 9.898061402999929
+        },
+        "verification_passed": true
+      },
+      "curve_fit_max_overestimate_mw": 0.0,
+      "curve_fit_mean_absolute_error_mw": 0.34897677183331827,
+      "delta_soc_dependent_minus_constant": {
+        "e_cap_mwh": 0.0,
+        "power_rating_mw": 0.0,
+        "total_cost_eur": 0.0,
+        "total_cost_pct": 0.0
+      },
+      "mass_flow_kg_per_s": 7.97295650921659,
+      "profile_shape": "seasonal",
+      "soc_dependent": {
+        "kpis": {
+          "carbon_cost_eur": 483049.3933200143,
+          "e_cap_mwh": -0.0,
+          "electricity_cost_eur": 1453706.1339327432,
+          "emissions_tco2": 6038.1174165001785,
+          "fuel_cost_eur": 1195666.8151485503,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": -0.0,
+          "total_cost_eur": 3132422.3424013215,
+          "unmet_heat_mwh": 0.0
+        },
+        "solver": {
+          "name": "HiGHS",
+          "objective_eur": 3132422.3424013215,
+          "status": "ok",
+          "termination": "optimal",
+          "time_limit_hit": false,
+          "wall_time_seconds": 4.794895340000039
+        },
+        "verification_passed": true
+      },
+      "technology": "pcm",
+      "temperature_c": 300.0
+    }
+  ],
+  "delta_t_min_hot_side_c": 0.0,
+  "fix": "roadmap P0.1 (matched-duration-family sizing) + P0.2 (temperature-reference fix) + P0.4 (start-of-hour discharge capability reference), applied uniformly across packed bed, two-tank molten salt, and PCM",
+  "generated_at": "2026-09-04T12:42:54.772784+00:00",
+  "headline_duration_hours": 6.0,
+  "load_profiles": [
+    "flat",
+    "two_shift",
+    "seasonal"
+  ],
+  "n_segments": 5,
+  "note": "Full C3 technology-ranking matrix: 5 technology/temperature combinations (packed bed and molten salt at 300 C and 400 C; PCM only at 300 C, no suitable high-temperature nitrate-salt PCM composition found -- configs/pcm_300c_flat.yaml's own comment) x 3 synthetic load profiles (flat, two_shift, seasonal) = 15 paired cases, 30 solves. Every case uses storage.design_duration_hours = 6.0 h (matching phase_c2_duration_matched's own headline point), tying charge/discharge power to E_cap/tau identically in both formulations so the comparison isolates the discharge-limit shape, not an incidental sizing difference (P0.1). molten_salt_dynamics.py and pcm_dynamics.py are new this session: real closed-form/analytic sub-models (near-isothermal two-tank discharge with a flow-taper heel for salt; a three-regime superheat/latent/subcooled discharge for PCM), not fabricated curves, fit through the same technology-agnostic piecewise construction (discharge_curve.fit_piecewise_curve_from_power_curve) the packed bed already used.",
+  "ranking_table": [
+    {
+      "cheapest_technology_constant": "packed_bed",
+      "cheapest_technology_soc_dependent": "packed_bed",
+      "profile_shape": "flat",
+      "ranking_flipped": false,
+      "technologies_compared": "molten_salt, packed_bed, pcm",
+      "temperature_c": 300.0
+    },
+    {
+      "cheapest_technology_constant": "packed_bed",
+      "cheapest_technology_soc_dependent": "packed_bed",
+      "profile_shape": "seasonal",
+      "ranking_flipped": false,
+      "technologies_compared": "molten_salt, packed_bed, pcm",
+      "temperature_c": 300.0
+    },
+    {
+      "cheapest_technology_constant": "packed_bed",
+      "cheapest_technology_soc_dependent": "packed_bed",
+      "profile_shape": "two_shift",
+      "ranking_flipped": false,
+      "technologies_compared": "molten_salt, packed_bed, pcm",
+      "temperature_c": 300.0
+    },
+    {
+      "cheapest_technology_constant": "packed_bed",
+      "cheapest_technology_soc_dependent": "packed_bed",
+      "profile_shape": "flat",
+      "ranking_flipped": false,
+      "technologies_compared": "molten_salt, packed_bed",
+      "temperature_c": 400.0
+    },
+    {
+      "cheapest_technology_constant": "packed_bed",
+      "cheapest_technology_soc_dependent": "packed_bed",
+      "profile_shape": "seasonal",
+      "ranking_flipped": false,
+      "technologies_compared": "molten_salt, packed_bed",
+      "temperature_c": 400.0
+    },
+    {
+      "cheapest_technology_constant": "packed_bed",
+      "cheapest_technology_soc_dependent": "packed_bed",
+      "profile_shape": "two_shift",
+      "ranking_flipped": false,
+      "technologies_compared": "molten_salt, packed_bed",
+      "temperature_c": 400.0
+    }
+  ]
+}
