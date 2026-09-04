@@ -64,36 +64,41 @@ class PiecewiseDischargeCurve:
         )
 
 
-def fit_piecewise_discharge_curve(
-    result: DischargeResult,
-    process_temperature_c: float,
-    delta_t_min_hot_side_c: float,
+def fit_piecewise_curve_from_power_curve(
+    power_curve: pd.DataFrame,
+    reference_energy_capacity_mwh: float,
     n_segments: int = 5,
 ) -> PiecewiseDischargeCurve:
-    """Fit an n_segments piecewise-linear approximation from one Phase B discharge run.
+    """Fit an n_segments piecewise-linear approximation from any technology's own
+    (state_of_charge, deliverable_power_mw) curve.
 
-    `process_temperature_c` and `delta_t_min_hot_side_c` are passed straight
-    through to `discharge_power_curve` (P0.2): the fit is of the
-    quality-gated `deliverable_power_mw` stream, not the ungated
-    `storage_heat_mw` one, since the LP this curve feeds must never be
-    allowed to claim heat the process cannot actually use.
+    The technology-agnostic core of the piecewise construction (Phase C's
+    C1), factored out of `fit_piecewise_discharge_curve` so molten-salt and
+    PCM discharge curves (`molten_salt_dynamics.py`, `pcm_dynamics.py`) --
+    built analytically, not by time-stepping a PDE like the packed bed's
+    `simulate_discharge` -- share exactly the same fitting and safety-check
+    logic rather than a second, independently-written copy of it.
+    `power_curve` must have `state_of_charge` (declining from 1.0 to 0.0,
+    any monotonic sampling) and `deliverable_power_mw` columns;
+    `reference_energy_capacity_mwh` is the full-charge stored energy the
+    curve's own reference power/energy ratio `k` is computed against, since
+    it is not always derivable from the power curve alone (e.g. a
+    depletable tank's usable energy, not just its instantaneous power).
     """
     if n_segments < 1:
         raise ValueError("n_segments must be at least 1")
-    curve = discharge_power_curve(result, process_temperature_c, delta_t_min_hot_side_c)
-    reference_energy_capacity_mwh = float(result.trace["bed_stored_energy_j"].iloc[0]) / 3.6e9
-    reference_rated_power_mw = float(curve["deliverable_power_mw"].iloc[0])
+    reference_rated_power_mw = float(power_curve["deliverable_power_mw"].iloc[0])
     if reference_energy_capacity_mwh <= 0 or reference_rated_power_mw <= 0:
         raise ValueError(
-            "Reference bed has non-positive capacity or rated power; check the discharge run"
+            "Reference case has non-positive capacity or rated power; check the discharge curve"
         )
     k = reference_rated_power_mw / reference_energy_capacity_mwh
 
     soc_breakpoints = np.linspace(1.0, 0.0, n_segments + 1)
-    # curve['state_of_charge'] declines monotonically with time; np.interp needs
+    # power_curve['state_of_charge'] declines monotonically; np.interp needs
     # ascending x, so reverse both series for interpolation.
-    soc_ascending = curve["state_of_charge"].to_numpy()[::-1]
-    power_ascending = curve["deliverable_power_mw"].to_numpy()[::-1]
+    soc_ascending = power_curve["state_of_charge"].to_numpy()[::-1]
+    power_ascending = power_curve["deliverable_power_mw"].to_numpy()[::-1]
     power_at_breakpoints = np.interp(soc_breakpoints, soc_ascending, power_ascending)
     frac_breakpoints = power_at_breakpoints / reference_rated_power_mw
 
@@ -121,6 +126,51 @@ def fit_piecewise_discharge_curve(
     )
 
 
+def verify_piecewise_curve_against_power_curve(
+    curve: PiecewiseDischargeCurve, power_curve: pd.DataFrame
+) -> dict[str, float]:
+    """Check a fit against the underlying (state_of_charge, deliverable_power_mw)
+    data it was fit from -- the technology-agnostic core of
+    `verify_piecewise_curve_is_safe`, shared the same way
+    `fit_piecewise_curve_from_power_curve` is.
+
+    Returns the largest observed overestimate (must be ~0 or negative: the
+    piecewise limit must never exceed the true deliverable power at the
+    reference size) and the largest observed underestimate (how
+    conservative the approximation is where it is not exact). Call this
+    before trusting a fit; do not assume safety from the construction alone.
+    """
+    e_cap = curve.reference_energy_capacity_mwh
+    level = power_curve["state_of_charge"].to_numpy() * e_cap
+    true_power = power_curve["deliverable_power_mw"].to_numpy()
+    fitted = np.array([curve.limit_mw(lv, e_cap) for lv in level])
+    difference = fitted - true_power  # positive => unsafe overestimate
+    return {
+        "max_overestimate_mw": float(max(difference.max(), 0.0)),
+        "max_underestimate_mw": float(max(-difference.min(), 0.0)),
+        "mean_absolute_error_mw": float(np.abs(difference).mean()),
+    }
+
+
+def fit_piecewise_discharge_curve(
+    result: DischargeResult,
+    process_temperature_c: float,
+    delta_t_min_hot_side_c: float,
+    n_segments: int = 5,
+) -> PiecewiseDischargeCurve:
+    """Fit an n_segments piecewise-linear approximation from one Phase B discharge run.
+
+    `process_temperature_c` and `delta_t_min_hot_side_c` are passed straight
+    through to `discharge_power_curve` (P0.2): the fit is of the
+    quality-gated `deliverable_power_mw` stream, not the ungated
+    `storage_heat_mw` one, since the LP this curve feeds must never be
+    allowed to claim heat the process cannot actually use.
+    """
+    curve = discharge_power_curve(result, process_temperature_c, delta_t_min_hot_side_c)
+    reference_energy_capacity_mwh = float(result.trace["bed_stored_energy_j"].iloc[0]) / 3.6e9
+    return fit_piecewise_curve_from_power_curve(curve, reference_energy_capacity_mwh, n_segments)
+
+
 def verify_piecewise_curve_is_safe(
     curve: PiecewiseDischargeCurve,
     result: DischargeResult,
@@ -136,16 +186,7 @@ def verify_piecewise_curve_is_safe(
     before trusting a fit; do not assume safety from the construction alone.
     """
     power_curve = discharge_power_curve(result, process_temperature_c, delta_t_min_hot_side_c)
-    e_cap = curve.reference_energy_capacity_mwh
-    level = power_curve["state_of_charge"].to_numpy() * e_cap
-    true_power = power_curve["deliverable_power_mw"].to_numpy()
-    fitted = np.array([curve.limit_mw(lv, e_cap) for lv in level])
-    difference = fitted - true_power  # positive => unsafe overestimate
-    return {
-        "max_overestimate_mw": float(max(difference.max(), 0.0)),
-        "max_underestimate_mw": float(max(-difference.min(), 0.0)),
-        "mean_absolute_error_mw": float(np.abs(difference).mean()),
-    }
+    return verify_piecewise_curve_against_power_curve(curve, power_curve)
 
 
 def mass_flow_for_target_duration(

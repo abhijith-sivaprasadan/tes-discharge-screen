@@ -45,6 +45,17 @@ tens of $/kWh apart).
 | Standing loss fraction/hour | 0.0005 (0.05%/h) | [assumption] insulated large tank, order-of-magnitude estimate; no per-hour loss figure for a specific tank design was found in the time available. |
 | Storage power CAPEX ($/MW) | see config | [assumption] represents pumps and heat exchangers; no literature figure specific to this cost component was found. |
 
+### Two-tank molten salt Phase B-equivalent parameters
+
+`src/tes_screen/molten_salt_dynamics.py`'s discharge model needs two
+parameters the annual Phase A model does not: how much of the hot tank's
+inventory is actually drainable, and a reference tank size.
+
+| Parameter | Value | Source |
+|---|---|---|
+| Heel fraction (unusable tank residual) | 0.05 | [assumption]; real two-tank systems keep an unusable residual for pump NPSH, tank geometry and avoiding cold/mixed boundary-layer draw near the outlet, a real design consideration, but no specific literature figure for this fraction was sourced this session. |
+| Reference tank volume | 25 m3 | Illustrative, matching the order of magnitude the packed-bed reference config's own energy capacity implies; not tied to any specific case's sizing, the same "characterises curve shape, not a plant" scope `packed_bed_dynamics.default_packed_bed_config`'s own docstring states. |
+
 ## Packed-bed sensible store (granite rock, this project's primary case)
 
 | Parameter | Value | Source |
@@ -79,7 +90,11 @@ transfer correlation) and air (HTF) properties.
 | Parameter | Value | Source |
 |---|---|---|
 | Melting point | ~306 C | Kenisarin, M.M. (2010), "High-temperature phase change materials for thermal energy storage," Renewable and Sustainable Energy Reviews 14(3), 955-970. Widely reproduced figure for this well-known review; not independently re-opened this session. [search-quoted, standard figure] |
-| Latent heat of fusion | ~177 kJ/kg | Same source. [search-quoted, standard figure] |
+| Latent heat of fusion | ~177 kJ/kg | Same source (corroborated this session: 178 J/g, essentially the same figure). [search-quoted, standard figure] |
+| Solid density | 2257 kg/m3 (2.257 g/cm3) | ChemicalBook / Wikipedia property listings, retrieved this session. [search-quoted] |
+| Solid specific heat | ~1095 J/kg K | Computed this session from a search-quoted molar heat capacity of 93.05 J/mol K and NaNO3's molar mass (84.99 g/mol): 93.05/84.99 = 1.095 J/g K. [search-quoted, computed] |
+| Liquid density | ~1895 kg/m3 at 306 C | Proxy, not a NaNO3-specific figure: this project's own molten-salt density correlation (rho = 2091 - 0.641*T[C], docs/DATA.md's molten-salt table) evaluated at the melting point, since a search this session did not turn up a clean pure-NaNO3 liquid density and molten nitrate salts of this family cluster tightly on density. [assumption, same-family proxy] |
+| Liquid specific heat | ~1550 J/kg K | Proxy: reuses this project's own Solar Salt (NaNO3-KNO3) average specific heat above, for the same same-family-proxy reason; a search this session found only mixture data (1.57-1.49 kJ/kg K over 250-425 C for the eutectic), not pure NaNO3 liquid. [assumption, same-family proxy] |
 | Storage CAPEX | ~50-120 $/kWh-th for inorganic eutectic/nitrate PCM systems | Hirschey, J.R., Kumar, N. et al., "Review of Low-Cost Organic and Inorganic Phase Change Materials with Potential Application in Thermal Energy Storage," OSTI/Purdue technical report. [search-quoted] |
 | Standing loss fraction/hour | 0.0007 | [assumption] between the tank and packed-bed estimates; no literature figure found. |
 | Storage power CAPEX ($/MW) | see config | [assumption] represents the heat-exchanger network around the PCM module; no literature figure found. |
