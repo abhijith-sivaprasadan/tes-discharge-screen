@@ -34,6 +34,7 @@ def _valid_storage(**overrides: object) -> StorageConfig:
         soc_final_min_fraction=0.5,
         discharge_limit_mode="constant",
         design_duration_hours=None,
+        discharge_capability_reference=None,
     )
     fields.update(overrides)
     return StorageConfig(**fields)
@@ -99,6 +100,38 @@ def test_storage_config_rejects_design_duration_with_a_given_discharge_power() -
 def test_storage_config_accepts_design_duration_with_both_powers_null() -> None:
     storage = _valid_storage(design_duration_hours=4.0)
     storage.validate()
+
+
+def test_storage_config_rejects_soc_dependent_without_a_capability_reference() -> None:
+    # P0.4: whether the discharge-capability constraint reads the pre- or
+    # post-dispatch level is a modelling choice, never a hidden default.
+    storage = _valid_storage(discharge_limit_mode="soc_dependent")
+    with pytest.raises(ValueError, match="discharge_capability_reference"):
+        storage.validate()
+
+
+@pytest.mark.parametrize("reference", ["start_of_hour", "end_of_hour"])
+def test_storage_config_accepts_soc_dependent_with_a_valid_capability_reference(reference) -> None:
+    storage = _valid_storage(
+        discharge_limit_mode="soc_dependent", discharge_capability_reference=reference
+    )
+    storage.validate()
+
+
+def test_storage_config_rejects_soc_dependent_with_an_unknown_capability_reference() -> None:
+    storage = _valid_storage(
+        discharge_limit_mode="soc_dependent", discharge_capability_reference="mid_hour"
+    )
+    with pytest.raises(ValueError, match="discharge_capability_reference"):
+        storage.validate()
+
+
+def test_storage_config_rejects_a_capability_reference_given_under_constant_mode() -> None:
+    # Would otherwise be silently ignored: the constant limit doesn't depend
+    # on level at all, so a given value here can't mean anything.
+    storage = _valid_storage(discharge_capability_reference="start_of_hour")
+    with pytest.raises(ValueError, match="discharge_capability_reference"):
+        storage.validate()
 
 
 def test_process_config_rejects_bad_medium() -> None:

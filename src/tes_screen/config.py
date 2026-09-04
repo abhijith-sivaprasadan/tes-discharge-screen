@@ -18,6 +18,7 @@ _TOP_LEVEL_SECTIONS = {"case_name", "process", "storage", "supply", "economics",
 _TECHNOLOGIES = {"molten_salt", "packed_bed", "pcm"}
 _PROFILE_SHAPES = {"flat", "two_shift", "seasonal"}
 _DISCHARGE_LIMIT_MODES = {"constant", "soc_dependent"}
+_DISCHARGE_CAPABILITY_REFERENCES = {"start_of_hour", "end_of_hour"}
 _ELECTRICITY_PRICE_SOURCES = {"entso_e", "synthetic"}
 
 
@@ -84,6 +85,7 @@ class StorageConfig:
     soc_final_min_fraction: float
     discharge_limit_mode: str
     design_duration_hours: float | None
+    discharge_capability_reference: str | None
 
     _REQUIRED = frozenset(
         {
@@ -100,6 +102,7 @@ class StorageConfig:
             "soc_final_min_fraction",
             "discharge_limit_mode",
             "design_duration_hours",
+            "discharge_capability_reference",
         }
     )
 
@@ -138,6 +141,21 @@ class StorageConfig:
                 "storage.design_duration_hours ties charge/discharge power to E_cap; "
                 "charge_power_max_mw and discharge_power_max_mw must both be null when it is set, "
                 "not silently overridden."
+            )
+        if self.discharge_limit_mode == "soc_dependent":
+            if self.discharge_capability_reference not in _DISCHARGE_CAPABILITY_REFERENCES:
+                raise ValueError(
+                    "storage.discharge_capability_reference must be one of "
+                    f"{sorted(_DISCHARGE_CAPABILITY_REFERENCES)} when discharge_limit_mode == "
+                    "'soc_dependent': whether the piecewise discharge limit reads the pre- or "
+                    "post-dispatch level is a modelling choice (roadmap P0.4), never a hidden "
+                    "default."
+                )
+        elif self.discharge_capability_reference is not None:
+            raise ValueError(
+                "storage.discharge_capability_reference only means something when "
+                "discharge_limit_mode == 'soc_dependent' (the constant limit does not depend on "
+                "level at all); it must be null here, not silently ignored."
             )
 
 

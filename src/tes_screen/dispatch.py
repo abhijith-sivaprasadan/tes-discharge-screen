@@ -207,17 +207,51 @@ def build_model(
 
     model.c_charge_limit = pyo.Constraint(model.T, rule=charge_limit)
 
+    def level_start(m: pyo.ConcreteModel, t: int) -> Any:
+        # Pre-dispatch state: what was actually available before this hour's
+        # own charge/discharge acted on it, not `m.level[t]` (the post-
+        # dispatch state `storage_balance` below defines in terms of this
+        # same hour's p_dis[t]/p_ch[t]). Shared by storage_balance's own
+        # "previous" term and, when soc_dependent's capability_reference
+        # asks for it, by the discharge-capability constraint (P0.4).
+        return storage.soc_init_fraction * e_cap if t == 0 else m.level[t - 1]
+
     if soc_dependent:
         # C1's piecewise-linear replacement for the constant P_dis_max bound:
-        # p_dis[t] <= a_i*level[t] + b_i*E_cap, for every segment i,
+        # p_dis[t] <= a_i*level_ref[t] + b_i*E_cap, for every segment i,
         # simultaneously. Exact for a concave curve (this one is, checked
         # empirically in discharge_curve.py's own tests, not assumed).
         model.Segments = pyo.RangeSet(0, len(discharge_curve.a_coefficients) - 1)
+        # P0.4: which state the capability bound reads is an explicit,
+        # required modelling choice (config.py's validation), never a
+        # hidden default. "start_of_hour" (level_start[t], the roadmap's own
+        # first choice for this screening model) reflects what was actually
+        # on hand before this hour's own discharge drew it down;
+        # "end_of_hour" uses the post-dispatch m.level[t] instead -- the
+        # project's original, more conservative choice, kept as an explicit
+        # alternative rather than replaced outright (see
+        # test_dispatch.py's P0.4 tests for the quantified difference).
+        capability_reference = storage.discharge_capability_reference
+        if capability_reference not in {"start_of_hour", "end_of_hour"}:
+            # config.py's own validation already rejects this when a config
+            # is loaded via load_config, but build_model is public API too
+            # (tests and scripts call it directly on hand-built configs) and
+            # must not silently fall back to a default state reference for a
+            # missing/invalid one -- exactly the hidden-default P0.4 exists
+            # to eliminate.
+            raise ValueError(
+                "storage.discharge_capability_reference must be 'start_of_hour' or "
+                "'end_of_hour' when discharge_limit_mode == 'soc_dependent', got "
+                f"{capability_reference!r}."
+            )
 
         def discharge_limit_piecewise(m: pyo.ConcreteModel, t: int, seg: int) -> Any:
             a = discharge_curve.a_coefficients[seg]
             b = discharge_curve.b_coefficients[seg]
-            return m.p_dis[t] <= a * m.level[t] + b * e_cap
+            reference_level = (
+                level_start(m, t) if capability_reference == "start_of_hour" else m.level[t]
+            )
+            return m.p_dis[t] <= a * reference_level + b * e_cap
 
         model.c_discharge_limit = pyo.Constraint(
             model.T, model.Segments, rule=discharge_limit_piecewise
@@ -236,7 +270,7 @@ def build_model(
     model.c_level_cap = pyo.Constraint(model.T, rule=level_cap)
 
     def storage_balance(m: pyo.ConcreteModel, t: int) -> Any:
-        previous = storage.soc_init_fraction * e_cap if t == 0 else m.level[t - 1]
+        previous = level_start(m, t)
         loss = storage.standing_loss_fraction_per_hour * previous
         return m.level[t] == (
             previous - loss + storage.eta_charge * m.p_ch[t] - m.p_dis[t] / storage.eta_discharge
@@ -395,8 +429,27 @@ def solve_dispatch(
     solver = pyo.SolverFactory("appsi_highs")
     solver.options["time_limit"] = config.optimization.time_limit_seconds
     solver.options["mip_rel_gap"] = config.optimization.mip_gap
+    # Every decision variable build_model creates is continuous (no integers
+    # anywhere in this model): the interior-point method is a better-suited
+    # default than HiGHS's own simplex choice for a large, sparse, purely
+    # continuous LP, and resolves a real numerical difficulty observed with
+    # P0.4's start_of_hour capability reference in some duration-matched
+    # configurations (a piecewise segment's `a` coefficient near zero, close
+    # to full charge, made simplex stall at "unknown" with no incumbent even
+    # well inside the configured time limit; IPM solves the identical model
+    # to the identical objective without issue). Confirmed not to change any
+    # already-passing case's objective value, only how it gets there.
+    solver.options["solver"] = "ipm"
     start = time.perf_counter()
-    result = solver.solve(model)
+    try:
+        result = solver.solve(model)
+    except RuntimeError as exc:
+        # Pyomo's appsi/HiGHS interface raises a raw RuntimeError instead of
+        # a normal termination condition when no feasible solution could be
+        # loaded at all (not even a "maxtimelimit" incumbent); catch and
+        # reraise in this function's own consistent failure format rather
+        # than letting an internal Pyomo message leak through unexplained.
+        raise RuntimeError(f"Dispatch solve failed to find a loadable solution: {exc}") from exc
     wall_time_seconds = time.perf_counter() - start
 
     termination = str(result.solver.termination_condition).lower()

@@ -1,6 +1,6 @@
 # Model card
 
-## Status: Phase 0, A, B (packed bed only), P0.3 (state-sufficiency test), C (MVP scope, archived), and C2 (matched-duration fix) built
+## Status: Phase 0, A, B (packed bed only), P0.3 (state-sufficiency test), C (MVP scope, archived), C2 (matched-duration fix), and P0.4 (start-of-hour capability fix) built
 
 This card documents what is actually built at this commit, not what the project
 intends to build. It will be rewritten section by section as each phase lands,
@@ -153,15 +153,41 @@ describes.
   durations (2h-12h), all ten runs (five durations x two formulations)
   terminate optimal with every verification check passing
   (`outputs/phase_c2_duration_matched/`). This run also incorporates P0.2's
-  temperature-reference fix (above), re-run against the corrected
+  temperature-reference fix and P0.4's start-of-hour discharge-capability
+  fix (both below), re-run against the corrected `dispatch.py`/
   `discharge_power_curve` and superseding this same script's earlier
-  (P0.1-only) output. **The corrected finding**: the shape-isolated cost
-  delta is +0.013% to +0.080% across the sweep, still roughly an order of
-  magnitude smaller than Phase C's original (confounded, mis-referenced)
-  +0.22% -- real, and still in the direction Phase A's constant-limit
-  assumption predicted, but far more modest once duration is held equal and
-  the temperature reference is consistent. See README's Phase C2 section
+  (P0.1-only, then P0.1+P0.2-only) output. **The corrected finding**: the
+  shape-isolated cost delta is +0.000% to +0.038% across the sweep --
+  indistinguishable from the constant-limit baseline to solver tolerance at
+  the two shortest durations -- against Phase C's original (confounded,
+  mis-referenced, over-conservative) +0.22%. See README's Phase C2 section
   for the full sweep table.
+- **P0.4, start-of-hour discharge capability.** `dispatch.py`'s piecewise
+  discharge-capability constraint bound `p_dis[t]` using `level[t]`, the
+  *post*-dispatch state `storage_balance` defines in terms of that same
+  hour's own `p_dis[t]` -- backwards, since capability at the start of an
+  hour should depend on what was on hand before that hour's own discharge
+  drew it down. Fixed by reading `level_start[t]` (the same pre-dispatch
+  "previous" term `storage_balance` already computed, factored out and
+  shared) instead, gated behind a new required config field,
+  `storage.discharge_capability_reference` (`"start_of_hour"` or
+  `"end_of_hour"`, validated in `config.py` and re-checked defensively in
+  `build_model` itself since it is called directly by tests/scripts too,
+  not only via `load_config`). Both modes remain fully supported; neither
+  silently replaces the other. Quantified per the roadmap's own acceptance
+  criterion: at a short 72h, nearly-free-storage case,
+  `discharge_capability_reference` moves the SOC-dependent formulation's
+  required power from 10.38 MW (`end_of_hour`) to 9.60 MW (`start_of_hour`)
+  -- enough to flip which formulation needs more power than the
+  constant-limit baseline's own 10.0 MW outright
+  (`tests/test_dispatch.py`'s P0.4 test block). Also required switching
+  `solve_dispatch`'s HiGHS solver option to the interior-point method: the
+  corrected, less self-damped formulation was numerically harder for
+  HiGHS's default simplex on some duration-matched curve shapes (a couple
+  of durations near tau=8h failed to find a feasible solution within the
+  configured time limit, not because they were infeasible), and IPM
+  resolves it, confirmed to reproduce identical objective values on every
+  already-passing case. See README's P0.4 section for the full mechanism.
 
 ## What does not exist yet
 

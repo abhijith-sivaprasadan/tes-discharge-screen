@@ -69,22 +69,28 @@ explicitly rather than assumed away.
 **Phase C (the paired experiment) is done at MVP scope**: one technology
 (packed bed), one process temperature (300 C), one load profile (flat),
 solved under both discharge-limit formulations. Its original run left the
-two formulations with unequal sizing degrees of freedom and mixed the
-process and return temperature references (see the note at the top of
-[Phase C](#phase-c-original-mvp-run-archived-diagnostic-only)), which
-confounded "the discharge-limit shape changed" with "the two runs were also
-allowed different durations" and inflated deliverable power with enthalpy
-already present in the return stream. **[Phase C2](#phase-c2-matched-duration-family-experiment-the-corrected-comparison)**
-fixes both (roadmap P0.1 and P0.2): ties power to energy capacity at the
-same externally chosen duration in both formulations, and references
-deliverable power consistently to the store's own return temperature. The
-isolated shape effect is much smaller than Phase C's original number: a
-total-cost delta ranging from +0.013% to +0.080% across a 2-12h duration
-sweep, versus Phase C's original +0.22% at its own (confounded,
-mis-referenced) durations. This is not the full 18-run technology-ranking
-matrix (only packed bed has a Phase B dynamic sub-model yet), so whether the
-technology ranking itself changes is not
-answerable from this result.
+two formulations with unequal sizing degrees of freedom, mixed the process
+and return temperature references, and bound discharge capability by the
+post-dispatch state rather than the pre-dispatch one (see the note at the
+top of [Phase C](#phase-c-original-mvp-run-archived-diagnostic-only)),
+which confounded "the discharge-limit shape changed" with "the two runs
+were also allowed different durations," inflated deliverable power with
+enthalpy already present in the return stream, and inflated the power the
+SOC-dependent formulation appeared to need on top of both.
+**[Phase C2](#phase-c2-matched-duration-family-experiment-the-corrected-comparison)**
+fixes all three (roadmap P0.1, P0.2, and [P0.4](#p04-start-of-hour-vs-end-of-hour-discharge-capability)):
+ties power to energy capacity at the same externally chosen duration in
+both formulations, references deliverable power consistently to the
+store's own return temperature, and bounds discharge capability by what
+was actually on hand before each hour's own discharge. The isolated shape
+effect is much smaller than Phase C's original number: a total-cost delta
+ranging from +0.000% to +0.038% across a 2-12h duration sweep -- at the two
+shortest durations, indistinguishable from the constant-limit baseline to
+solver tolerance -- versus Phase C's original +0.22% at its own
+(confounded, mis-referenced, over-conservative) durations. This is not the
+full 18-run technology-ranking matrix (only packed bed has a Phase B
+dynamic sub-model yet), so whether the technology ranking itself changes is
+not answerable from this result.
 
 Electricity prices are synthetic in every run so far: this working environment
 has no `ENTSOE_API_KEY` configured, so the real ENTSO-E fetch path
@@ -363,26 +369,27 @@ full segment-count robustness table.
 
 **The finding, stated first and plainly:** once both formulations are tied
 to the same design duration (`storage.design_duration_hours`, so power is
-always `E_cap / tau` in both, identically) and deliverable power is
-referenced consistently to the store's own return temperature rather than
-mixed with the process temperature (P0.1 and P0.2, both applied here), the
-isolated effect of the SOC-dependent discharge limit is much smaller than
-Phase C's original (confounded, unequal-duration, mis-referenced) estimate.
-Swept across five design durations from 2h to 12h, the SOC-dependent
-formulation costs **+0.013% to +0.080%** more than the constant-limit
-baseline at the same duration -- real, and always in the direction Phase
-A's constant-limit assumption predicted (SOC-dependent never costs less),
-but still roughly an order of magnitude smaller than the +0.22% Phase C
-originally reported, because that number also carried the duration
-mismatch and temperature-reference bug documented above.
+always `E_cap / tau` in both, identically), deliverable power is referenced
+consistently to the store's own return temperature rather than mixed with
+the process temperature, and the discharge-capability constraint reads the
+pre-dispatch state rather than the post-dispatch one (P0.1, P0.2, and P0.4,
+all applied here), the isolated effect of the SOC-dependent discharge limit
+is much smaller than Phase C's original (confounded, unequal-duration,
+mis-referenced, and overly conservative) estimate. Swept across five design
+durations from 2h to 12h, the SOC-dependent formulation costs
+**+0.000% to +0.038%** more than the constant-limit baseline at the same
+duration -- at the two shortest durations, indistinguishable from the
+constant-limit baseline to solver tolerance -- against the +0.22% Phase C
+originally reported, and smaller again than the +0.013%-to-+0.080% range
+P0.1+P0.2 alone (without P0.4) produced.
 
 | Design duration (tau) | Constant limit cost (EUR/yr) | SOC-dependent cost (EUR/yr) | Delta | Constant E_cap (MWh) | SOC-dependent E_cap (MWh) |
 |---:|---:|---:|---:|---:|---:|
-| 2h | 4,019,225.76 | 4,019,765.19 | +0.013% | 45.87 | 45.87 |
-| 4h | 4,000,234.86 | 4,001,593.65 | +0.034% | 50.43 | 50.99 |
-| 6h | 3,993,618.08 | 3,996,217.31 | +0.065% | 54.99 | 55.71 |
-| 8h | 3,992,555.33 | 3,995,758.35 | +0.080% | 54.99 | 58.85 |
-| 12h | 3,996,426.99 | 3,999,416.67 | +0.075% | 60.75 | 63.38 |
+| 2h | 4,019,225.76 | 4,019,225.76 | +0.000% | 45.87 | 45.87 |
+| 4h | 4,000,234.86 | 4,000,235.89 | +0.000% | 50.43 | 50.43 |
+| 6h | 3,993,618.08 | 3,994,416.32 | +0.020% | 54.99 | 55.20 |
+| 8h | 3,992,555.33 | 3,993,991.36 | +0.036% | 54.99 | 56.94 |
+| 12h | 3,996,426.99 | 3,997,959.30 | +0.038% | 60.75 | 62.46 |
 
 All ten runs (five durations x two formulations) solved to `optimal` and
 passed every independent verification check. The headline duration (6h,
@@ -393,28 +400,38 @@ safety, solver status, and delta is in the run manifest.
 | | Constant limit (tau=6h) | SOC-dependent (tau=6h) | Delta |
 |---|---:|---:|---:|
 | Termination | optimal | optimal | |
-| Annualised total cost (EUR/yr) | 3,993,618.08 | 3,996,217.31 | +2,599.23 (+0.065%) |
-| Storage energy capacity (MWh-th) | 54.99 | 55.71 | +0.73 (+1.3%) |
-| Storage power capacity (MW) | 9.16 | 9.29 | +0.12 (E_cap/tau, so it moves with E_cap) |
-| Backup fuel cost (EUR/yr) | 1,014,756.09 | 1,030,227.14 | +15,471.05 |
-| Electricity cost (EUR/yr) | 2,524,452.26 | 2,504,742.39 | -19,709.87 |
-| Emissions (tCO2/yr) | 5,124.52 | 5,202.65 | +78.13 |
-| Solve time | 10.8 s | 19.7 s | |
+| Annualised total cost (EUR/yr) | 3,993,618.08 | 3,994,416.32 | +798.24 (+0.020%) |
+| Storage energy capacity (MWh-th) | 54.99 | 55.20 | +0.22 (+0.4%) |
+| Storage power capacity (MW) | 9.16 | 9.20 | +0.04 (E_cap/tau, so it moves with E_cap) |
+| Backup fuel cost (EUR/yr) | 1,014,756.09 | 1,021,514.11 | +6,758.02 |
+| Electricity cost (EUR/yr) | 2,524,452.26 | 2,515,586.48 | -8,865.78 |
+| Emissions (tCO2/yr) | 5,124.52 | 5,158.65 | +34.13 |
+| Solve time | 8.8 s | 21.6 s | |
+
+**Why P0.4 shrinks the gap further.** `dispatch.py`'s piecewise
+discharge-capability constraint used to bound `p_dis[t]` using `level[t]`,
+the *post*-dispatch state the storage balance defines in terms of that same
+hour's own `p_dis[t]` -- backwards, since capability at the start of an hour
+should depend on what was on hand before that hour's own discharge drew it
+down. Reading the correct, pre-dispatch state (`level_start[t]`, always at
+least as large as `level[t]` whenever that hour is a net discharge) relaxes
+the bound, so the SOC-dependent formulation now needs less headroom to
+deliver the same load than the uncorrected constraint implied -- shrinking
+the apparent penalty at every duration, and making it disappear to solver
+tolerance at 2h and 4h. See [P0.4](#p04-start-of-hour-vs-end-of-hour-discharge-capability)
+below for the full mechanism and a short-horizon case where the effect is
+large enough to flip which formulation needs more power outright.
 
 **Why energy capacity (and, through it, power) can still differ between the
-two formulations at every tau in this table, more visibly than the P0.1-only
-version of this experiment showed.** `design_duration_hours` ties power to
-`E_cap / tau` identically in both -- the one degree of freedom Phase C's
-original run left unequal -- but `E_cap` itself is still a free decision
-variable in each formulation, and with P0.2's corrected reference the
-SOC-dependent curve's power declines faster with state of charge than the
-pre-P0.2 curve did (it no longer gets credited with enthalpy already
-present in the return stream), so the optimiser leans on a somewhat larger
-store to compensate. This is exactly the effect this comparison is meant to
-isolate: the discharge-limit shape alone, at matched duration and with a
-consistent temperature reference, still nudges the solver toward more
-storage, just far less dramatically than Phase C's original (duration- and
-reference-mismatched) result suggested.
+two formulations at every tau in this table.** `design_duration_hours` ties
+power to `E_cap / tau` identically in both -- the one degree of freedom
+Phase C's original run left unequal -- but `E_cap` itself is still a free
+decision variable in each formulation, and the SOC-dependent curve's power
+still declines with state of charge (that is the whole discharge-limit
+shape this comparison is meant to isolate), so the optimiser leans on a
+somewhat larger store to compensate. That the gap it needs is now this
+small, once every other confound is corrected, is itself the headline
+result.
 
 **How the matched curves were built.** For each swept tau, the discharge
 mass flow is solved for directly (`discharge_curve.mass_flow_for_target_duration`)
@@ -425,16 +442,86 @@ curve rescaled after the fact. `dispatch.py`'s `duration_matched` branch
 checks this equality at model-build time and refuses a mismatched curve
 rather than silently accepting one. Deliverable power (and, through
 `mass_flow_for_target_duration`, the reference power this solves against)
-is now computed per P0.2: referenced to the bed's own return temperature
+is computed per P0.2: referenced to the bed's own return temperature
 `T_return`, with a quality gate at `T_process + delta_T_min_hot_side`
 (`delta_T_min_hot_side = 0` here; see docs/DATA.md) applied on top, rather
 than mixing the process and return temperature references the way Phase C's
-original run did.
+original run did; the discharge-capability constraint itself uses
+`storage.discharge_capability_reference = "start_of_hour"` per P0.4.
+
+**A solver note, not a modelling one.** At 7-9h durations, P0.4's corrected
+(less self-damped) formulation turned out to be numerically harder for
+HiGHS's default simplex method on this particular curve shape -- not
+infeasible, just slow enough that a couple of durations near tau=8h failed
+to find any feasible solution within the configured time limit. Switching
+`solve_dispatch`'s solver option to HiGHS's interior-point method (every
+decision variable in this model is continuous, so IPM is a legitimate,
+generally-applicable choice, not a one-off workaround) resolves it,
+verified to reproduce the identical objective value on every
+already-passing case, not just paper over the new one.
 
 Every number above traces to `outputs/phase_c2_duration_matched/`: the
 headline (6h) duration's hourly schedules and fitted curve breakpoints, and
 a manifest with every swept duration's solver status, KPIs, verification
 checks, and curve-fit safety numbers.
+
+## P0.4: start-of-hour vs. end-of-hour discharge capability
+
+**The bug.** `dispatch.py`'s piecewise discharge-capability constraint,
+`p_dis[t] <= a_i*level_ref[t] + b_i*E_cap`, used `level[t]` as `level_ref[t]`
+-- but `level[t]` is the *post*-dispatch state: `storage_balance`'s own
+equation defines it in terms of that same hour's `p_dis[t]` and `p_ch[t]`.
+Physically, what an hour's discharge is *capable of* should depend on what
+was actually on hand before that hour's own discharge drew it down --
+`level_start[t]` (`soc_init_fraction * E_cap` at `t=0`, `level[t-1]`
+otherwise, the same "previous" term `storage_balance` already computed) --
+not what's left over afterward.
+
+**Why this mattered, not just as a technicality.** Because the curve is
+increasing in level (more stored energy, more deliverable power), and
+discharging only ever lowers the level within an hour, bounding `p_dis[t]`
+by the *smaller*, post-discharge `level[t]` made the constraint tighter than
+physically justified whenever an hour was a net discharge -- self-
+referentially so, since `level[t]` is itself defined in terms of `p_dis[t]`.
+Substituting the storage balance into the constraint shows the effective
+bound was the correct (start-of-hour) one divided by `(1 + a_i/eta_discharge)`
+-- always a shrinkage, never a relaxation. This directly inflated how much
+power capacity the SOC-dependent formulation appeared to need relative to
+the constant-limit baseline, on top of the separate P0.1 and P0.2 confounds.
+
+**The fix, and why it stays an explicit choice, not a silent replacement.**
+`storage.discharge_capability_reference` (`"start_of_hour"` or
+`"end_of_hour"`) is a new required config field, validated exactly like
+`discharge_limit_mode`: required when `discharge_limit_mode ==
+"soc_dependent"`, must be null otherwise (the constant limit doesn't depend
+on level at all, so a given value there would mean nothing).
+`dispatch.py`'s `build_model` defensively re-checks this too, not just
+`config.py`'s loader, since `build_model` is public API tests and scripts
+call directly on hand-built configs -- an invalid or missing value must
+never silently fall back to one behaviour or the other. Both remain fully
+supported: this is a modelling choice with a roadmap-recommended default for
+this screening model (`start_of_hour`), not a bug that only had one correct
+fix.
+
+**Quantified, per the roadmap's own acceptance criterion**, at a short
+72-hour horizon with nearly-free storage economics (forcing both
+formulations to actually build storage rather than collapsing to
+`E_cap = 0`): switching from `end_of_hour` to `start_of_hour` drops the
+SOC-dependent formulation's required power rating from 10.38 MW to 9.60 MW
+-- enough to flip which formulation needs more power than the other
+outright, since the constant-limit baseline needs exactly 10.0 MW (its own
+free-sizing decision variable, unaffected by this fix) at this case.
+`end_of_hour` needing *more* power than the constant baseline matches Phase
+C's original framing; `start_of_hour` needing *less* undercuts that framing
+as itself partly an artifact of this bug, not a robust physical result on
+its own. `tests/test_dispatch.py`'s P0.4 test block reproduces this
+exactly, alongside a build-time check confirming an invalid or missing
+`discharge_capability_reference` is rejected rather than silently
+defaulted, and a pair of curve-safety checks confirming each reference mode
+is verified against the state it actually uses (checking `end_of_hour`'s
+solved discharge against the post-dispatch level, and `start_of_hour`'s
+against the independently reconstructed pre-dispatch one, not the same
+column for both).
 
 ## Repository layout
 
@@ -483,7 +570,9 @@ experiment; done at MVP scope, one technology/temperature/profile pair, not
 the full 18-run matrix; original run superseded by C2 as the shape-isolated
 comparison) -> C2 (matched-duration-family sizing fix; removes the
 unequal-duration confound in C's original pairing; done, five durations
-swept) -> D (harmonised comparison and sensitivity, optional enrichment;
+swept) -> P0.4 (start-of-hour discharge capability reference; done --
+removes a third confound from C's original pairing, folded into C2's own
+sweep) -> D (harmonised comparison and sensitivity, optional enrichment;
 not started).
 
 ## Development

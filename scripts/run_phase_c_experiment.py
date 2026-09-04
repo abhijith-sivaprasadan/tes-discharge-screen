@@ -20,9 +20,11 @@ does not show.
 **Archived (README/MODEL_CARD): its committed output is superseded by
 run_phase_c2_duration_matched_experiment.py, kept unmodified rather than
 re-run.** Its calls are still updated to match discharge_power_curve's
-current signature (P0.2), so re-running this script does not error, but it
-now uses the corrected physics and will not reproduce the committed
-`outputs/phase_c_packed_bed_300c_flat/` numbers if actually run again.
+current signature (P0.2) and storage.discharge_capability_reference's new
+required field (P0.4, set to "start_of_hour" here), so re-running this
+script does not error, but it now uses the corrected physics and will not
+reproduce the committed `outputs/phase_c_packed_bed_300c_flat/` numbers if
+actually run again.
 """
 
 from __future__ import annotations
@@ -108,7 +110,10 @@ def main() -> None:
         soc_config = dataclasses.replace(
             config,
             storage=dataclasses.replace(
-                config.storage, discharge_limit_mode="soc_dependent", discharge_power_max_mw=None
+                config.storage,
+                discharge_limit_mode="soc_dependent",
+                discharge_power_max_mw=None,
+                discharge_capability_reference="start_of_hour",
             ),
         )
         result, checks = _solved(soc_config, load, price, discharge_curve=curve)

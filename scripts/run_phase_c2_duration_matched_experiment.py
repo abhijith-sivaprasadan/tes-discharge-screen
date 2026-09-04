@@ -1,4 +1,4 @@
-"""Phase C2: the matched-duration-family paired experiment (roadmap fixes P0.1/P0.2).
+"""Phase C2: the matched-duration-family paired experiment (roadmap fixes P0.1/P0.2/P0.4).
 
 Usage: python scripts/run_phase_c2_duration_matched_experiment.py
 
@@ -27,10 +27,19 @@ bed's own stored-energy accounting uses, rather than mixing it with
 T_process; a quality gate on top of that (`T_required_out = T_process +
 delta_T_min_hot_side`) still zeroes deliverable power once the outlet can
 no longer serve the process, matching the earlier behaviour when
-`delta_t_min_hot_side_c = 0`. This script's own output supersedes its own
-earlier (P0.1-only) run; it does not overwrite Phase C's original
-(confounded) result at outputs/phase_c_packed_bed_300c_flat/, kept as an
-archived, diagnostic-only baseline per the roadmap's own instruction.
+`delta_t_min_hot_side_c = 0`.
+
+Also applies P0.4's fix: the SOC-dependent formulation's piecewise
+discharge-capability constraint now reads `storage.discharge_capability_reference
+= "start_of_hour"` (the pre-dispatch level, what was actually on hand before
+this hour's own discharge drew it down), not the post-dispatch level the
+constraint used to read -- which was backwards, and had been artificially
+inflating how much power the SOC-dependent formulation appeared to need.
+
+This script's own output supersedes its own earlier (P0.1+P0.2-only) run;
+it does not overwrite Phase C's original (confounded) result at
+outputs/phase_c_packed_bed_300c_flat/, kept as an archived, diagnostic-only
+baseline per the roadmap's own instruction.
 """
 
 from __future__ import annotations
@@ -85,6 +94,11 @@ def _duration_matched_config(base_config, design_duration_hours: float, soc_depe
             discharge_power_max_mw=None,
             design_duration_hours=design_duration_hours,
             discharge_limit_mode="soc_dependent" if soc_dependent else "constant",
+            # P0.4's own recommendation for this screening model: the
+            # capability bound reads the pre-dispatch state, not what's left
+            # after this hour's own discharge already drew it down. Only
+            # meaningful (and only set) in soc_dependent mode.
+            discharge_capability_reference=("start_of_hour" if soc_dependent else None),
         ),
     )
 
@@ -205,7 +219,11 @@ def main() -> None:
     manifest = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "case": "packed_bed_300c_flat",
-        "fix": "roadmap P0.1 (matched-duration-family sizing) + P0.2 (temperature-reference fix)",
+        "fix": (
+            "roadmap P0.1 (matched-duration-family sizing) + P0.2 "
+            "(temperature-reference fix) + P0.4 (start-of-hour discharge "
+            "capability reference)"
+        ),
         "note": (
             "Supersedes outputs/phase_c_packed_bed_300c_flat/ as the paired "
             "comparison of discharge-limit shape: that run left the two "
@@ -215,18 +233,24 @@ def main() -> None:
             "duration, not shape (P0.1). It also computed deliverable power "
             "against T_process while the bed's own stored-energy accounting "
             "used T_return, counting enthalpy already present in the return "
-            "stream as if storage supplied it (P0.2). Here "
-            "storage.design_duration_hours ties power to E_cap/tau "
-            "identically in both formulations at each swept tau (dispatch.py's "
-            "duration_matched branch, P0.1), the soc_dependent curve at each "
-            "tau is refit at the matched mass flow "
+            "stream as if storage supplied it (P0.2), and bounded p_dis[t] "
+            "using the post-dispatch level[t] rather than the pre-dispatch "
+            "state actually on hand at the start of the hour, artificially "
+            "inflating the power the SOC-dependent formulation appeared to "
+            "need (P0.4). Here storage.design_duration_hours ties power to "
+            "E_cap/tau identically in both formulations at each swept tau "
+            "(dispatch.py's duration_matched branch, P0.1), the soc_dependent "
+            "curve at each tau is refit at the matched mass flow "
             "(discharge_curve.mass_flow_for_target_duration) so its own k=P/E "
-            "ratio equals 1/tau exactly, and discharge_power_curve references "
+            "ratio equals 1/tau exactly, discharge_power_curve references "
             "deliverable power to T_return with an explicit quality gate at "
-            "T_process + delta_T_min_hot_side (P0.2, packed_bed_dynamics.py). "
-            "The original phase_c_packed_bed_300c_flat run is kept in place, "
-            "unmodified, as an archived/diagnostic result, not deleted or "
-            "overwritten -- see its own directory."
+            "T_process + delta_T_min_hot_side (P0.2, packed_bed_dynamics.py), "
+            "and the soc_dependent capability constraint uses "
+            "storage.discharge_capability_reference = 'start_of_hour' (P0.4, "
+            "dispatch.py's duration_matched branch). The original "
+            "phase_c_packed_bed_300c_flat run is kept in place, unmodified, "
+            "as an archived/diagnostic result, not deleted or overwritten -- "
+            "see its own directory."
         ),
         "delta_t_min_hot_side_c": DELTA_T_MIN_HOT_SIDE_C,
         "design_durations_swept_hours": DESIGN_DURATIONS_HOURS,

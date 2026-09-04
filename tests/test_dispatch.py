@@ -98,12 +98,17 @@ def _short_case_duration_matched(design_duration_hours: float, **economics_overr
     )
 
 
-def _solve_short_soc_dependent(**economics_overrides: float):
+def _solve_short_soc_dependent(
+    discharge_capability_reference: str = "start_of_hour", **economics_overrides: float
+):
     config = _short_case(**economics_overrides)
     config = dataclasses.replace(
         config,
         storage=dataclasses.replace(
-            config.storage, discharge_limit_mode="soc_dependent", discharge_power_max_mw=None
+            config.storage,
+            discharge_limit_mode="soc_dependent",
+            discharge_power_max_mw=None,
+            discharge_capability_reference=discharge_capability_reference,
         ),
     )
     load = build_load_profile(
@@ -213,31 +218,112 @@ def test_soc_dependent_solve_reaches_optimal_and_verifies() -> None:
     assert all(checks.values()), checks
 
 
+def _level_start_mwh(schedule, e_cap: float, soc_init_fraction: float) -> np.ndarray:
+    # Independent reconstruction of the pre-dispatch state, the same
+    # "previous" array verification.py's own storage-balance check builds:
+    # soc_init_fraction*e_cap at t=0, the prior hour's post-dispatch level
+    # otherwise.
+    level = schedule["level_mwh"].to_numpy()
+    previous = np.empty_like(level)
+    previous[0] = soc_init_fraction * e_cap
+    previous[1:] = level[:-1]
+    return previous
+
+
 def test_soc_dependent_discharge_never_exceeds_the_fitted_curve() -> None:
+    # Default (start_of_hour, P0.4): the model's own constraint bounds
+    # p_dis[t] using level_start[t] (pre-dispatch), not the schedule's
+    # level_mwh column (post-dispatch) -- check against the same reference
+    # the model actually used, not the other one, or this check would be
+    # verifying a bound the solve was never actually held to.
     config, load, price, result = _solve_short_soc_dependent()
+    curve = _reference_discharge_curve()
+    e_cap = result.schedule.attrs["e_cap_mwh"]
+    level_start = _level_start_mwh(result.schedule, e_cap, config.storage.soc_init_fraction)
+    limits = np.array([curve.limit_mw(level, e_cap) for level in level_start])
+    assert (result.schedule["p_dis_mw"].to_numpy() <= limits + 1e-6).all()
+
+
+def test_soc_dependent_discharge_never_exceeds_curve_under_end_of_hour_reference() -> None:
+    # The pre-P0.4 reference, kept as an explicit alternative (config.py):
+    # here the constraint does use the post-dispatch level_mwh column
+    # directly, so checking against it is correct for this mode specifically.
+    _config, _load, _price, result = _solve_short_soc_dependent(
+        discharge_capability_reference="end_of_hour"
+    )
     curve = _reference_discharge_curve()
     e_cap = result.schedule.attrs["e_cap_mwh"]
     limits = result.schedule["level_mwh"].apply(lambda level: curve.limit_mw(level, e_cap))
     assert (result.schedule["p_dis_mw"] <= limits + 1e-6).all()
 
 
-def test_soc_dependent_requires_more_power_capacity_than_constant_limit_for_the_same_case() -> None:
-    # The headline physical expectation: a store whose discharge power falls
-    # away with state of charge needs more full-charge power capability to
-    # deliver the same load profile than the constant-limit baseline assumes
-    # it can. This is what makes the constant-limit simplification an
-    # understatement of what a real sensible-heat store needs, not the other
-    # way around. Nearly-free storage CAPEX forces both formulations to
-    # actually build storage at this short horizon, so the comparison isn't
-    # degenerate at E_cap=0 (see the full-horizon Phase C experiment for the
-    # result under real economics).
+# --- P0.4: start-of-hour vs. end-of-hour discharge capability ----------------
+#
+# `dispatch.py`'s piecewise discharge-limit constraint used to bound p_dis[t]
+# using level[t], the *post*-dispatch state storage_balance defines in terms
+# of that same hour's own p_dis[t] -- backwards: capability at the start of
+# an hour should depend on what was on hand before that hour's own discharge
+# drew it down, not what's left after. The fix ties the bound to level_start
+# (soc_init*E_cap at t=0, level[t-1] otherwise) instead, as an explicit,
+# required config choice (storage.discharge_capability_reference), not a
+# silent replacement of the old behaviour -- both remain available.
+
+
+def test_discharge_capability_reference_is_a_required_explicit_choice() -> None:
+    config = _short_case()
+    config = dataclasses.replace(
+        config, storage=dataclasses.replace(config.storage, discharge_limit_mode="soc_dependent")
+    )
+    assert config.storage.discharge_capability_reference is None
+    load = build_load_profile(
+        config.process.profile_shape, config.process.annual_peak_load_mw, SHORT_HORIZON
+    )
+    price = synthetic_daily_price_profile(SHORT_HORIZON)
+    curve = _reference_discharge_curve()
+    with pytest.raises(ValueError, match="discharge_capability_reference"):
+        build_model(config, load, price, discharge_curve=curve)
+
+
+@pytest.mark.parametrize("reference", ["start_of_hour", "end_of_hour"])
+def test_both_discharge_capability_references_solve_and_verify(reference: str) -> None:
+    # Roadmap acceptance criterion: demonstrate start-vs-end is an explicit,
+    # working modelling option, not that only one of them actually runs.
+    _config, _load, _price, result = _solve_short_soc_dependent(
+        discharge_capability_reference=reference
+    )
+    assert result.solver["termination"] == "optimal"
+    checks = verify_schedule(result.schedule, _config, result.solver["objective_eur"])
+    assert all(checks.values()), checks
+
+
+def test_discharge_capability_reference_changes_the_annual_result() -> None:
+    # Roadmap acceptance criterion: quantify whether it changes the annual
+    # result. It does, and by enough to flip which formulation needs more
+    # power at this short-horizon, nearly-free-storage case: end_of_hour (the
+    # project's old, more conservative choice) understates what the store
+    # can actually deliver at the start of an hour, since it evaluates the
+    # curve at the *already-discharged* level, so it reports needing *more*
+    # power than the constant-limit baseline; start_of_hour (the corrected
+    # reference) needs less, undercutting Phase C's original "SOC-dependent
+    # always needs more power" framing as itself partly an artifact of this
+    # bug, not a robust physical result (see README's P0.4 section for the
+    # full-horizon numbers).
     overrides = {"storage_capex_eur_per_mwh": 1.0, "storage_capex_eur_per_mw": 1.0}
     _config_a, _load_a, _price_a, result_constant = _solve_short(**overrides)
-    _config_c, _load_c, _price_c, result_soc = _solve_short_soc_dependent(**overrides)
-    assert (
-        result_soc.schedule.attrs["power_rating_mw"]
-        > result_constant.schedule.attrs["power_rating_mw"]
+    _config_end, _load_end, _price_end, result_end_of_hour = _solve_short_soc_dependent(
+        discharge_capability_reference="end_of_hour", **overrides
     )
+    _config_start, _load_start, _price_start, result_start_of_hour = _solve_short_soc_dependent(
+        discharge_capability_reference="start_of_hour", **overrides
+    )
+    constant_power = result_constant.schedule.attrs["power_rating_mw"]
+    end_of_hour_power = result_end_of_hour.schedule.attrs["power_rating_mw"]
+    start_of_hour_power = result_start_of_hour.schedule.attrs["power_rating_mw"]
+
+    assert not np.isclose(end_of_hour_power, start_of_hour_power, rtol=1e-6)
+    assert start_of_hour_power < end_of_hour_power
+    assert end_of_hour_power > constant_power
+    assert start_of_hour_power < constant_power
 
 
 def test_mismatched_profile_length_is_rejected() -> None:
@@ -367,7 +453,12 @@ def test_duration_matched_neither_formulation_gets_an_extra_free_power_variable(
 
     curve = _duration_matched_curve(tau)
     config_soc = dataclasses.replace(
-        config, storage=dataclasses.replace(config.storage, discharge_limit_mode="soc_dependent")
+        config,
+        storage=dataclasses.replace(
+            config.storage,
+            discharge_limit_mode="soc_dependent",
+            discharge_capability_reference="start_of_hour",
+        ),
     )
     model_soc = build_model(config_soc, load, price, discharge_curve=curve)
     assert not hasattr(model_soc, "P_rated")
@@ -388,7 +479,12 @@ def test_duration_matched_both_formulations_report_exactly_the_configured_durati
 
     curve = _duration_matched_curve(tau)
     config_soc = dataclasses.replace(
-        config, storage=dataclasses.replace(config.storage, discharge_limit_mode="soc_dependent")
+        config,
+        storage=dataclasses.replace(
+            config.storage,
+            discharge_limit_mode="soc_dependent",
+            discharge_capability_reference="start_of_hour",
+        ),
     )
     result_soc = solve_dispatch(config_soc, load, price, discharge_curve=curve)
 
