@@ -149,10 +149,25 @@ def scale_parallel_bed(
     return scaled_config, reference_mass_flow_kg_per_s * scale_factor
 
 
-def volumetric_heat_transfer_coefficient(
+@dataclass(frozen=True)
+class FlowDiagnostics:
+    """The Wakao-Kaguei correlation's own intermediate dimensionless groups,
+    alongside the volumetric coefficient they produce -- roadmap P2.1's own
+    required manifest fields (Re, Pr, Nu, h_v), factored out as a named
+    result so a capability-curve run can record them directly rather than
+    recomputing the correlation a second time from scratch."""
+
+    reynolds: float
+    prandtl: float
+    nusselt: float
+    volumetric_heat_transfer_coefficient_w_per_m3k: float
+
+
+def flow_diagnostics(
     config: PackedBedDynamicsConfig, mass_flux_kg_per_m2s: float
-) -> float:
-    """Volumetric fluid-solid heat transfer coefficient h_v [W/m3/K].
+) -> FlowDiagnostics:
+    """Reynolds, Prandtl, and Nusselt numbers and the volumetric fluid-solid
+    heat transfer coefficient h_v [W/m3/K] at a given mass flux.
 
     Wakao-Kaguei correlation for particle Nusselt number (Wakao, N., Kaguei,
     S., 1982, "Heat and Mass Transfer in Packed Beds," Gordon and Breach;
@@ -164,7 +179,7 @@ def volumetric_heat_transfer_coefficient(
     per unit bed volume, a_v = 6(1-eps)/d_p for spherical particles.
     """
     if mass_flux_kg_per_m2s <= 0:
-        return 0.0
+        return FlowDiagnostics(0.0, 0.0, 0.0, 0.0)
     reynolds = mass_flux_kg_per_m2s * config.particle_diameter_m / config.air_viscosity_pa_s
     prandtl = (
         config.air_viscosity_pa_s
@@ -174,7 +189,22 @@ def volumetric_heat_transfer_coefficient(
     nusselt = 2 + 1.1 * reynolds**0.6 * prandtl ** (1 / 3)
     h_particle = nusselt * config.air_thermal_conductivity_w_per_mk / config.particle_diameter_m
     specific_surface_area = 6 * (1 - config.porosity) / config.particle_diameter_m
-    return h_particle * specific_surface_area
+    h_v = h_particle * specific_surface_area
+    return FlowDiagnostics(reynolds, prandtl, nusselt, h_v)
+
+
+def volumetric_heat_transfer_coefficient(
+    config: PackedBedDynamicsConfig, mass_flux_kg_per_m2s: float
+) -> float:
+    """Volumetric fluid-solid heat transfer coefficient h_v [W/m3/K].
+
+    Thin wrapper over `flow_diagnostics` kept for existing call sites that
+    only need h_v itself (`simulate_discharge`'s own default correlation
+    path); see `flow_diagnostics` for the full Re/Pr/Nu breakdown.
+    """
+    return flow_diagnostics(
+        config, mass_flux_kg_per_m2s
+    ).volumetric_heat_transfer_coefficient_w_per_m3k
 
 
 @dataclass(frozen=True)

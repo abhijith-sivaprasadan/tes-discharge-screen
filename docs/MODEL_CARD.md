@@ -325,8 +325,45 @@ the roadmap asked for, replacing the earlier abstract assumption, with the
 invariance proven exact for this bed model rather than approximately
 small.
 
+## P2.1: duration-family capability curves
+
+`scripts/run_capability_curves_experiment.py` commits the discharge curves
+C2/C3 already build internally (to feed paired dispatch solves) as
+standalone evidence in their own right: one `manifest.json` per (design
+duration, case) under `outputs/capability_curves/tau_{X}h/{case_name}/`,
+recording geometry, mass flow/flux, Reynolds/Prandtl/Nusselt numbers, the
+volumetric heat transfer coefficient (`flow_diagnostics`, a new function
+factoring these out of `volumetric_heat_transfer_coefficient`'s own
+Wakao-Kaguei correlation -- non-breaking, `volumetric_heat_transfer_coefficient`
+is now a thin wrapper over it), temperatures, resolution, the process
+quality threshold, and an explicit scaling-family definition, alongside the
+curve data and its piecewise-fit breakpoints as CSVs. **Packed bed only**
+(both process-temperature cases): the roadmap's own framing of this section
+is specific to the packed bed's mass-flow/thermocline trade-off; neither
+molten salt (no thermocline) nor PCM (near-isothermal latent plateau)
+carries that design tension. P2.2 (a full swept capability envelope) is
+explicitly deferred by the roadmap itself and not attempted. Swept across
+the same 2h-12h duration grid C2 uses: shorter durations draw at higher
+mass flow/flux, and the piecewise fit's own safety margin against
+overestimating deliverable power tightens correspondingly (2h: 6.8e-05 MW
+max overestimate; 12h: 8.0e-07 MW), a real if minor pattern the per-duration
+curve data surfaces that C2's own segment-count robustness check did not
+previously tabulate. See README's P2.1 section for the full table.
+
 ## What does not exist yet
 
+- **P2.2, the full swept capability envelope** (sweep feasible mass flow at
+  each physical state, choose the highest net-useful power after
+  parasitics): explicitly deferred by the roadmap itself until the simpler
+  duration-family comparison (P2.1, done above) is confirmed correct. Not
+  attempted.
+- **Real electricity price data.** Every run so far uses synthetic prices
+  (`synthetic_daily_price_profile`); the real ENTSO-E fetch path
+  (`electricity_price.py`) exists but `load_electricity_price`'s
+  `"entso_e"` path still raises `NotImplementedError` for the actual
+  bidding-zone/date-range call (`fetch_and_record_entsoe` must be called
+  directly), and no `ENTSOE_API_KEY` has been available to test it against
+  until now.
 - **The FMU-vs-shadow-twin cross-check.** No OpenModelica toolchain (`omc`)
   or `fmpy` is installed in this working environment, so the Modelica model
   has been authored but never compiled, and this project's intended
@@ -351,7 +388,6 @@ small.
   (6h) and one set of capex assumptions C3 tested; whether a different
   duration or a different PCM capex figure would make it competitive
   enough to actually exercise the SOC-dependent correction is not tested.
-- A live ENTSO-E price fetch.
 - Sensitivity analysis, the boundary-harmonisation table, or the
   technology-selection map (Phase D).
 - **A reduced-order state beyond scalar SOC.** P0.3 found scalar SOC

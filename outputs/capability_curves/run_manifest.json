@@ -1,0 +1,399 @@
+{
+  "cases": [
+    {
+      "case_name": "packed_bed_300c_flat",
+      "config_path": "configs/packed_bed_300c_flat.yaml",
+      "durations": [
+        {
+          "case_name": "packed_bed_300c_flat",
+          "config_path": "configs/packed_bed_300c_flat.yaml",
+          "curve_fit_max_overestimate_mw": 6.777977566433212e-05,
+          "curve_fit_max_underestimate_mw": 0.07332242279944398,
+          "curve_fit_mean_absolute_error_mw": 0.017526686152903537,
+          "curve_fit_n_segments": 5,
+          "delta_t_min_hot_side_c": 0.0,
+          "design_duration_hours": 2.0,
+          "geometry": {
+            "bed_length_m": 5.0,
+            "cross_section_area_m2": 10.0,
+            "n_nodes": 40,
+            "particle_diameter_m": 0.03,
+            "porosity": 0.4
+          },
+          "k_mw_per_mwh": 0.5,
+          "mass_flow_kg_per_s": 7.282675435227855,
+          "mass_flux_kg_per_m2s": 0.7282675435227854,
+          "nusselt": 52.90981528119424,
+          "prandtl": 0.7408590308370043,
+          "process_quality_threshold_c": 300.0,
+          "reference_energy_capacity_mwh": 1.2642724555555556,
+          "reference_rated_power_mw": 0.6321362277777778,
+          "resolution": {
+            "duration_s": 14400.0,
+            "n_nodes": 40,
+            "n_steps": 1500
+          },
+          "reynolds": 704.7750421188246,
+          "temperatures_c": {
+            "initial_bed_temperature_c": 400.0,
+            "inlet_temperature_c_t_return": 320.0,
+            "process_temperature_c": 300.0
+          },
+          "volumetric_heat_transfer_coefficient_w_per_m3k": 9608.422455064874
+        },
+        {
+          "case_name": "packed_bed_300c_flat",
+          "config_path": "configs/packed_bed_300c_flat.yaml",
+          "curve_fit_max_overestimate_mw": 1.19128936688501e-05,
+          "curve_fit_max_underestimate_mw": 0.04093251650441451,
+          "curve_fit_mean_absolute_error_mw": 0.00911426750932247,
+          "curve_fit_n_segments": 5,
+          "delta_t_min_hot_side_c": 0.0,
+          "design_duration_hours": 4.0,
+          "geometry": {
+            "bed_length_m": 5.0,
+            "cross_section_area_m2": 10.0,
+            "n_nodes": 40,
+            "particle_diameter_m": 0.03,
+            "porosity": 0.4
+          },
+          "k_mw_per_mwh": 0.25,
+          "mass_flow_kg_per_s": 3.6413377176139274,
+          "mass_flux_kg_per_m2s": 0.3641337717613927,
+          "nusselt": 35.587951999761295,
+          "prandtl": 0.7408590308370043,
+          "process_quality_threshold_c": 300.0,
+          "reference_energy_capacity_mwh": 1.2642724555555556,
+          "reference_rated_power_mw": 0.3160681138888889,
+          "resolution": {
+            "duration_s": 28800.0,
+            "n_nodes": 40,
+            "n_steps": 1500
+          },
+          "reynolds": 352.3875210594123,
+          "temperatures_c": {
+            "initial_bed_temperature_c": 400.0,
+            "inlet_temperature_c_t_return": 320.0,
+            "process_temperature_c": 300.0
+          },
+          "volumetric_heat_transfer_coefficient_w_per_m3k": 6462.77208315665
+        },
+        {
+          "case_name": "packed_bed_300c_flat",
+          "config_path": "configs/packed_bed_300c_flat.yaml",
+          "curve_fit_max_overestimate_mw": 4.341537767808951e-06,
+          "curve_fit_max_underestimate_mw": 0.02888093023582368,
+          "curve_fit_mean_absolute_error_mw": 0.006193856920972547,
+          "curve_fit_n_segments": 5,
+          "delta_t_min_hot_side_c": 0.0,
+          "design_duration_hours": 6.0,
+          "geometry": {
+            "bed_length_m": 5.0,
+            "cross_section_area_m2": 10.0,
+            "n_nodes": 40,
+            "particle_diameter_m": 0.03,
+            "porosity": 0.4
+          },
+          "k_mw_per_mwh": 0.16666666666666666,
+          "mass_flow_kg_per_s": 2.427558478409285,
+          "mass_flux_kg_per_m2s": 0.2427558478409285,
+          "nusselt": 28.334723837656608,
+          "prandtl": 0.7408590308370043,
+          "process_quality_threshold_c": 300.0,
+          "reference_energy_capacity_mwh": 1.2642724555555556,
+          "reference_rated_power_mw": 0.21071207592592592,
+          "resolution": {
+            "duration_s": 43200.0,
+            "n_nodes": 40,
+            "n_steps": 1500
+          },
+          "reynolds": 234.9250140396082,
+          "temperatures_c": {
+            "initial_bed_temperature_c": 400.0,
+            "inlet_temperature_c_t_return": 320.0,
+            "process_temperature_c": 300.0
+          },
+          "volumetric_heat_transfer_coefficient_w_per_m3k": 5145.585848918439
+        },
+        {
+          "case_name": "packed_bed_300c_flat",
+          "config_path": "configs/packed_bed_300c_flat.yaml",
+          "curve_fit_max_overestimate_mw": 2.139095930435257e-06,
+          "curve_fit_max_underestimate_mw": 0.02247764574824159,
+          "curve_fit_mean_absolute_error_mw": 0.004702673923078034,
+          "curve_fit_n_segments": 5,
+          "delta_t_min_hot_side_c": 0.0,
+          "design_duration_hours": 8.0,
+          "geometry": {
+            "bed_length_m": 5.0,
+            "cross_section_area_m2": 10.0,
+            "n_nodes": 40,
+            "particle_diameter_m": 0.03,
+            "porosity": 0.4
+          },
+          "k_mw_per_mwh": 0.125,
+          "mass_flow_kg_per_s": 1.8206688588069637,
+          "mass_flux_kg_per_m2s": 0.18206688588069636,
+          "nusselt": 24.159784185172636,
+          "prandtl": 0.7408590308370043,
+          "process_quality_threshold_c": 300.0,
+          "reference_energy_capacity_mwh": 1.2642724555555556,
+          "reference_rated_power_mw": 0.15803405694444445,
+          "resolution": {
+            "duration_s": 57600.0,
+            "n_nodes": 40,
+            "n_steps": 1500
+          },
+          "reynolds": 176.19376052970614,
+          "temperatures_c": {
+            "initial_bed_temperature_c": 400.0,
+            "inlet_temperature_c_t_return": 320.0,
+            "process_temperature_c": 300.0
+          },
+          "volumetric_heat_transfer_coefficient_w_per_m3k": 4387.41680802735
+        },
+        {
+          "case_name": "packed_bed_300c_flat",
+          "config_path": "configs/packed_bed_300c_flat.yaml",
+          "curve_fit_max_overestimate_mw": 8.022162204946008e-07,
+          "curve_fit_max_underestimate_mw": 0.0157201339317568,
+          "curve_fit_mean_absolute_error_mw": 0.003184443476879712,
+          "curve_fit_n_segments": 5,
+          "delta_t_min_hot_side_c": 0.0,
+          "design_duration_hours": 12.0,
+          "geometry": {
+            "bed_length_m": 5.0,
+            "cross_section_area_m2": 10.0,
+            "n_nodes": 40,
+            "particle_diameter_m": 0.03,
+            "porosity": 0.4
+          },
+          "k_mw_per_mwh": 0.08333333333333333,
+          "mass_flow_kg_per_s": 1.2137792392046425,
+          "mass_flux_kg_per_m2s": 0.12137792392046425,
+          "nusselt": 19.374438215903705,
+          "prandtl": 0.7408590308370043,
+          "process_quality_threshold_c": 300.0,
+          "reference_energy_capacity_mwh": 1.2642724555555556,
+          "reference_rated_power_mw": 0.10535603796296296,
+          "resolution": {
+            "duration_s": 86400.0,
+            "n_nodes": 40,
+            "n_steps": 1500
+          },
+          "reynolds": 117.4625070198041,
+          "temperatures_c": {
+            "initial_bed_temperature_c": 400.0,
+            "inlet_temperature_c_t_return": 320.0,
+            "process_temperature_c": 300.0
+          },
+          "volumetric_heat_transfer_coefficient_w_per_m3k": 3518.397980008113
+        }
+      ]
+    },
+    {
+      "case_name": "packed_bed_400c_flat",
+      "config_path": "configs/packed_bed_400c_flat.yaml",
+      "durations": [
+        {
+          "case_name": "packed_bed_400c_flat",
+          "config_path": "configs/packed_bed_400c_flat.yaml",
+          "curve_fit_max_overestimate_mw": 6.77797756541567e-05,
+          "curve_fit_max_underestimate_mw": 0.07332242279945095,
+          "curve_fit_mean_absolute_error_mw": 0.017526686152908068,
+          "curve_fit_n_segments": 5,
+          "delta_t_min_hot_side_c": 0.0,
+          "design_duration_hours": 2.0,
+          "geometry": {
+            "bed_length_m": 5.0,
+            "cross_section_area_m2": 10.0,
+            "n_nodes": 40,
+            "particle_diameter_m": 0.03,
+            "porosity": 0.4
+          },
+          "k_mw_per_mwh": 0.5,
+          "mass_flow_kg_per_s": 7.282675435227855,
+          "mass_flux_kg_per_m2s": 0.7282675435227854,
+          "nusselt": 52.90981528119424,
+          "prandtl": 0.7408590308370043,
+          "process_quality_threshold_c": 400.0,
+          "reference_energy_capacity_mwh": 1.2642724555555556,
+          "reference_rated_power_mw": 0.6321362277777778,
+          "resolution": {
+            "duration_s": 14400.0,
+            "n_nodes": 40,
+            "n_steps": 1500
+          },
+          "reynolds": 704.7750421188246,
+          "temperatures_c": {
+            "initial_bed_temperature_c": 500.0,
+            "inlet_temperature_c_t_return": 420.0,
+            "process_temperature_c": 400.0
+          },
+          "volumetric_heat_transfer_coefficient_w_per_m3k": 9608.422455064874
+        },
+        {
+          "case_name": "packed_bed_400c_flat",
+          "config_path": "configs/packed_bed_400c_flat.yaml",
+          "curve_fit_max_overestimate_mw": 1.1912893653584249e-05,
+          "curve_fit_max_underestimate_mw": 0.04093251650442126,
+          "curve_fit_mean_absolute_error_mw": 0.009114267509327189,
+          "curve_fit_n_segments": 5,
+          "delta_t_min_hot_side_c": 0.0,
+          "design_duration_hours": 4.0,
+          "geometry": {
+            "bed_length_m": 5.0,
+            "cross_section_area_m2": 10.0,
+            "n_nodes": 40,
+            "particle_diameter_m": 0.03,
+            "porosity": 0.4
+          },
+          "k_mw_per_mwh": 0.25,
+          "mass_flow_kg_per_s": 3.6413377176139274,
+          "mass_flux_kg_per_m2s": 0.3641337717613927,
+          "nusselt": 35.587951999761295,
+          "prandtl": 0.7408590308370043,
+          "process_quality_threshold_c": 400.0,
+          "reference_energy_capacity_mwh": 1.2642724555555556,
+          "reference_rated_power_mw": 0.3160681138888889,
+          "resolution": {
+            "duration_s": 28800.0,
+            "n_nodes": 40,
+            "n_steps": 1500
+          },
+          "reynolds": 352.3875210594123,
+          "temperatures_c": {
+            "initial_bed_temperature_c": 500.0,
+            "inlet_temperature_c_t_return": 420.0,
+            "process_temperature_c": 400.0
+          },
+          "volumetric_heat_transfer_coefficient_w_per_m3k": 6462.77208315665
+        },
+        {
+          "case_name": "packed_bed_400c_flat",
+          "config_path": "configs/packed_bed_400c_flat.yaml",
+          "curve_fit_max_overestimate_mw": 4.341537774709022e-06,
+          "curve_fit_max_underestimate_mw": 0.02888093023582214,
+          "curve_fit_mean_absolute_error_mw": 0.006193856920971062,
+          "curve_fit_n_segments": 5,
+          "delta_t_min_hot_side_c": 0.0,
+          "design_duration_hours": 6.0,
+          "geometry": {
+            "bed_length_m": 5.0,
+            "cross_section_area_m2": 10.0,
+            "n_nodes": 40,
+            "particle_diameter_m": 0.03,
+            "porosity": 0.4
+          },
+          "k_mw_per_mwh": 0.16666666666666666,
+          "mass_flow_kg_per_s": 2.427558478409285,
+          "mass_flux_kg_per_m2s": 0.2427558478409285,
+          "nusselt": 28.334723837656608,
+          "prandtl": 0.7408590308370043,
+          "process_quality_threshold_c": 400.0,
+          "reference_energy_capacity_mwh": 1.2642724555555556,
+          "reference_rated_power_mw": 0.21071207592592592,
+          "resolution": {
+            "duration_s": 43200.0,
+            "n_nodes": 40,
+            "n_steps": 1500
+          },
+          "reynolds": 234.9250140396082,
+          "temperatures_c": {
+            "initial_bed_temperature_c": 500.0,
+            "inlet_temperature_c_t_return": 420.0,
+            "process_temperature_c": 400.0
+          },
+          "volumetric_heat_transfer_coefficient_w_per_m3k": 5145.585848918439
+        },
+        {
+          "case_name": "packed_bed_400c_flat",
+          "config_path": "configs/packed_bed_400c_flat.yaml",
+          "curve_fit_max_overestimate_mw": 2.1390959328777985e-06,
+          "curve_fit_max_underestimate_mw": 0.022477645748238927,
+          "curve_fit_mean_absolute_error_mw": 0.004702673923075982,
+          "curve_fit_n_segments": 5,
+          "delta_t_min_hot_side_c": 0.0,
+          "design_duration_hours": 8.0,
+          "geometry": {
+            "bed_length_m": 5.0,
+            "cross_section_area_m2": 10.0,
+            "n_nodes": 40,
+            "particle_diameter_m": 0.03,
+            "porosity": 0.4
+          },
+          "k_mw_per_mwh": 0.125,
+          "mass_flow_kg_per_s": 1.8206688588069637,
+          "mass_flux_kg_per_m2s": 0.18206688588069636,
+          "nusselt": 24.159784185172636,
+          "prandtl": 0.7408590308370043,
+          "process_quality_threshold_c": 400.0,
+          "reference_energy_capacity_mwh": 1.2642724555555556,
+          "reference_rated_power_mw": 0.15803405694444445,
+          "resolution": {
+            "duration_s": 57600.0,
+            "n_nodes": 40,
+            "n_steps": 1500
+          },
+          "reynolds": 176.19376052970614,
+          "temperatures_c": {
+            "initial_bed_temperature_c": 500.0,
+            "inlet_temperature_c_t_return": 420.0,
+            "process_temperature_c": 400.0
+          },
+          "volumetric_heat_transfer_coefficient_w_per_m3k": 4387.41680802735
+        },
+        {
+          "case_name": "packed_bed_400c_flat",
+          "config_path": "configs/packed_bed_400c_flat.yaml",
+          "curve_fit_max_overestimate_mw": 8.022162197748736e-07,
+          "curve_fit_max_underestimate_mw": 0.01572013393175744,
+          "curve_fit_mean_absolute_error_mw": 0.0031844434768799577,
+          "curve_fit_n_segments": 5,
+          "delta_t_min_hot_side_c": 0.0,
+          "design_duration_hours": 12.0,
+          "geometry": {
+            "bed_length_m": 5.0,
+            "cross_section_area_m2": 10.0,
+            "n_nodes": 40,
+            "particle_diameter_m": 0.03,
+            "porosity": 0.4
+          },
+          "k_mw_per_mwh": 0.08333333333333333,
+          "mass_flow_kg_per_s": 1.2137792392046425,
+          "mass_flux_kg_per_m2s": 0.12137792392046425,
+          "nusselt": 19.374438215903705,
+          "prandtl": 0.7408590308370043,
+          "process_quality_threshold_c": 400.0,
+          "reference_energy_capacity_mwh": 1.2642724555555556,
+          "reference_rated_power_mw": 0.10535603796296296,
+          "resolution": {
+            "duration_s": 86400.0,
+            "n_nodes": 40,
+            "n_steps": 1500
+          },
+          "reynolds": 117.4625070198041,
+          "temperatures_c": {
+            "initial_bed_temperature_c": 500.0,
+            "inlet_temperature_c_t_return": 420.0,
+            "process_temperature_c": 400.0
+          },
+          "volumetric_heat_transfer_coefficient_w_per_m3k": 3518.397980008113
+        }
+      ]
+    }
+  ],
+  "delta_t_min_hot_side_c": 0.0,
+  "design_durations_swept_hours": [
+    2.0,
+    4.0,
+    6.0,
+    8.0,
+    12.0
+  ],
+  "generated_at": "2026-09-04T19:36:45.364355+00:00",
+  "n_segments": 5,
+  "roadmap_item": "P2.1 (duration-family curve generation)",
+  "scaling_family_definition": "Duration family (roadmap P0.1/P2.1): geometry (bed_length_m, cross_section_area_m2, particle_diameter_m, porosity, n_nodes) is held fixed at the default reference bed's own values across every duration; only mass flow (and therefore mass flux) varies, solved in closed form so the resulting curve's own power/energy ratio k equals 1/tau exactly (discharge_curve.mass_flow_for_target_duration). This is a different family from P1's modular-area scaling (which varies cross-sectional area and mass flow together, at fixed mass flux, to change store size at fixed duration): P0.1/P2.1 deliberately varies mass flux per duration, changing the curve's own shape; P1 deliberately holds mass flux fixed, preserving it.",
+  "scope_note": "Packed bed only, both process-temperature cases (300 C and 400 C): the roadmap's own framing of P2 is specific to the packed bed's mass-flow/thermocline trade-off. Molten salt (no thermocline) and PCM (near-isothermal latent plateau) are not covered here; see this script's own module docstring."
+}

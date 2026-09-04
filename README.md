@@ -838,6 +838,72 @@ P0.1 answers "what does a bed of a different *duration* look like,"
 P1 answers "does a bed of a different *size* at the same duration look the
 same, just bigger."
 
+## P2.1: duration-family capability curves as committed evidence
+
+**What this adds, and what it does not.** Every prior duration-family run
+(C2, C3) builds a discharge curve at each design duration *internally*, to
+feed a pair of annual dispatch solves, and records only the paired-solve
+KPIs on disk -- the curve itself, and the flow physics that produced it,
+were a means to an end, not committed evidence. P2.1 asks for the curves
+themselves, at the same duration grid C2 already sweeps (2h-12h), each with
+a manifest recording geometry, mass flow and mass flux, Reynolds/Prandtl/
+Nusselt numbers, the volumetric heat transfer coefficient, temperatures,
+resolution, the process quality threshold, and the scaling family
+definition -- self-contained enough to audit by hand without re-running
+anything. `scripts/run_capability_curves_experiment.py` does exactly that
+and nothing more: **P2.2 (a full swept capability envelope choosing the
+highest net-useful power after parasitics at each physical state) is
+explicitly deferred by the roadmap itself** ("Do not jump to this until
+the simpler duration-family comparison is correct") and is not attempted.
+
+**Scope: packed bed only.** The roadmap's own framing of this section is
+specific to the packed bed's mass-flow/thermocline trade-off ("higher flow
+-> potentially lower outlet temperature / faster thermocline movement").
+Two-tank molten salt has no thermocline to move at all
+(`molten_salt_dynamics.py`'s own module docstring), and PCM's near-
+isothermal latent plateau does not develop one either, so neither
+technology carries the design tension this section exists to
+characterise. Both technologies already have their own
+`mass_flow_for_target_duration` (built for Phase C3), so extending this
+script to them would be mechanical if ever needed; the roadmap does not
+ask for it here, so it was not done.
+
+| Duration (tau) | Mass flow (kg/s) | Mass flux (kg/m2s) | Re | Pr | Nu | h_v (W/m3K) | Fit max overestimate (MW) |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 2h | 7.28 | 0.728 | 704.8 | 0.741 | 52.91 | 9,608 | 6.8e-05 |
+| 4h | 3.64 | 0.364 | 352.4 | 0.741 | 35.59 | 6,463 | 1.2e-05 |
+| 6h | 2.43 | 0.243 | 234.9 | 0.741 | 28.33 | 5,146 | 4.3e-06 |
+| 8h | 1.82 | 0.182 | 176.2 | 0.741 | 24.16 | 4,387 | 2.1e-06 |
+| 12h | 1.21 | 0.121 | 117.5 | 0.741 | 19.37 | 3,518 | 8.0e-07 |
+
+(Both `packed_bed_300c_flat` and `packed_bed_400c_flat` produce bit-identical
+rows -- the same expected consequence of the two configs sharing an
+identical 80 C span already documented under [Phase C3](#phase-c3-full-technology-ranking-matrix)
+above, reproduced here rather than treated as a new surprise.)
+
+**A real, if minor, pattern the curve data itself surfaces:** the
+piecewise fit's own safety margin against overestimating deliverable power
+tightens monotonically as duration shortens -- 6.8e-05 MW at 2h down to
+8.0e-07 MW at 12h, a ~100x range, all still far below anything that would
+matter at MW-scale dispatch. Shorter durations draw at a higher mass flow
+(and therefore mass flux, Reynolds number, and heat transfer coefficient),
+which steepens the discharge curve's shape near depletion; a fixed
+5-segment piecewise fit tracks a steeper curve slightly less tightly. This
+was already implicitly present in C2's own segment-count robustness check
+(3-12 segments barely move the sized answer) but had not previously been
+tabulated across the duration grid itself.
+
+Every number above traces to `outputs/capability_curves/`: one
+`manifest.json`, `discharge_power_curve.csv`, and
+`piecewise_curve_breakpoints.csv` per (duration, case) under
+`tau_{X}h/{case_name}/`, plus a top-level `run_manifest.json` aggregating
+every case's full duration sweep and stating the scaling-family definition
+explicitly (the duration family P0.1/P2.1 both use -- fixed geometry,
+mass flow varies per duration -- is a different operation from P1's
+modular-area family -- fixed mass flux, area varies at fixed duration --
+restated here since P2.1 is the section that actually asked for it to be
+recorded alongside the curve data).
+
 ## Repository layout
 
 ```
@@ -859,7 +925,8 @@ scripts/          Run harnesses: run_case.py (Phase A), run_packed_bed_dynamics.
                   bed only), run_phase_c_full_matrix_experiment.py (Phase C3's
                   full technology-ranking matrix), run_state_sufficiency_experiment.py
                   (P0.3's state-sufficiency test), run_scaling_law_experiment.py
-                  (P1's scaling-law check)
+                  (P1's scaling-law check), run_capability_curves_experiment.py
+                  (P2.1's duration-family capability curves, packed bed only)
 tests/            Physics and contract tests, not syntax tests
 configs/          One YAML per case; no parameter lives in source
 outputs/          Committed run evidence: config + schedule + solver/verification manifest
@@ -907,8 +974,13 @@ combinations x 3 load profiles, all solved and verified; the SOC-dependent
 correction never flips which technology is cheapest, and PCM's own
 zero-effect result is a sizing artifact at this design duration, not
 evidence its discharge shape does not matter -- stated plainly, not hidden)
--> D (harmonised comparison and sensitivity, optional enrichment; not
-started).
+-> P2.1 (duration-family capability curves committed as standalone
+evidence; done, packed bed only -- P2.2's full swept envelope explicitly
+deferred by the roadmap itself, not attempted) -> D (harmonised comparison
+and sensitivity, optional enrichment; not started). Real ENTSO-E price data
+(the roadmap's own P7) is being pulled forward ahead of its default
+sequencing, at explicit user request; not yet wired in as of this commit
+(pending an ENTSOE_API_KEY).
 
 ## Development
 
@@ -944,4 +1016,8 @@ python scripts/run_scaling_law_experiment.py
 # PCM x every valid process temperature x every load profile; writes
 # outputs/phase_c_full_matrix/, including the per-technology figures):
 python scripts/run_phase_c_full_matrix_experiment.py
+
+# Run the P2.1 duration-family capability-curve experiment (packed bed
+# only; writes outputs/capability_curves/tau_{X}h/{case_name}/):
+python scripts/run_capability_curves_experiment.py
 ```

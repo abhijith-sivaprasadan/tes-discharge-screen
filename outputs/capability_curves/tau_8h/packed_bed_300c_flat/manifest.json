@@ -1,0 +1,37 @@
+{
+  "case_name": "packed_bed_300c_flat",
+  "config_path": "configs/packed_bed_300c_flat.yaml",
+  "curve_fit_max_overestimate_mw": 2.139095930435257e-06,
+  "curve_fit_max_underestimate_mw": 0.02247764574824159,
+  "curve_fit_mean_absolute_error_mw": 0.004702673923078034,
+  "curve_fit_n_segments": 5,
+  "delta_t_min_hot_side_c": 0.0,
+  "design_duration_hours": 8.0,
+  "geometry": {
+    "bed_length_m": 5.0,
+    "cross_section_area_m2": 10.0,
+    "n_nodes": 40,
+    "particle_diameter_m": 0.03,
+    "porosity": 0.4
+  },
+  "k_mw_per_mwh": 0.125,
+  "mass_flow_kg_per_s": 1.8206688588069637,
+  "mass_flux_kg_per_m2s": 0.18206688588069636,
+  "nusselt": 24.159784185172636,
+  "prandtl": 0.7408590308370043,
+  "process_quality_threshold_c": 300.0,
+  "reference_energy_capacity_mwh": 1.2642724555555556,
+  "reference_rated_power_mw": 0.15803405694444445,
+  "resolution": {
+    "duration_s": 57600.0,
+    "n_nodes": 40,
+    "n_steps": 1500
+  },
+  "reynolds": 176.19376052970614,
+  "temperatures_c": {
+    "initial_bed_temperature_c": 400.0,
+    "inlet_temperature_c_t_return": 320.0,
+    "process_temperature_c": 300.0
+  },
+  "volumetric_heat_transfer_coefficient_w_per_m3k": 4387.41680802735
+}

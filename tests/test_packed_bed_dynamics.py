@@ -9,6 +9,7 @@ from tes_screen.packed_bed_dynamics import (
     bed_stored_energy_j,
     default_packed_bed_config,
     discharge_power_curve,
+    flow_diagnostics,
     simulate_discharge,
     volumetric_heat_transfer_coefficient,
 )
@@ -262,6 +263,38 @@ def test_volumetric_heat_transfer_coefficient_increases_with_flow() -> None:
     low = volumetric_heat_transfer_coefficient(config, 0.1)
     high = volumetric_heat_transfer_coefficient(config, 1.0)
     assert high > low > 0
+
+
+def test_flow_diagnostics_is_zero_at_zero_flow() -> None:
+    config = default_packed_bed_config()
+    diagnostics = flow_diagnostics(config, 0.0)
+    assert diagnostics.reynolds == 0.0
+    assert diagnostics.prandtl == 0.0
+    assert diagnostics.nusselt == 0.0
+    assert diagnostics.volumetric_heat_transfer_coefficient_w_per_m3k == 0.0
+
+
+def test_flow_diagnostics_h_v_matches_volumetric_heat_transfer_coefficient() -> None:
+    # roadmap P2.1 needs Re/Pr/Nu recorded alongside h_v; flow_diagnostics
+    # factors them out of the same correlation volumetric_heat_transfer_
+    # coefficient already used, so the two must agree exactly, not just
+    # approximately -- one computation, two views of it.
+    config = default_packed_bed_config()
+    mass_flux = 0.5
+    diagnostics = flow_diagnostics(config, mass_flux)
+    assert diagnostics.volumetric_heat_transfer_coefficient_w_per_m3k == (
+        volumetric_heat_transfer_coefficient(config, mass_flux)
+    )
+
+
+def test_flow_diagnostics_nusselt_matches_wakao_kaguei_correlation() -> None:
+    # Nu = 2 + 1.1*Re^0.6*Pr^(1/3); check the reported Re/Pr actually
+    # reproduce the reported Nu via the correlation's own formula, not just
+    # that some internally-consistent numbers came back.
+    config = default_packed_bed_config()
+    diagnostics = flow_diagnostics(config, 0.5)
+    expected_nusselt = 2 + 1.1 * diagnostics.reynolds**0.6 * diagnostics.prandtl ** (1 / 3)
+    assert diagnostics.nusselt == pytest.approx(expected_nusselt, rel=1e-12)
 
 
 def test_negative_mass_flow_is_rejected() -> None:
