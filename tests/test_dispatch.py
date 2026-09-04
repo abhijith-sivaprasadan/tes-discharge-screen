@@ -7,8 +7,12 @@ import numpy as np
 import pytest
 
 from tes_screen.config import load_config
-from tes_screen.discharge_curve import PiecewiseDischargeCurve, fit_piecewise_discharge_curve
-from tes_screen.dispatch import capital_recovery_factor, solve_dispatch
+from tes_screen.discharge_curve import (
+    PiecewiseDischargeCurve,
+    fit_piecewise_discharge_curve,
+    mass_flow_for_target_duration,
+)
+from tes_screen.dispatch import build_model, capital_recovery_factor, solve_dispatch
 from tes_screen.packed_bed_dynamics import default_packed_bed_config, simulate_discharge
 from tes_screen.synthetic_profiles import build_load_profile, synthetic_daily_price_profile
 from tes_screen.verification import reconstruct_objective, verify_schedule
@@ -50,6 +54,43 @@ def _reference_discharge_curve() -> PiecewiseDischargeCurve:
         n_steps=1500,
     )
     return fit_piecewise_discharge_curve(result, process_temperature_c=300.0, n_segments=5)
+
+
+def _duration_matched_curve(design_duration_hours: float) -> PiecewiseDischargeCurve:
+    # Refits the reference bed at the mass flow whose own reference
+    # power/energy ratio equals 1/design_duration_hours, so the curve ties
+    # exactly to the same tau the config's design_duration_hours requests
+    # (C2's matched-sizing fix; see discharge_curve.mass_flow_for_target_duration).
+    bed_config = default_packed_bed_config()
+    mass_flow = mass_flow_for_target_duration(
+        bed_config,
+        target_duration_hours=design_duration_hours,
+        initial_bed_temperature_c=400.0,
+        inlet_temperature_c=320.0,
+        process_temperature_c=300.0,
+    )
+    result = simulate_discharge(
+        bed_config,
+        mass_flow_kg_per_s=mass_flow,
+        initial_bed_temperature_c=400.0,
+        inlet_temperature_c=320.0,
+        duration_s=design_duration_hours * 2 * 3600,
+        n_steps=1500,
+    )
+    return fit_piecewise_discharge_curve(result, process_temperature_c=300.0, n_segments=5)
+
+
+def _short_case_duration_matched(design_duration_hours: float, **economics_overrides: float):
+    config = _short_case(**economics_overrides)
+    return dataclasses.replace(
+        config,
+        storage=dataclasses.replace(
+            config.storage,
+            charge_power_max_mw=None,
+            discharge_power_max_mw=None,
+            design_duration_hours=design_duration_hours,
+        ),
+    )
 
 
 def _solve_short_soc_dependent(**economics_overrides: float):
@@ -289,3 +330,101 @@ def test_process_temperature_has_no_effect_on_phase_a_result() -> None:
     assert np.isclose(
         result_300.solver["objective_eur"], result_400.solver["objective_eur"], rtol=1e-9
     )
+
+
+# --- C2: matched-duration-family sizing (roadmap P0.1) -----------------------
+#
+# The unmatched soc_dependent path (build_model's elif soc_dependent branch,
+# exercised above) ties charge power to the discharge curve's own k=P/E
+# ratio but leaves the constant-limit baseline free to pick its own
+# independent P_rated: comparing the two paired confounds "the discharge
+# limit shape changed" with "the two runs were also allowed different
+# durations" (Phase C's committed result: constant tau=7.41h vs soc_dependent
+# tau=3.88h). duration_matched mode removes that confound by tying power to
+# E_cap/tau identically in both formulations, so a paired comparison isolates
+# the discharge-limit shape alone.
+
+
+def test_duration_matched_neither_formulation_gets_an_extra_free_power_variable() -> None:
+    # P0.1 acceptance criterion: equal sizing degrees of freedom. Neither
+    # formulation may create its own model.P_rated Var under
+    # duration_matched mode; the only sizing DOF either has left is E_cap.
+    tau = 4.0
+    config = _short_case_duration_matched(tau)
+    load = build_load_profile(
+        config.process.profile_shape, config.process.annual_peak_load_mw, SHORT_HORIZON
+    )
+    price = synthetic_daily_price_profile(SHORT_HORIZON)
+
+    model_constant = build_model(config, load, price)
+    assert not hasattr(model_constant, "P_rated")
+    assert not model_constant._power_is_var
+
+    curve = _duration_matched_curve(tau)
+    config_soc = dataclasses.replace(
+        config, storage=dataclasses.replace(config.storage, discharge_limit_mode="soc_dependent")
+    )
+    model_soc = build_model(config_soc, load, price, discharge_curve=curve)
+    assert not hasattr(model_soc, "P_rated")
+    assert not model_soc._power_is_var
+
+
+def test_duration_matched_both_formulations_report_exactly_the_configured_duration() -> None:
+    # P0.1 acceptance criterion: both report the configured E/P duration back
+    # out, not a fitted or drifted one.
+    tau = 6.0
+    overrides = {"storage_capex_eur_per_mwh": 1.0, "storage_capex_eur_per_mw": 1.0}
+    config = _short_case_duration_matched(tau, **overrides)
+    load = build_load_profile(
+        config.process.profile_shape, config.process.annual_peak_load_mw, SHORT_HORIZON
+    )
+    price = synthetic_daily_price_profile(SHORT_HORIZON)
+    result_constant = solve_dispatch(config, load, price)
+
+    curve = _duration_matched_curve(tau)
+    config_soc = dataclasses.replace(
+        config, storage=dataclasses.replace(config.storage, discharge_limit_mode="soc_dependent")
+    )
+    result_soc = solve_dispatch(config_soc, load, price, discharge_curve=curve)
+
+    for result in (result_constant, result_soc):
+        e_cap = result.schedule.attrs["e_cap_mwh"]
+        power = result.schedule.attrs["power_rating_mw"]
+        assert e_cap > 1e-6, "degenerate at E_cap=0; nearly-free storage economics needed"
+        assert np.isclose(power / e_cap, 1.0 / tau, rtol=1e-9)
+
+
+def test_duration_matched_rejects_a_curve_fit_at_the_wrong_mass_flow() -> None:
+    # A curve fit for a different tau than storage.design_duration_hours
+    # would silently break the matched comparison (its own k != 1/tau);
+    # build_model must reject it rather than accept a mismatched pairing.
+    tau = 4.0
+    config = _short_case_duration_matched(tau)
+    config_soc = dataclasses.replace(
+        config, storage=dataclasses.replace(config.storage, discharge_limit_mode="soc_dependent")
+    )
+    load = build_load_profile(
+        config.process.profile_shape, config.process.annual_peak_load_mw, SHORT_HORIZON
+    )
+    price = synthetic_daily_price_profile(SHORT_HORIZON)
+    wrong_curve = _reference_discharge_curve()  # fit at mass_flow=3.0, not tau=4h's matched flow
+    with pytest.raises(ValueError, match="does not match storage.design_duration_hours"):
+        build_model(config_soc, load, price, discharge_curve=wrong_curve)
+
+
+def test_duration_matched_and_free_sizing_baseline_both_remain_available() -> None:
+    # P0.1 acceptance criterion: the pre-existing free-sizing path (Phase
+    # C's, confounded) must still work unchanged as a diagnostic baseline,
+    # not be replaced outright by duration_matched mode.
+    config_free = _short_case()
+    assert config_free.storage.design_duration_hours is None
+    load = build_load_profile(
+        config_free.process.profile_shape, config_free.process.annual_peak_load_mw, SHORT_HORIZON
+    )
+    price = synthetic_daily_price_profile(SHORT_HORIZON)
+    model_free = build_model(config_free, load, price)
+    assert hasattr(model_free, "P_rated")
+
+    config_matched = _short_case_duration_matched(4.0)
+    model_matched = build_model(config_matched, load, price)
+    assert not hasattr(model_matched, "P_rated")

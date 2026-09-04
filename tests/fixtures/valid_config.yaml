@@ -25,6 +25,7 @@ storage:
   soc_init_fraction: 0.5
   soc_final_min_fraction: 0.5
   discharge_limit_mode: constant   # baseline; soc_dependent is the corrected case
+  design_duration_hours: null   # free power sizing in this fixture
 
 supply:
   electric_heater:

@@ -83,6 +83,7 @@ class StorageConfig:
     soc_init_fraction: float
     soc_final_min_fraction: float
     discharge_limit_mode: str
+    design_duration_hours: float | None
 
     _REQUIRED = frozenset(
         {
@@ -98,6 +99,7 @@ class StorageConfig:
             "soc_init_fraction",
             "soc_final_min_fraction",
             "discharge_limit_mode",
+            "design_duration_hours",
         }
     )
 
@@ -108,6 +110,7 @@ class StorageConfig:
             ("energy_capacity_mwh", self.energy_capacity_mwh),
             ("charge_power_max_mw", self.charge_power_max_mw),
             ("discharge_power_max_mw", self.discharge_power_max_mw),
+            ("design_duration_hours", self.design_duration_hours),
         ):
             if value is not None and value <= 0:
                 raise ValueError(f"storage.{name} must be positive when given, or null")
@@ -127,6 +130,14 @@ class StorageConfig:
         if self.discharge_limit_mode not in _DISCHARGE_LIMIT_MODES:
             raise ValueError(
                 f"storage.discharge_limit_mode must be one of {sorted(_DISCHARGE_LIMIT_MODES)}"
+            )
+        if self.design_duration_hours is not None and (
+            self.charge_power_max_mw is not None or self.discharge_power_max_mw is not None
+        ):
+            raise ValueError(
+                "storage.design_duration_hours ties charge/discharge power to E_cap; "
+                "charge_power_max_mw and discharge_power_max_mw must both be null when it is set, "
+                "not silently overridden."
             )
 
 

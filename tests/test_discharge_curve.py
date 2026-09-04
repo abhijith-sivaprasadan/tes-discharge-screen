@@ -5,6 +5,7 @@ import pytest
 
 from tes_screen.discharge_curve import (
     fit_piecewise_discharge_curve,
+    mass_flow_for_target_duration,
     piecewise_curve_to_frame,
     verify_piecewise_curve_is_safe,
 )
@@ -95,3 +96,78 @@ def test_piecewise_curve_to_frame_round_trips_breakpoints(reference_discharge) -
     frame = piecewise_curve_to_frame(curve)
     assert len(frame) == 6
     assert list(frame["state_of_charge"]) == list(curve.soc_breakpoints)
+
+
+@pytest.mark.parametrize("target_duration_hours", [2.0, 4.0, 8.0])
+def test_mass_flow_for_target_duration_yields_a_curve_matching_the_requested_tau(
+    target_duration_hours: float,
+) -> None:
+    # C2's matched-sizing fix (roadmap P0.1): re-simulating and refitting at
+    # the solved-for mass flow must produce a curve whose own k =
+    # P_reference/E_reference equals 1/tau to solver tolerance, since
+    # dispatch.py's duration_matched branch enforces exactly this equality
+    # before accepting a curve.
+    bed_config = default_packed_bed_config()
+    mass_flow = mass_flow_for_target_duration(
+        bed_config,
+        target_duration_hours=target_duration_hours,
+        initial_bed_temperature_c=400.0,
+        inlet_temperature_c=320.0,
+        process_temperature_c=300.0,
+    )
+    result = simulate_discharge(
+        bed_config,
+        mass_flow_kg_per_s=mass_flow,
+        initial_bed_temperature_c=400.0,
+        inlet_temperature_c=320.0,
+        duration_s=target_duration_hours * 2 * 3600,
+        n_steps=1500,
+    )
+    curve = fit_piecewise_discharge_curve(result, process_temperature_c=300.0, n_segments=5)
+    assert np.isclose(curve.k_mw_per_mwh, 1.0 / target_duration_hours, rtol=1e-6)
+
+
+def test_mass_flow_for_target_duration_scales_inversely_with_duration() -> None:
+    # E_reference is independent of mass flow for this bed model (only
+    # geometry/material/temperatures); P_reference = k*E_reference scales
+    # linearly with mass flow, so the solved mass flow must scale as 1/tau.
+    bed_config = default_packed_bed_config()
+    flow_2h = mass_flow_for_target_duration(
+        bed_config,
+        target_duration_hours=2.0,
+        initial_bed_temperature_c=400.0,
+        inlet_temperature_c=320.0,
+        process_temperature_c=300.0,
+    )
+    flow_4h = mass_flow_for_target_duration(
+        bed_config,
+        target_duration_hours=4.0,
+        initial_bed_temperature_c=400.0,
+        inlet_temperature_c=320.0,
+        process_temperature_c=300.0,
+    )
+    assert np.isclose(flow_2h, 2 * flow_4h, rtol=1e-9)
+
+
+def test_mass_flow_for_target_duration_rejects_non_positive_duration() -> None:
+    bed_config = default_packed_bed_config()
+    with pytest.raises(ValueError, match="target_duration_hours"):
+        mass_flow_for_target_duration(
+            bed_config,
+            target_duration_hours=0.0,
+            initial_bed_temperature_c=400.0,
+            inlet_temperature_c=320.0,
+            process_temperature_c=300.0,
+        )
+
+
+def test_mass_flow_for_target_duration_rejects_process_temperature_at_or_above_bed() -> None:
+    bed_config = default_packed_bed_config()
+    with pytest.raises(ValueError, match="initial_bed_temperature_c"):
+        mass_flow_for_target_duration(
+            bed_config,
+            target_duration_hours=4.0,
+            initial_bed_temperature_c=400.0,
+            inlet_temperature_c=320.0,
+            process_temperature_c=400.0,
+        )

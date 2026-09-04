@@ -56,12 +56,19 @@ below. Molten-salt and PCM dynamic sub-models do not exist yet.
 
 **Phase C (the paired experiment) is done at MVP scope**: one technology
 (packed bed), one process temperature (300 C), one load profile (flat),
-solved under both discharge-limit formulations. The SOC-dependent limit
-increases annualised cost by 0.22% and required power capacity by 75% for
-this case; see [Phase C](#phase-c-the-paired-experiment-mvp-scope) below for
-the full numbers. This is not the full 18-run technology-ranking matrix
-(only packed bed has a Phase B dynamic sub-model yet), so whether the
-technology ranking itself changes is not answerable from this result.
+solved under both discharge-limit formulations. Its original run left the
+two formulations with unequal sizing degrees of freedom (see the note at the
+top of [Phase C](#phase-c-original-mvp-run-archived-diagnostic-only)), which
+confounded "the discharge-limit shape changed" with "the two runs were also
+allowed different durations." **[Phase C2](#phase-c2-matched-duration-family-experiment-the-corrected-comparison)**
+fixes this by tying power to energy capacity at the same externally chosen
+duration in both formulations, and finds the isolated shape effect is much
+smaller than Phase C's original number: a total-cost delta ranging from
++0.001% to +0.055% across a 2-12h duration sweep, versus Phase C's original
++0.22% at its own (confounded, unequal) durations. This is not the full
+18-run technology-ranking matrix (only packed bed has a Phase B dynamic
+sub-model yet), so whether the technology ranking itself changes is not
+answerable from this result.
 
 Electricity prices are synthetic in every run so far: this working environment
 has no `ENTSOE_API_KEY` configured, so the real ENTSO-E fetch path
@@ -158,7 +165,25 @@ PCM dynamic sub-models do not exist yet: packed bed is the technology the
 project's hypothesis expects to show the largest effect, and a single
 technology fully verified is worth more here than three left unfinished.
 
-## Phase C: the paired experiment (MVP scope)
+## Phase C (original MVP run): archived, diagnostic only
+
+**This section documents the project's original paired run, kept for the
+record. It is superseded by [Phase C2](#phase-c2-matched-duration-family-experiment-the-corrected-comparison)
+as the paired comparison of discharge-limit shape and should not be read as
+this project's current headline finding.** The run below let each
+formulation pick its own power rating independently: the constant-limit
+baseline's power was a free decision variable, while the SOC-dependent
+case tied charge power to the discharge curve's own fixed power/energy
+ratio. Reading its own committed manifest back, this meant the two runs
+being compared were not actually the same duration of storage: the
+constant-limit run solved to a 7.41h store (54.99 MWh / 7.42 MW) and the
+SOC-dependent run to a 3.88h store (50.43 MWh / 12.98 MW). Part of the
+"SOC-dependent needs 75% more power" result below is therefore duration,
+not discharge-limit shape -- the two things this comparison was meant to
+isolate were never actually separated. The data and numbers below are
+unchanged from the original run (not deleted, per this project's own rule
+against overwriting evidence); the finding they were used to support has
+been withdrawn in favour of Phase C2's matched comparison.
 
 **The finding, stated first and plainly:** for packed bed at 300 C with a
 flat load profile, replacing the constant discharge limit with the
@@ -218,6 +243,77 @@ both hourly schedules, the fitted curve's breakpoints, and a manifest with
 both runs' solver status, every verification check's pass/fail, and the
 full segment-count robustness table.
 
+## Phase C2: matched-duration-family experiment (the corrected comparison)
+
+**The finding, stated first and plainly:** once both formulations are tied
+to the same design duration (`storage.design_duration_hours`, so power is
+always `E_cap / tau` in both, identically) rather than each choosing its own
+independent power rating, the isolated effect of the SOC-dependent
+discharge limit is much smaller than Phase C's original (confounded,
+unequal-duration) estimate. Swept across five design durations from 2h to
+12h, the SOC-dependent formulation costs **+0.001% to +0.055%** more than
+the constant-limit baseline at the same duration -- real, and always in the
+direction Phase A's constant-limit assumption predicted (SOC-dependent
+never costs less), but roughly an order of magnitude smaller than the
++0.22% Phase C originally reported, because that number also carried the
+duration mismatch documented above.
+
+| Design duration (tau) | Constant limit cost (EUR/yr) | SOC-dependent cost (EUR/yr) | Delta | Constant E_cap (MWh) | SOC-dependent E_cap (MWh) |
+|---:|---:|---:|---:|---:|---:|
+| 2h | 4,019,225.76 | 4,019,279.97 | +0.001% | 45.87 | 45.87 |
+| 4h | 4,000,234.86 | 4,000,707.13 | +0.012% | 50.43 | 50.43 |
+| 6h | 3,993,618.08 | 3,995,095.95 | +0.037% | 54.99 | 54.99 |
+| 8h | 3,992,555.33 | 3,994,748.68 | +0.055% | 54.99 | 57.16 |
+| 12h | 3,996,426.99 | 3,998,018.38 | +0.040% | 60.75 | 62.36 |
+
+All ten runs (five durations x two formulations) solved to `optimal` and
+passed every independent verification check. The headline duration (6h,
+chosen as a round middle point of the sweep, not cherry-picked for
+magnitude) is tabulated in full below; every duration's fitted curve
+safety, solver status, and delta is in the run manifest.
+
+| | Constant limit (tau=6h) | SOC-dependent (tau=6h) | Delta |
+|---|---:|---:|---:|
+| Termination | optimal | optimal | |
+| Annualised total cost (EUR/yr) | 3,993,618.08 | 3,995,095.95 | +1,477.88 (+0.037%) |
+| Storage energy capacity (MWh-th) | 54.99 | 54.99 | 0.00 (tied by construction here) |
+| Storage power capacity (MW) | 9.16 | 9.16 | 0.00 (E_cap/tau, identical) |
+| Backup fuel cost (EUR/yr) | 1,014,756.09 | 1,029,753.29 | +14,997.21 |
+| Electricity cost (EUR/yr) | 2,524,452.26 | 2,504,874.05 | -19,578.21 |
+| Emissions (tCO2/yr) | 5,124.52 | 5,200.25 | +75.74 |
+| Solve time | 10.5 s | 30.9 s | |
+
+**Why energy capacity, not just power, can still differ between the two
+formulations at a given tau (8h and 12h above).** `design_duration_hours`
+ties power to `E_cap / tau` identically in both -- the one degree of
+freedom Phase C's original run left unequal -- but `E_cap` itself is still
+a free decision variable in each formulation. At 8h and 12h the optimiser
+chooses a slightly larger store under the SOC-dependent limit than under
+the constant one, which is exactly the effect this comparison is meant to
+isolate: the discharge-limit shape alone, at matched duration, still
+nudges the solver toward more storage, just far less dramatically than
+Phase C's original (also-duration-driven) result suggested.
+
+**How the matched curves were built.** For each swept tau, the discharge
+mass flow is solved for directly (`discharge_curve.mass_flow_for_target_duration`)
+so the resulting curve's own reference power/energy ratio already equals
+`1/tau`, then the bed is re-simulated at that mass flow and a fresh
+piecewise curve fit -- a curve genuinely specific to that duration, not one
+curve rescaled after the fact. `dispatch.py`'s `duration_matched` branch
+checks this equality at model-build time and refuses a mismatched curve
+rather than silently accepting one.
+
+**Scope this does not cover.** This fix reuses the existing deliverable-power
+reference (`discharge_power_curve`'s definition, referenced to the process
+temperature) unchanged; a separate, already-tracked issue in that reference
+mixing the process and return temperatures is out of scope here, by design,
+so as not to conflate two independent corrections in one change.
+
+Every number above traces to `outputs/phase_c2_duration_matched/`: the
+headline (6h) duration's hourly schedules and fitted curve breakpoints, and
+a manifest with every swept duration's solver status, KPIs, verification
+checks, and curve-fit safety numbers.
+
 ## Repository layout
 
 ```
@@ -229,7 +325,9 @@ src/tes_screen/   Python package: config schema, profile contract, provenance,
                   export adapter
 modelica/         Authored Modelica model(s) for Phase B (not yet compiled here)
 scripts/          Run harnesses: run_case.py (Phase A), run_packed_bed_dynamics.py
-                  (Phase B curves), run_phase_c_experiment.py (the paired comparison)
+                  (Phase B curves), run_phase_c_experiment.py (the original,
+                  archived paired comparison), run_phase_c2_duration_matched_experiment.py
+                  (the corrected, matched-duration paired comparison)
 tests/            Physics and contract tests, not syntax tests
 configs/          One YAML per case; no parameter lives in source
 outputs/          Committed run evidence: config + schedule + solver/verification manifest
@@ -256,8 +354,11 @@ limit; done to its exit criterion) -> B (targeted dynamic sub-model and
 shadow twin; packed bed done to its exit criterion, molten salt and PCM not
 started, FMU cross-check untestable in this environment) -> C (coupling and
 the paired-run experiment; done at MVP scope, one technology/temperature/
-profile pair, not the full 18-run matrix) -> D (harmonised comparison and
-sensitivity, optional enrichment; not started).
+profile pair, not the full 18-run matrix; original run superseded by C2 as
+the shape-isolated comparison) -> C2 (matched-duration-family sizing fix;
+removes the unequal-duration confound in C's original pairing; done, five
+durations swept) -> D (harmonised comparison and sensitivity, optional
+enrichment; not started).
 
 ## Development
 
@@ -273,6 +374,11 @@ python scripts/run_case.py configs/packed_bed_300c_flat.yaml
 # Generate and commit Phase B packed-bed discharge curves:
 python scripts/run_packed_bed_dynamics.py
 
-# Run the Phase C paired constant-vs-SOC-dependent experiment:
+# Run the Phase C paired constant-vs-SOC-dependent experiment (original,
+# archived; unequal sizing degrees of freedom between formulations -- see
+# Phase C's section above):
 python scripts/run_phase_c_experiment.py
+
+# Run the Phase C2 matched-duration-family experiment (corrected comparison):
+python scripts/run_phase_c2_duration_matched_experiment.py
 ```

@@ -30,6 +30,7 @@ storage:
   soc_init_fraction: 0.5
   soc_final_min_fraction: 0.5
   discharge_limit_mode: constant   # baseline; soc_dependent is Phase C's corrected case
+  design_duration_hours: null   # free power sizing; the phase C2 matched-duration pair sets this instead
 
 supply:
   electric_heater:

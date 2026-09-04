@@ -27,6 +27,7 @@ storage:
   soc_init_fraction: 0.5
   soc_final_min_fraction: 0.5
   discharge_limit_mode: constant
+  design_duration_hours: null   # free power sizing; see packed_bed_300c_flat's phase C2 pair for a matched-duration case
 
 supply:
   electric_heater:

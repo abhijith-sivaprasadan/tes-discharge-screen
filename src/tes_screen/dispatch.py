@@ -113,8 +113,9 @@ def build_model(
 
     # Sizing: a config value of null means "let the solver choose"; a given
     # value means "fixed, not a decision variable". Only both-null or
-    # both-given power sizing is supported; a mix is rejected rather than
-    # guessing which side the modeller meant to fix.
+    # both-given power sizing is supported outside duration-matched mode; a
+    # mix is rejected rather than guessing which side the modeller meant to
+    # fix.
     if storage.energy_capacity_mwh is None:
         # Upper bound is a solver bound for numerical stability (up to ten
         # days of storage at peak load), not a physical or economic
@@ -124,25 +125,54 @@ def build_model(
     else:
         e_cap = storage.energy_capacity_mwh
 
-    if soc_dependent:
-        # The discharge side is no longer an independent sizing choice: the
-        # piecewise curve determines allowed discharge power from (level,
-        # E_cap) alone (C1). When charge power is also unfixed, tie it to the
-        # same reference power/energy ratio (k) the discharge curve uses,
-        # rather than giving it an independent free variable: the
-        # constant-limit baseline ties charge and discharge to one shared
-        # power rating, and giving the SOC-dependent model an extra,
-        # unconstrained sizing degree of freedom the baseline never had would
-        # confound "what changed" between the two runs with "the discharge
-        # curve" and "charge sizing became independent of discharge sizing"
-        # at once. A fixed charge_power_max_mw is honoured as given, exactly
-        # as before.
+    duration_matched = storage.design_duration_hours is not None
+
+    if duration_matched:
+        # C1/C2's matched-sizing fix: tie power to energy at one externally
+        # chosen design duration tau, identically in both formulations, so a
+        # constant-limit run and a SOC-dependent run compared as a pair have
+        # exactly the same sizing degrees of freedom. Without this, each
+        # formulation being free to pick its own independent power/energy
+        # ratio confounds "the discharge-limit shape changed" with "the two
+        # runs were also allowed to build different-duration stores" -- see
+        # docs/DATA.md's matched-sizing note for the confound this replaced.
+        tau = storage.design_duration_hours
+        p_ch_max: Any = e_cap / tau
+        if soc_dependent:
+            # The discharge curve must itself have been fit at the mass flow
+            # that ties its own reference power/energy ratio to this same
+            # tau (discharge_curve.mass_flow_for_target_duration); a
+            # mismatched curve would silently break the matched comparison.
+            if abs(discharge_curve.k_mw_per_mwh - 1.0 / tau) > 1e-6 * (1.0 / tau):
+                raise ValueError(
+                    "discharge_curve's own power/energy ratio "
+                    f"(k={discharge_curve.k_mw_per_mwh:.6g} MW/MWh, implied tau="
+                    f"{1 / discharge_curve.k_mw_per_mwh:.4g} h) does not match "
+                    f"storage.design_duration_hours ({tau} h); refit the curve at "
+                    "discharge_curve.mass_flow_for_target_duration(tau)."
+                )
+            p_dis_max: Any = None
+        else:
+            p_dis_max = e_cap / tau
+        power_rating: Any = p_ch_max
+    elif soc_dependent:
+        # Not duration-matched: the discharge side is no longer an
+        # independent sizing choice regardless (the piecewise curve
+        # determines allowed discharge power from (level, E_cap) alone,
+        # C1). When charge power is also unfixed, tie it to the same
+        # reference power/energy ratio (k) the discharge curve uses, rather
+        # than giving it an independent free variable: see the
+        # duration_matched branch's docstring for why an extra, unconstrained
+        # sizing degree of freedom would confound the comparison. Prefer
+        # duration_matched mode for any paired comparison; this path exists
+        # for standalone SOC-dependent runs. A fixed charge_power_max_mw is
+        # honoured as given.
         if storage.charge_power_max_mw is None:
-            p_ch_max: Any = discharge_curve.k_mw_per_mwh * e_cap
+            p_ch_max = discharge_curve.k_mw_per_mwh * e_cap
         else:
             p_ch_max = storage.charge_power_max_mw
-        p_dis_max: Any = None
-        power_rating: Any = p_ch_max
+        p_dis_max = None
+        power_rating = p_ch_max
     else:
         charge_given = storage.charge_power_max_mw is not None
         discharge_given = storage.discharge_power_max_mw is not None
@@ -252,11 +282,17 @@ def build_model(
     model._price = price
     model._e_cap_is_var = storage.energy_capacity_mwh is None
     # True only when model.P_rated actually exists as its own Var: the
-    # constant-limit model's "both charge and discharge null" case. In
-    # soc_dependent mode there is no such variable even when charge power is
-    # unfixed; power_rating is k*e_cap instead (see extract_schedule).
-    model._power_is_var = (not soc_dependent) and storage.charge_power_max_mw is None
+    # constant-limit model's "both charge and discharge null" case, and only
+    # outside duration-matched mode (there, power is always tied to e_cap/tau,
+    # never a free variable). In soc_dependent mode there is no such variable
+    # even when charge power is unfixed; power_rating is k*e_cap instead (see
+    # extract_schedule).
+    model._power_is_var = (
+        (not duration_matched) and (not soc_dependent) and storage.charge_power_max_mw is None
+    )
     model._soc_dependent = soc_dependent
+    model._duration_matched = duration_matched
+    model._design_duration_hours = storage.design_duration_hours
     model._discharge_curve_k = discharge_curve.k_mw_per_mwh if soc_dependent else None
     return model
 
@@ -318,7 +354,12 @@ def extract_schedule(model: pyo.ConcreteModel) -> pd.DataFrame:
     e_cap_mwh = _value(model.E_cap) if model._e_cap_is_var else config.storage.energy_capacity_mwh
     schedule.attrs["e_cap_mwh"] = e_cap_mwh
 
-    if model._power_is_var:
+    if model._duration_matched:
+        # C2's matched-sizing tie: power was never a free variable here in
+        # either formulation, so both report the same externally chosen
+        # duration back out, not a fitted/derived one (build_model).
+        power_rating_mw = e_cap_mwh / model._design_duration_hours
+    elif model._power_is_var:
         power_rating_mw = _value(model.P_rated)
     elif model._soc_dependent:
         # soc_dependent mode: charge power is either fixed, or tied to the

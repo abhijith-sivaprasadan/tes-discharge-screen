@@ -33,6 +33,7 @@ def _valid_storage(**overrides: object) -> StorageConfig:
         soc_init_fraction=0.5,
         soc_final_min_fraction=0.5,
         discharge_limit_mode="constant",
+        design_duration_hours=None,
     )
     fields.update(overrides)
     return StorageConfig(**fields)
@@ -78,6 +79,26 @@ def test_storage_config_rejects_out_of_range_values(overrides: dict[str, object]
     storage = _valid_storage(**overrides)
     with pytest.raises(ValueError):
         storage.validate()
+
+
+def test_storage_config_rejects_design_duration_with_a_given_charge_power() -> None:
+    # C2's matched-sizing fix: design_duration_hours ties power to E_cap, so
+    # a config that also gives an explicit charge_power_max_mw would have one
+    # value silently overridden by the other; reject instead.
+    storage = _valid_storage(design_duration_hours=4.0, charge_power_max_mw=5.0)
+    with pytest.raises(ValueError, match="design_duration_hours"):
+        storage.validate()
+
+
+def test_storage_config_rejects_design_duration_with_a_given_discharge_power() -> None:
+    storage = _valid_storage(design_duration_hours=4.0, discharge_power_max_mw=5.0)
+    with pytest.raises(ValueError, match="design_duration_hours"):
+        storage.validate()
+
+
+def test_storage_config_accepts_design_duration_with_both_powers_null() -> None:
+    storage = _valid_storage(design_duration_hours=4.0)
+    storage.validate()
 
 
 def test_process_config_rejects_bad_medium() -> None:

@@ -33,7 +33,11 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
-from tes_screen.packed_bed_dynamics import DischargeResult, discharge_power_curve
+from tes_screen.packed_bed_dynamics import (
+    DischargeResult,
+    PackedBedDynamicsConfig,
+    discharge_power_curve,
+)
 
 
 @dataclass(frozen=True)
@@ -128,6 +132,59 @@ def verify_piecewise_curve_is_safe(
         "max_underestimate_mw": float(max(-difference.min(), 0.0)),
         "mean_absolute_error_mw": float(np.abs(difference).mean()),
     }
+
+
+def mass_flow_for_target_duration(
+    config: PackedBedDynamicsConfig,
+    target_duration_hours: float,
+    initial_bed_temperature_c: float,
+    inlet_temperature_c: float,
+    process_temperature_c: float,
+) -> float:
+    """The discharge mass flow whose reference power/energy ratio is 1/target_duration_hours.
+
+    C2's matched-sizing fix (see dispatch.py's `duration_matched` branch)
+    needs a discharge curve whose own k = P_reference/E_reference already
+    equals 1/tau for the chosen design duration tau, rather than rescaling a
+    curve fit at an arbitrary mass flow after the fact. This is possible in
+    closed form because, for this bed model, the fully-charged bed's stored
+    energy (`simulate_discharge`'s `bed_stored_energy_j` at t=0, referenced
+    to `inlet_temperature_c`) depends only on geometry, material properties
+    and the two temperatures -- not on mass flow -- while the reference
+    deliverable power (`discharge_power_curve`'s value at t=0, referenced to
+    `process_temperature_c`) scales linearly with mass flow. So the mass flow
+    for any target duration can be solved for directly, then used to
+    re-simulate the discharge and fit a curve genuinely specific to that
+    duration, rather than reusing one bed's curve across all durations.
+
+    Deliberately reuses `discharge_power_curve`'s existing reference-power
+    definition (deliverable enthalpy flow above `process_temperature_c`) as
+    the P0.1 fix's own scope: this does not address the separate,
+    already-tracked P0.2 issue of that definition mixing the process and
+    return temperature references. Fixing P0.1 without also silently
+    changing P0.2's behaviour keeps the two roadmap items independent.
+    """
+    if target_duration_hours <= 0:
+        raise ValueError("target_duration_hours must be positive")
+    if initial_bed_temperature_c <= process_temperature_c:
+        raise ValueError("initial_bed_temperature_c must exceed process_temperature_c")
+
+    fluid_capacity_per_volume = (
+        config.porosity * config.air_density_kg_per_m3 * config.air_specific_heat_j_per_kgk
+    )
+    solid_capacity_per_volume = (
+        (1 - config.porosity) * config.rock_density_kg_per_m3 * config.rock_specific_heat_j_per_kgk
+    )
+    reference_energy_j = (
+        config.bed_length_m
+        * config.cross_section_area_m2
+        * (fluid_capacity_per_volume + solid_capacity_per_volume)
+        * (initial_bed_temperature_c - inlet_temperature_c)
+    )
+    reference_energy_mwh = reference_energy_j / 3.6e9
+    target_power_mw = reference_energy_mwh / target_duration_hours
+    temperature_drop = initial_bed_temperature_c - process_temperature_c
+    return target_power_mw * 1e6 / (config.air_specific_heat_j_per_kgk * temperature_drop)
 
 
 def piecewise_curve_to_frame(curve: PiecewiseDischargeCurve) -> pd.DataFrame:

@@ -1,6 +1,6 @@
 # Model card
 
-## Status: Phase 0, A, B (packed bed only), and C (MVP scope) built
+## Status: Phase 0, A, B (packed bed only), C (MVP scope, archived), and C2 (matched-duration fix) built
 
 This card documents what is actually built at this commit, not what the project
 intends to build. It will be rewritten section by section as each phase lands,
@@ -83,21 +83,45 @@ describes.
   `find_omc()` pattern, and `tests/test_modelica_contract.py`, a
   toolchain-independent static check on the authored Modelica source (same
   pattern OpenSteamOpt's own `test_modelica_contract.py` uses).
-- **Phase C, MVP scope**: the piecewise-linear discharge-curve construction
-  (`src/tes_screen/discharge_curve.py`, C1) and the SOC-dependent dispatch LP
-  (`dispatch.py`'s `soc_dependent` mode), run as a paired comparison against
-  the constant-limit baseline for one case: packed bed, 300 C, flat load
-  (`scripts/run_phase_c_experiment.py`, `outputs/phase_c_packed_bed_300c_flat/`).
-  Both runs terminate optimal with every verification check passing. The
-  finding: the SOC-dependent limit increases annualised cost by 0.22% and
-  required power capacity by 75% for this case, while storage energy capacity
-  falls by 8.3%. See README's Phase C section for the full table. The
-  piecewise construction's safety (it must never let the LP claim more
-  deliverable power than the discharge curve shows is achievable) is checked
-  against the underlying curve data, not assumed from the construction alone;
-  the result was also confirmed stable across 3, 5, 8, and 12 segments (C1's
-  own robustness instruction), with sized capacity and power identical at
-  every count tested.
+- **Phase C, MVP scope (archived; superseded by C2 below).** The
+  piecewise-linear discharge-curve construction (`src/tes_screen/discharge_curve.py`,
+  C1) and the SOC-dependent dispatch LP (`dispatch.py`'s `soc_dependent`
+  mode), run as a paired comparison against the constant-limit baseline for
+  one case: packed bed, 300 C, flat load (`scripts/run_phase_c_experiment.py`,
+  `outputs/phase_c_packed_bed_300c_flat/`). Both runs terminate optimal with
+  every verification check passing, and the piecewise construction's safety
+  (it must never let the LP claim more deliverable power than the discharge
+  curve shows is achievable) was checked against the underlying curve data
+  and confirmed stable across 3, 5, 8, and 12 segments. **The original
+  finding is withdrawn as a shape-isolated comparison**: reading the run's
+  own manifest, the constant-limit run solved to a 7.41h store (54.99 MWh /
+  7.42 MW) and the SOC-dependent run to a 3.88h store (50.43 MWh / 12.98
+  MW) -- the two formulations had unequal sizing degrees of freedom, so the
+  reported +0.22% cost / +75% power delta conflated the discharge-limit
+  shape with a duration mismatch neither run controlled for. Data kept,
+  unmodified, as an archived record; see Phase C2.
+- **Phase C2, matched-duration-family sizing fix (roadmap P0.1).** Adds
+  `storage.design_duration_hours` to the case config (`config.py`), a
+  `duration_matched` sizing branch in `dispatch.py` that ties power to
+  `E_cap / tau` identically in both formulations (removing Phase C's
+  unequal-DOF confound), and `discharge_curve.mass_flow_for_target_duration`,
+  which solves in closed form for the discharge mass flow whose own
+  reference power/energy ratio equals `1/tau`, so each swept duration gets a
+  curve genuinely refit at that duration rather than one curve rescaled
+  after the fact. `dispatch.py` checks this equality at model-build time and
+  raises rather than silently accepting a mismatched curve.
+  `scripts/run_phase_c2_duration_matched_experiment.py` sweeps five design
+  durations (2h-12h), all ten runs (five durations x two formulations)
+  terminate optimal with every verification check passing
+  (`outputs/phase_c2_duration_matched/`). **The corrected finding**: the
+  shape-isolated cost delta is +0.001% to +0.055% across the sweep, roughly
+  an order of magnitude smaller than Phase C's original (confounded) +0.22%
+  -- still real, and still in the direction Phase A's constant-limit
+  assumption predicted, but far more modest once duration is held equal.
+  See README's Phase C2 section for the full sweep table. This fix
+  deliberately does not touch the separate, already-tracked issue of the
+  discharge curve's reference power mixing the process and return
+  temperatures (`discharge_power_curve`'s own definition, unchanged here).
 
 ## What does not exist yet
 
@@ -116,6 +140,11 @@ describes.
   started. Only packed bed has a Phase B dynamic sub-model, so there is no
   second technology to rank against yet; "does the ranking change" is not
   answerable from the one MVP case run so far.
+- **The P0.2 temperature-reference fix.** `discharge_power_curve`'s
+  deliverable-power definition references the process temperature for the
+  power side but the bed's own inlet/return temperature for the energy side
+  (`bed_stored_energy_j`); C2 reuses this definition unchanged, by design, to
+  keep the two roadmap fixes independent. Not yet addressed.
 - PCM at 400 C: no common nitrate-salt PCM composition was found in this
   session's research with a melting point usefully close to 400 C, so that
   combination is left undone rather than forced (docs/DATA.md, README).
@@ -143,11 +172,13 @@ solver's own reported numbers (`verification.py`), for both the constant and
 SOC-dependent formulations, and that check is run on every solve, not only
 once. The Phase B packed-bed shadow twin is checked against three closed-form
 analytic limits, not against a compiled FMU (no OpenModelica toolchain here)
-and not against any measurement. The Phase C piecewise discharge-curve
+and not against any measurement. The Phase C/C2 piecewise discharge-curve
 construction is checked for safety (it must never claim more deliverable
-power than the underlying curve shows) against that same curve's own data,
-and the paired-run finding is checked for stability across four different
-segment counts. None of that is validation. Nothing in this repository has
+power than the underlying curve shows) against that same curve's own data
+at every design duration swept in C2, and Phase C's original paired-run
+finding was checked for stability across four different segment counts
+before its own confound (unequal sizing degrees of freedom between the two
+formulations) was found and corrected in C2. None of that is validation. Nothing in this repository has
 been checked against measured data from a real storage installation, and the
 current inputs (load profile, electricity price) are declared synthetic, not
 measurements of any real site or market.
