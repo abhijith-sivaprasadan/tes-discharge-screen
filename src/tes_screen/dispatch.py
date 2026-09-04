@@ -122,11 +122,23 @@ def build_model(
         # assumption about how much storage makes sense.
         model.E_cap = pyo.Var(domain=pyo.NonNegativeReals, bounds=(0, peak * 24 * 10))
         e_cap: Any = model.E_cap
+        e_cap_bound_mwh = peak * 24 * 10
     else:
         e_cap = storage.energy_capacity_mwh
+        e_cap_bound_mwh = storage.energy_capacity_mwh
 
     duration_matched = storage.design_duration_hours is not None
 
+    # charge_power_bound_mw/discharge_power_bound_mw shadow p_ch_max/p_dis_max
+    # with a genuine numeric constant (never a Pyomo Var or an expression
+    # containing one) even when the corresponding power is itself a sizing
+    # decision variable: P0.5's MILP cycling-prevention constraints need a
+    # literal big-M, and `p_ch_max * z[t]` would be bilinear (Var times Var)
+    # whenever p_ch_max depends on E_cap or P_rated, which HiGHS's MILP
+    # solver cannot handle. Built from the same numeric bounds already
+    # declared for those Vars (e_cap_bound_mwh, peak*5), not an arbitrary
+    # big number, per the roadmap's own "use defensible capacity bounds"
+    # instruction.
     if duration_matched:
         # C1/C2's matched-sizing fix: tie power to energy at one externally
         # chosen design duration tau, identically in both formulations, so a
@@ -138,6 +150,7 @@ def build_model(
         # docs/DATA.md's matched-sizing note for the confound this replaced.
         tau = storage.design_duration_hours
         p_ch_max: Any = e_cap / tau
+        charge_power_bound_mw = e_cap_bound_mwh / tau
         if soc_dependent:
             # The discharge curve must itself have been fit at the mass flow
             # that ties its own reference power/energy ratio to this same
@@ -152,8 +165,10 @@ def build_model(
                     "discharge_curve.mass_flow_for_target_duration(tau)."
                 )
             p_dis_max: Any = None
+            discharge_power_bound_mw = discharge_curve.k_mw_per_mwh * e_cap_bound_mwh
         else:
             p_dis_max = e_cap / tau
+            discharge_power_bound_mw = e_cap_bound_mwh / tau
         power_rating: Any = p_ch_max
     elif soc_dependent:
         # Not duration-matched: the discharge side is no longer an
@@ -169,9 +184,12 @@ def build_model(
         # honoured as given.
         if storage.charge_power_max_mw is None:
             p_ch_max = discharge_curve.k_mw_per_mwh * e_cap
+            charge_power_bound_mw = discharge_curve.k_mw_per_mwh * e_cap_bound_mwh
         else:
             p_ch_max = storage.charge_power_max_mw
+            charge_power_bound_mw = storage.charge_power_max_mw
         p_dis_max = None
+        discharge_power_bound_mw = discharge_curve.k_mw_per_mwh * e_cap_bound_mwh
         power_rating = p_ch_max
     else:
         charge_given = storage.charge_power_max_mw is not None
@@ -184,11 +202,15 @@ def build_model(
         if charge_given:
             p_ch_max = storage.charge_power_max_mw
             p_dis_max = storage.discharge_power_max_mw
+            charge_power_bound_mw = storage.charge_power_max_mw
+            discharge_power_bound_mw = storage.discharge_power_max_mw
             power_rating = max(storage.charge_power_max_mw, storage.discharge_power_max_mw)
         else:
             model.P_rated = pyo.Var(domain=pyo.NonNegativeReals, bounds=(0, peak * 5))
             p_ch_max = model.P_rated
             p_dis_max = model.P_rated
+            charge_power_bound_mw = peak * 5
+            discharge_power_bound_mw = peak * 5
             power_rating = model.P_rated
 
     model.p_ch = pyo.Var(model.T, domain=pyo.NonNegativeReals)
@@ -264,6 +286,49 @@ def build_model(
 
         model.c_discharge_limit = pyo.Constraint(model.T, rule=discharge_limit)
 
+    cycling_prevention_mode = storage.cycling_prevention_mode
+    if cycling_prevention_mode not in {"none", "milp_binary"}:
+        # config.py's own validation already rejects this when a config is
+        # loaded via load_config; build_model re-checks defensively for the
+        # same reason P0.4's capability_reference check does (public API,
+        # called directly on hand-built configs in tests/scripts).
+        raise ValueError(
+            "storage.cycling_prevention_mode must be 'none' or 'milp_binary', got "
+            f"{cycling_prevention_mode!r}."
+        )
+    if cycling_prevention_mode == "milp_binary":
+        # P0.5: independent nonnegative p_ch[t]/p_dis[t] let a pure LP
+        # exploit simultaneous charge and discharge in the same hour once
+        # electricity prices go negative -- draw heater electricity purely
+        # to collect the negative-price payment, discharge the store to
+        # make room for it in the same hour's heat balance, then charge the
+        # store right back up beyond what c_charge_limit alone would allow.
+        # Mathematically feasible, physically meaningless, and it burns real
+        # round-trip losses (eta_charge, eta_discharge) for no net storage
+        # benefit. z[t] forces at most one direction active per hour.
+        # charge_power_bound_mw/discharge_power_bound_mw (defined above) are
+        # genuine numeric constants derived from the same bounds already
+        # declared for E_cap/P_rated, not an arbitrary big-M, per the
+        # roadmap's own "use defensible capacity bounds" instruction --
+        # required precisely because p_ch_max/p_dis_max themselves are often
+        # Pyomo expressions in a sizing Var here, and `p_ch_max * z[t]` would
+        # be a non-linear (Var-times-Var) term MILP cannot solve.
+        model.z_charging = pyo.Var(model.T, domain=pyo.Binary)
+
+        def charge_only_while_charging(m: pyo.ConcreteModel, t: int) -> Any:
+            return m.p_ch[t] <= charge_power_bound_mw * m.z_charging[t]
+
+        model.c_charge_only_while_charging = pyo.Constraint(
+            model.T, rule=charge_only_while_charging
+        )
+
+        def discharge_only_while_not_charging(m: pyo.ConcreteModel, t: int) -> Any:
+            return m.p_dis[t] <= discharge_power_bound_mw * (1 - m.z_charging[t])
+
+        model.c_discharge_only_while_not_charging = pyo.Constraint(
+            model.T, rule=discharge_only_while_not_charging
+        )
+
     def level_cap(m: pyo.ConcreteModel, t: int) -> Any:
         return m.level[t] <= e_cap
 
@@ -328,6 +393,7 @@ def build_model(
     model._duration_matched = duration_matched
     model._design_duration_hours = storage.design_duration_hours
     model._discharge_curve_k = discharge_curve.k_mw_per_mwh if soc_dependent else None
+    model._cycling_prevention_mode = cycling_prevention_mode
     return model
 
 

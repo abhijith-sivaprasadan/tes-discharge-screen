@@ -19,6 +19,7 @@ _TECHNOLOGIES = {"molten_salt", "packed_bed", "pcm"}
 _PROFILE_SHAPES = {"flat", "two_shift", "seasonal"}
 _DISCHARGE_LIMIT_MODES = {"constant", "soc_dependent"}
 _DISCHARGE_CAPABILITY_REFERENCES = {"start_of_hour", "end_of_hour"}
+_CYCLING_PREVENTION_MODES = {"none", "milp_binary"}
 _ELECTRICITY_PRICE_SOURCES = {"entso_e", "synthetic"}
 
 
@@ -86,6 +87,7 @@ class StorageConfig:
     discharge_limit_mode: str
     design_duration_hours: float | None
     discharge_capability_reference: str | None
+    cycling_prevention_mode: str
 
     _REQUIRED = frozenset(
         {
@@ -103,6 +105,7 @@ class StorageConfig:
             "discharge_limit_mode",
             "design_duration_hours",
             "discharge_capability_reference",
+            "cycling_prevention_mode",
         }
     )
 
@@ -141,6 +144,13 @@ class StorageConfig:
                 "storage.design_duration_hours ties charge/discharge power to E_cap; "
                 "charge_power_max_mw and discharge_power_max_mw must both be null when it is set, "
                 "not silently overridden."
+            )
+        if self.cycling_prevention_mode not in _CYCLING_PREVENTION_MODES:
+            raise ValueError(
+                "storage.cycling_prevention_mode must be one of "
+                f"{sorted(_CYCLING_PREVENTION_MODES)}: whether simultaneous charge and discharge "
+                "in the same hour is prevented (relevant once negative electricity prices are in "
+                "play, roadmap P0.5) is a modelling choice, never a hidden default."
             )
         if self.discharge_limit_mode == "soc_dependent":
             if self.discharge_capability_reference not in _DISCHARGE_CAPABILITY_REFERENCES:

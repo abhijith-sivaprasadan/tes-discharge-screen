@@ -96,7 +96,12 @@ Electricity prices are synthetic in every run so far: this working environment
 has no `ENTSOE_API_KEY` configured, so the real ENTSO-E fetch path
 (`electricity_price.py`, ported from PyNEXUS) is built and gated behind that
 credential exactly the way PyNEXUS's own equivalent module is, but has not been
-exercised against live data. See [Sequencing](#sequencing) below.
+exercised against live data. Real ENTSO-E prices go negative at times, which a
+pure LP with independent charge/discharge variables can exploit
+pathologically; **[P0.5](#p05-preventing-pathological-simultaneous-cycling-under-negative-prices)**
+adds an optional MILP operating-mode binary (`storage.cycling_prevention_mode
+== "milp_binary"`) that prevents it, ahead of ever actually needing to run
+against negative prices. See [Sequencing](#sequencing) below.
 
 ## Governing rules
 
@@ -523,6 +528,64 @@ solved discharge against the post-dispatch level, and `start_of_hour`'s
 against the independently reconstructed pre-dispatch one, not the same
 column for both).
 
+## P0.5: preventing pathological simultaneous cycling under negative prices
+
+**The problem, reproduced, not just theorised about.** A pure LP with
+independent nonnegative `p_ch[t]`/`p_dis[t]` variables can exploit negative
+electricity prices: draw heater electricity purely to collect the
+negative-price payment, discharge the store in the same hour to make room
+for it in the heat balance, then charge the store right back up beyond what
+`c_charge_limit` alone would allow. Mathematically feasible, physically
+meaningless, and it burns real round-trip losses (`eta_charge`,
+`eta_discharge`) for no net storage benefit -- and with real ENTSO-E data
+(not yet fetched in this working environment; see Status above), negative
+hours actually occur. Given a case with generous headroom (large heater
+capacity, sizeable charge/discharge power, moderate round-trip efficiency)
+and a deep negative-price window, this reproduces exactly: the LP charges
+at its full 20 MW limit while simultaneously discharging 13-18 MW, hour
+after hour, with the store pinned at full capacity throughout -- not
+storing and releasing energy, just churning it to launder negative-price
+electricity.
+
+**The fix.** `storage.cycling_prevention_mode` (`"none"` or
+`"milp_binary"`) is a new required config field. `"milp_binary"` adds a
+per-hour binary `z[t]` and two constraints,
+`p_ch[t] <= charge_power_bound_mw * z[t]` and
+`p_dis[t] <= discharge_power_bound_mw * (1 - z[t])`, forcing at most one
+direction active per hour -- the roadmap's own preferred, "research-grade"
+option (explicitly not wasted effort, since the target KTH project values
+MILP formulations). `"none"` keeps the original LP available, unchanged,
+for nonnegative-price diagnostics (every case config in this repository
+still uses it; none of them carry negative prices).
+
+**A modelling subtlety the naive version of this fix gets wrong.** The
+textbook big-M pattern needs `M` to be a genuine numeric constant. But
+`p_ch_max` in this model is very often itself a Pyomo *expression* in a
+sizing variable (`E_cap/tau`, `discharge_curve.k * E_cap`, or `P_rated`
+directly) -- using it as `M` in `p_ch_max * z[t]` would multiply two
+variables together, a nonlinear term no MILP solver can handle.
+`charge_power_bound_mw`/`discharge_power_bound_mw` are computed as genuine
+numeric constants instead, built from the same numeric bounds already
+declared for `E_cap`/`P_rated`'s own domains (`peak * 24 * 10` MWh,
+`peak * 5` MW) rather than an arbitrary big number -- the roadmap's own
+"use defensible capacity bounds" instruction, followed literally.
+
+**Quantified, per the roadmap's own acceptance criteria**
+(`tests/test_dispatch.py`'s P0.5 block): in the reproducing case above (a
+10-hour deep-negative-price window), the LP mode shows 5 hours of material
+simultaneous charge and discharge; `milp_binary` shows zero. The MILP
+formulation still terminates optimal and passes every independent
+verification check under the negative-price profile ("negative price tests
+behave sensibly"). Its total cost (68,203 EUR) is provably never lower than
+the LP's own (the MILP constraints are a strict restriction of the LP's
+feasible region -- true by construction, not just observed) and is indeed
+measurably higher than the LP's (66,734 EUR), confirming the LP's
+apparently cheaper answer was exactly the exploited pathology's value, not
+a genuinely better dispatch MILP is leaving on the table. The original LP
+mode continues to solve and verify normally under ordinary nonnegative
+synthetic prices, exactly as every other case in this repository already
+relies on.
+
 ## Repository layout
 
 ```
@@ -572,8 +635,10 @@ comparison) -> C2 (matched-duration-family sizing fix; removes the
 unequal-duration confound in C's original pairing; done, five durations
 swept) -> P0.4 (start-of-hour discharge capability reference; done --
 removes a third confound from C's original pairing, folded into C2's own
-sweep) -> D (harmonised comparison and sensitivity, optional enrichment;
-not started).
+sweep) -> P0.5 (MILP simultaneous-cycling prevention; done -- optional
+`cycling_prevention_mode`, ahead of ever running against real, sometimes
+negative, ENTSO-E prices) -> D (harmonised comparison and sensitivity,
+optional enrichment; not started).
 
 ## Development
 

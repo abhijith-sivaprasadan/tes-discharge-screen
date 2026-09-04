@@ -4,6 +4,7 @@ import dataclasses
 import functools
 
 import numpy as np
+import pandas as pd
 import pytest
 
 from tes_screen.config import load_config
@@ -529,3 +530,136 @@ def test_duration_matched_and_free_sizing_baseline_both_remain_available() -> No
     config_matched = _short_case_duration_matched(4.0)
     model_matched = build_model(config_matched, load, price)
     assert not hasattr(model_matched, "P_rated")
+
+
+# --- P0.5: prevent pathological simultaneous cycling under negative prices ---
+#
+# A pure LP with independent nonnegative p_ch[t]/p_dis[t] can exploit
+# negative electricity prices by drawing heater electricity purely to
+# collect the negative-price payment, discharging the store to make room
+# for it in the same hour's heat balance, then charging the store right
+# back up beyond what c_charge_limit alone would allow -- mathematically
+# feasible, physically meaningless, and it burns real round-trip losses for
+# no net storage benefit. storage.cycling_prevention_mode == "milp_binary"
+# adds a per-hour binary forcing at most one direction active; "none" keeps
+# the original LP available for nonnegative-price diagnostics.
+
+
+def _negative_price_case():
+    # Deliberately generous headroom (large heater capacity, sizeable given
+    # charge/discharge power, moderate round-trip efficiency) so the
+    # pathology actually has room to manifest, not a case so tightly sized
+    # the LP has no slack to exploit regardless of mode.
+    config = _short_case()
+    config = dataclasses.replace(
+        config,
+        storage=dataclasses.replace(
+            config.storage,
+            energy_capacity_mwh=100.0,
+            charge_power_max_mw=20.0,
+            discharge_power_max_mw=20.0,
+            eta_charge=0.95,
+            eta_discharge=0.95,
+        ),
+        supply=dataclasses.replace(
+            config.supply,
+            electric_heater=dataclasses.replace(config.supply.electric_heater, capacity_mw=50.0),
+        ),
+    )
+    load = build_load_profile(
+        config.process.profile_shape, config.process.annual_peak_load_mw, SHORT_HORIZON
+    )
+    rng = np.random.default_rng(0)
+    price_values = rng.normal(60.0, 20.0, SHORT_HORIZON)
+    price_values[10:20] = -200.0  # a deep negative-price window
+    price = pd.DataFrame({"hour": range(SHORT_HORIZON), "price_eur_per_mwh": price_values})
+    return config, load, price
+
+
+def _simultaneous_cycling_hours(schedule) -> int:
+    return int(((schedule["p_ch_mw"] > 1e-6) & (schedule["p_dis_mw"] > 1e-6)).sum())
+
+
+def test_lp_mode_exploits_negative_prices_with_simultaneous_cycling() -> None:
+    # Establishes the problem actually reproduces in this codebase, not just
+    # in theory: without a doubt, the model should be tested against a real
+    # failure it exhibits, not an assumed one.
+    config, load, price = _negative_price_case()
+    config = dataclasses.replace(
+        config, storage=dataclasses.replace(config.storage, cycling_prevention_mode="none")
+    )
+    result = solve_dispatch(config, load, price)
+    assert result.solver["termination"] == "optimal"
+    assert _simultaneous_cycling_hours(result.schedule) > 0
+
+
+def test_milp_binary_mode_prevents_simultaneous_cycling_under_negative_prices() -> None:
+    # Roadmap acceptance criterion 1: no hour has material simultaneous
+    # charge and discharge when the MILP mode is enabled. Same case the LP
+    # test above shows exploiting, so this is a direct before/after fix.
+    config, load, price = _negative_price_case()
+    config = dataclasses.replace(
+        config, storage=dataclasses.replace(config.storage, cycling_prevention_mode="milp_binary")
+    )
+    result = solve_dispatch(config, load, price)
+    assert result.solver["termination"] == "optimal"
+    assert _simultaneous_cycling_hours(result.schedule) == 0
+
+
+def test_milp_binary_mode_solves_and_verifies_under_negative_prices() -> None:
+    # Roadmap acceptance criterion 2: negative price tests behave sensibly
+    # -- optimal termination and every independent verification check
+    # (energy balance, storage identity, terminal condition, objective
+    # reconstruction) still passes with a negative-price profile and the
+    # cycling-prevention binaries active.
+    config, load, price = _negative_price_case()
+    config = dataclasses.replace(
+        config, storage=dataclasses.replace(config.storage, cycling_prevention_mode="milp_binary")
+    )
+    result = solve_dispatch(config, load, price)
+    assert result.solver["termination"] == "optimal"
+    checks = verify_schedule(result.schedule, config, result.solver["objective_eur"])
+    assert all(checks.values()), checks
+    reconstructed = reconstruct_objective(result.schedule, config)
+    assert np.isclose(reconstructed, result.solver["objective_eur"], rtol=1e-6, atol=1e-3)
+
+
+def test_milp_binary_objective_is_never_cheaper_than_the_lp_relaxation() -> None:
+    # The MILP constraints are a strict restriction of the LP's own feasible
+    # region (same model, plus c_charge_only_while_charging /
+    # c_discharge_only_while_not_charging), so its optimal cost can only be
+    # equal to or higher than the unconstrained LP's -- never lower. Confirms
+    # the LP's lower cost in the test above is exactly the exploited
+    # pathology's "value," not a genuinely better answer MILP is leaving on
+    # the table.
+    config, load, price = _negative_price_case()
+    config_lp = dataclasses.replace(
+        config, storage=dataclasses.replace(config.storage, cycling_prevention_mode="none")
+    )
+    config_milp = dataclasses.replace(
+        config, storage=dataclasses.replace(config.storage, cycling_prevention_mode="milp_binary")
+    )
+    result_lp = solve_dispatch(config_lp, load, price)
+    result_milp = solve_dispatch(config_milp, load, price)
+    assert result_milp.kpis["total_cost_eur"] >= result_lp.kpis["total_cost_eur"] - 1e-6
+
+
+def test_lp_mode_remains_available_for_nonnegative_price_diagnostics() -> None:
+    # Roadmap acceptance criterion 3: the original LP mode remains available.
+    # Ordinary nonnegative synthetic prices, cycling_prevention_mode="none"
+    # (this project's default everywhere else): must still solve and verify
+    # exactly as every other test in this file already relies on.
+    config, _load, _price, result = _solve_short()
+    assert config.storage.cycling_prevention_mode == "none"
+    assert result.solver["termination"] == "optimal"
+    assert _simultaneous_cycling_hours(result.schedule) == 0
+
+
+def test_build_model_rejects_an_unknown_cycling_prevention_mode() -> None:
+    config, load, price = _negative_price_case()
+    config = dataclasses.replace(
+        config,
+        storage=dataclasses.replace(config.storage, cycling_prevention_mode="throughput_penalty"),
+    )
+    with pytest.raises(ValueError, match="cycling_prevention_mode"):
+        build_model(config, load, price)

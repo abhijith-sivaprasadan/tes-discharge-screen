@@ -1,6 +1,6 @@
 # Model card
 
-## Status: Phase 0, A, B (packed bed only), P0.3 (state-sufficiency test), C (MVP scope, archived), C2 (matched-duration fix), and P0.4 (start-of-hour capability fix) built
+## Status: Phase 0, A, B (packed bed only), P0.3 (state-sufficiency test), C (MVP scope, archived), C2 (matched-duration fix), P0.4 (start-of-hour capability fix), and P0.5 (MILP cycling prevention) built
 
 This card documents what is actually built at this commit, not what the project
 intends to build. It will be rewritten section by section as each phase lands,
@@ -188,6 +188,34 @@ describes.
   configured time limit, not because they were infeasible), and IPM
   resolves it, confirmed to reproduce identical objective values on every
   already-passing case. See README's P0.4 section for the full mechanism.
+- **P0.5, MILP simultaneous-cycling prevention.** A pure LP with
+  independent nonnegative `p_ch[t]`/`p_dis[t]` can exploit negative
+  electricity prices by charging and discharging simultaneously in the same
+  hour -- draw heater electricity purely for the negative-price payment,
+  discharge to make room for it in that hour's heat balance, charge back up
+  beyond `c_charge_limit` alone -- physically meaningless, and real ENTSO-E
+  data (not yet fetched here) does go negative. Reproduced directly, not
+  just theorised: a generously-sized case with a deep negative-price window
+  shows 5 hours of material simultaneous charge (at its 20 MW limit) and
+  discharge (13-18 MW), the store pinned at full capacity throughout.
+  `storage.cycling_prevention_mode` (`"none"` or `"milp_binary"`, new
+  required field) adds a per-hour binary `z[t]` with
+  `p_ch[t] <= charge_power_bound_mw * z[t]` and
+  `p_dis[t] <= discharge_power_bound_mw * (1 - z[t])` when enabled --
+  the roadmap's own preferred option, since the target KTH project values
+  MILP formulations. `charge_power_bound_mw`/`discharge_power_bound_mw` are
+  genuine numeric constants (built from the same bounds already declared
+  for `E_cap`/`P_rated`'s own domains), not the `p_ch_max`/`p_dis_max`
+  expressions themselves, which are often Pyomo expressions in a sizing
+  variable and would make the big-M term nonlinear (Var times Var) if used
+  directly. In the reproducing case, `milp_binary` shows zero hours of
+  simultaneous cycling, still terminates optimal, passes every
+  verification check, and its total cost is provably never lower than the
+  LP's own (a strict restriction of the LP's feasible region) -- confirmed
+  measurably higher here, showing the LP's cheaper answer was exactly the
+  pathology's value. The original LP mode (`"none"`) is unchanged and
+  remains every existing case's default. See README's P0.5 section for the
+  full numbers.
 
 ## What does not exist yet
 

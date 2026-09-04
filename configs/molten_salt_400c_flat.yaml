@@ -28,6 +28,7 @@ storage:
   discharge_limit_mode: constant
   design_duration_hours: null   # free power sizing; see packed_bed_300c_flat's phase C2 pair for a matched-duration case
   discharge_capability_reference: null   # only meaningful when discharge_limit_mode is soc_dependent
+  cycling_prevention_mode: none   # LP mode; no negative prices in these synthetic runs
 
 supply:
   electric_heater:

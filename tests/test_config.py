@@ -35,6 +35,7 @@ def _valid_storage(**overrides: object) -> StorageConfig:
         discharge_limit_mode="constant",
         design_duration_hours=None,
         discharge_capability_reference=None,
+        cycling_prevention_mode="none",
     )
     fields.update(overrides)
     return StorageConfig(**fields)
@@ -131,6 +132,18 @@ def test_storage_config_rejects_a_capability_reference_given_under_constant_mode
     # on level at all, so a given value here can't mean anything.
     storage = _valid_storage(discharge_capability_reference="start_of_hour")
     with pytest.raises(ValueError, match="discharge_capability_reference"):
+        storage.validate()
+
+
+@pytest.mark.parametrize("mode", ["none", "milp_binary"])
+def test_storage_config_accepts_valid_cycling_prevention_modes(mode) -> None:
+    storage = _valid_storage(cycling_prevention_mode=mode)
+    storage.validate()
+
+
+def test_storage_config_rejects_an_unknown_cycling_prevention_mode() -> None:
+    storage = _valid_storage(cycling_prevention_mode="throughput_penalty")
+    with pytest.raises(ValueError, match="cycling_prevention_mode"):
         storage.validate()
 
 
