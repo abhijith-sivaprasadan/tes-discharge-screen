@@ -109,20 +109,37 @@ across its phase change near the process temperature. It is a poor match for the
 latent heat); the 400 C case is therefore only run for molten salt and packed bed
 until a suitable high-temperature PCM composition is sourced.
 
-## Phase B scope: packed bed only, for now
+## Phase B scope: unequal depth by design, not by oversight
 
-Only the packed-bed technology has a dynamic sub-model (Phase B) at this
-commit, matching the project's own stated priority (a single technology
+Packed bed was the first technology to get a dynamic sub-model (Phase B
+proper), matching the project's own stated priority (a single technology
 fully verified beats three unfinished) and the spec's expectation that
-packed bed is where the SOC-dependent correction should matter most. The
-packed-bed dynamic model is also adiabatic (no ambient heat loss term): that
-is a deliberate scope choice, not an oversight. Phase A already accounts for
-standing loss at the annual scale (`storage.standing_loss_fraction_per_hour`);
-adding a second, redundant loss term inside the hours-long discharge
-sub-model would double-count it and would also break the exact energy
-conservation identity this module's strongest verification check
+packed bed is where the SOC-dependent correction should matter most: a
+Python shadow twin, a Modelica model of the identical governing equations
+(uncompiled -- no OpenModelica toolchain reachable in this working
+environment, confirmed via a direct network check, not merely assumed;
+see README's P4 section), three analytic-limit checks, and a spatial/
+temporal discretisation convergence study (P3.1). The packed-bed dynamic
+model is also adiabatic (no ambient heat loss term): a deliberate scope
+choice, not an oversight -- Phase A already accounts for standing loss at
+the annual scale (`storage.standing_loss_fraction_per_hour`); a second,
+redundant loss term inside the hours-long discharge sub-model would
+double-count it and would also break the exact energy conservation
+identity this module's strongest verification check
 (`test_energy_conservation_holds_to_near_machine_precision`) depends on.
-Molten-salt and PCM dynamic sub-models do not exist yet.
+
+Molten salt and PCM later got their own dynamic sub-models
+(`molten_salt_dynamics.py`, `pcm_dynamics.py`, built for Phase C3's
+technology-ranking matrix), but at deliberately less depth: both are
+closed-form/analytic (a well-mixed two-tank flow taper; a three-regime
+sensible-latent-sensible energy balance), not time-stepped PDEs, so their
+own tests check the implementation against its own specified physics
+rather than against an independent analytic limit the way the packed
+bed's B4 checks do, and neither has a Modelica twin. This is a real,
+stated difference in verification depth between technologies, not
+resolved by simply having "a sub-model" for each one -- see README's
+Phase D boundary-harmonisation table, which surfaces this same gap
+directly.
 
 ## Round-trip charge/discharge efficiency
 

@@ -370,8 +370,10 @@ MWh sized energy capacity**, against a strict 1.0% [assumption]
 convergence threshold -- despite a real ~5.7 C / ~9-10 percentage-point
 local curve-shape error at that same resolution. Every prior Phase
 C/C2/C3/P2.1 result, all built at this same default resolution, is
-therefore validated as already converged at the level that matters, not
-merely assumed. See README's P3.1 section for the full table.
+therefore confirmed to already be converged at the level that matters
+(checked against a finer-resolution run, this project's own "verified"
+sense, not "validated" against measured data), not merely assumed. See
+README's P3.1 section for the full table.
 
 ## P3.2: correlation-domain validity checks
 
@@ -575,11 +577,13 @@ h_v's precise magnitude even though the raw curve shape is not.
 - PCM at 400 C: no common nitrate-salt PCM composition was found in this
   session's research with a melting point usefully close to 400 C, so that
   combination is left undone rather than forced (docs/DATA.md, README).
-- **A duration or economics sweep for Phase C3's PCM null result.** PCM's
-  optimal storage capacity is exactly zero at the one design duration
-  (6h) and one set of capex assumptions C3 tested; whether a different
-  duration or a different PCM capex figure would make it competitive
-  enough to actually exercise the SOC-dependent correction is not tested.
+- **A dedicated PCM economics sweep.** Phase D.3's duration sweep (2h-12h)
+  already showed PCM's own "priced out entirely" result is duration-
+  dependent, not universal (it builds nonzero capacity at 2h/4h under the
+  constant-limit formulation); whether a different PCM capex figure would
+  make it competitive enough to actually exercise the SOC-dependent
+  correction under *either* formulation is not tested -- P5's own economics
+  sensitivity axes were run on packed bed only.
 - **A `theta_req`-equivalent axis for molten salt or PCM.** P6's own
   `theta_req` (packed-bed thermocline-specific) does not transfer directly
   to molten salt (no thermocline) or PCM (a different, three-regime

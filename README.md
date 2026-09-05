@@ -150,6 +150,46 @@ not just below tolerance -- across a 0.25x-4x sweep. See
    provenance record, and a solver status.
 6. **Assumptions live in config, never in source.** No magic constants.
 
+## Limitations
+
+Stated here explicitly, per this project's own honesty checklist
+(`TES_SCREEN_SPEC.md` section 8), rather than left for a reader to
+discover or ask about. This list is a floor, not a ceiling -- many more
+specific limitations are stated inline throughout this document (P0.3's
+scalar-SOC insufficiency finding, the synthetic nature of every load and
+price series, each technology's own citation tier in `docs/DATA.md`); this
+section exists so the minimum set is visible in one place, on the same
+screen as the rest of the project's own framing, not buried in a data
+appendix.
+
+- **No experimental validation.** Nothing in this repository has been checked
+  against measured data from a real storage installation. Every check
+  performed is *verification* (against governing physics, an analytic
+  limit, or an independent recomputation) -- see Governing rule 1 above.
+- **No degradation or cycling effects.** No thermal or chemical
+  degradation of any storage medium, no cycle-life or capacity-fade
+  modelling, no limit on cycling frequency beyond P0.5's own pathological-
+  simultaneous-cycling prevention (a numerical artifact fix, not a
+  physical cycling-cost model).
+- **No containment or materials engineering.** No structural, corrosion,
+  containment-failure, or materials-compatibility modelling for any
+  technology at any temperature. Material property sets are literature
+  values, cited and used as inputs, not independently verified against a
+  primary source in every case (see each citation's own tier in
+  `docs/DATA.md`).
+- **Single-node process representation.** The industrial process this
+  project screens against is one aggregate hourly heat demand at one
+  delivery temperature (`process.annual_peak_load_mw`,
+  `process.delivery_temperature_c`) -- not a spatially or thermally
+  distributed process, multiple simultaneous temperature levels, or
+  process-side dynamics of any kind.
+- **Perfect foresight.** The annual dispatch LP (`dispatch.py`) solves the
+  full 8,760-hour horizon at once, with complete knowledge of every hour's
+  load and price in advance. There is no rolling-horizon or model-
+  predictive re-optimisation, and no representation of forecast
+  uncertainty; every result in this repository is an ideal-information
+  upper bound on achievable performance, not a forecast-realistic one.
+
 ## Phase A baseline results (flat load, synthetic price/load)
 
 This is the constant-discharge-limit baseline only, not yet the SOC-dependent
@@ -593,7 +633,11 @@ actually exercised for PCM in this matrix** -- its "delta = 0.000%" is a
 sizing artifact of this specific design duration and cost structure, not
 evidence that PCM's three-regime discharge shape is inconsequential. A
 shorter or longer design duration, or different PCM capex assumptions,
-could change this; that sweep was not run here.
+could change this; that sweep was not run here. **Update: Phase D.3's own
+duration sweep (below) later ran the duration half of this** and found
+PCM does build nonzero capacity under the constant-limit formulation at
+shorter durations (2h, 4h) -- see [D.3](#d3-technology-selection-map) for
+the numbers. A dedicated PCM capex sweep is still not run.
 
 **Why the 300 C and 400 C rows are pairwise identical for packed bed and
 for molten salt.** This is expected, not a bug, and traces to this specific
@@ -835,9 +879,11 @@ above traces to `outputs/scaling_law/`: the full normalized-curve table
 across all five scale factors and a manifest with the exit-criterion
 verdict.
 
-**What this does and does not establish.** This validates the "same
+**What this does and does not establish.** This confirms the "same
 reference bed, physically bigger or smaller via area" scaling dispatch.py
-already performs implicitly for every case in this repository. It is a
+already performs implicitly for every case in this repository -- checked
+against this bed model's own physics (P1's governing rule 1 sense of
+"verified"), not against independent measured data. It is a
 different operation from P0.1's `mass_flow_for_target_duration`, which
 varies mass flow at *fixed* area to reach a target design duration --
 deliberately changing mass flux (and therefore the curve's own shape) per
@@ -962,11 +1008,12 @@ downstream annual dispatch decision moves by only 0.007% in total cost and
 0.14 MWh in sized energy capacity relative to the fine-grid reference** --
 against a deliberately strict [assumption] 1.0% convergence threshold.
 **Every prior Phase C/C2/C3/P2.1 result in this repository, all of which
-used this same N=40 default, is therefore validated as already converged
-at the level that actually matters (the sizing/cost decision), not merely
-assumed to be** -- the project's own documented "verified is not
-validated" ethos, applied to its own numerical resolution choice rather
-than only its governing physics.
+used this same N=40 default, is therefore confirmed to already be
+converged at the level that actually matters (the sizing/cost decision),
+not merely assumed to be** -- checked against a finer-resolution run of
+this bed model's own governing equations (this project's own "verified,"
+not "validated," sense: governing rule 1), applied to its own numerical
+resolution choice rather than only its governing physics.
 
 Every number above traces to `outputs/convergence/run_manifest.json`: the
 full spatial sweep, temporal sweep, and project-default entry, each with
