@@ -279,9 +279,7 @@ def main() -> None:
         )
         return entry
 
-    spatial_sweep = [
-        build_entry(f"spatial_N{n}", n, REFERENCE_N_STEPS) for n in SPATIAL_GRID
-    ]
+    spatial_sweep = [build_entry(f"spatial_N{n}", n, REFERENCE_N_STEPS) for n in SPATIAL_GRID]
     temporal_sweep = [
         build_entry(f"temporal_steps{n}", REFERENCE_N_NODES, n) for n in TEMPORAL_GRID
     ]

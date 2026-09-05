@@ -29,9 +29,14 @@ def test_default_config_validates(config) -> None:
 
 def test_outlet_temperature_holds_at_the_melting_point_during_the_latent_regime(config) -> None:
     curve = discharge_power_curve(
-        config, mass_flow_kg_per_s=5.0, t_max_c=T_MAX_C, t_min_c=T_MIN_C,
-        htf_return_temperature_c=HTF_RETURN_C, process_temperature_c=PROCESS_C,
-        delta_t_min_hot_side_c=0.0, n_points=2000,
+        config,
+        mass_flow_kg_per_s=5.0,
+        t_max_c=T_MAX_C,
+        t_min_c=T_MIN_C,
+        htf_return_temperature_c=HTF_RETURN_C,
+        process_temperature_c=PROCESS_C,
+        delta_t_min_hot_side_c=0.0,
+        n_points=2000,
     )
     near_melt = curve[np.isclose(curve["outlet_temperature_c"], config.melting_point_c, atol=1e-6)]
     assert len(near_melt) > 100  # a genuine plateau, not a single sample
@@ -39,8 +44,12 @@ def test_outlet_temperature_holds_at_the_melting_point_during_the_latent_regime(
 
 def test_outlet_temperature_declines_monotonically_with_soc(config) -> None:
     curve = discharge_power_curve(
-        config, mass_flow_kg_per_s=5.0, t_max_c=T_MAX_C, t_min_c=T_MIN_C,
-        htf_return_temperature_c=HTF_RETURN_C, process_temperature_c=PROCESS_C,
+        config,
+        mass_flow_kg_per_s=5.0,
+        t_max_c=T_MAX_C,
+        t_min_c=T_MIN_C,
+        htf_return_temperature_c=HTF_RETURN_C,
+        process_temperature_c=PROCESS_C,
         delta_t_min_hot_side_c=0.0,
     )
     outlet = curve["outlet_temperature_c"].to_numpy()
@@ -55,8 +64,12 @@ def test_deliverable_power_is_gated_below_the_process_requirement(config) -> Non
     # while deliverable_power is zero -- the same P0.2 distinction the
     # packed-bed model draws.
     curve = discharge_power_curve(
-        config, mass_flow_kg_per_s=5.0, t_max_c=T_MAX_C, t_min_c=T_MIN_C,
-        htf_return_temperature_c=HTF_RETURN_C, process_temperature_c=305.0,
+        config,
+        mass_flow_kg_per_s=5.0,
+        t_max_c=T_MAX_C,
+        t_min_c=T_MIN_C,
+        htf_return_temperature_c=HTF_RETURN_C,
+        process_temperature_c=305.0,
         delta_t_min_hot_side_c=0.0,
     )
     gated_out = curve[curve["outlet_temperature_c"] < 305.0]
@@ -67,15 +80,21 @@ def test_deliverable_power_is_gated_below_the_process_requirement(config) -> Non
 
 def test_reference_energy_capacity_scales_with_reference_module_volume() -> None:
     small = PcmDynamicsConfig(
-        melting_point_c=306.0, latent_heat_j_per_kg=177_000.0,
-        solid_density_kg_per_m3=2257.0, solid_specific_heat_j_per_kgk=1095.0,
-        liquid_specific_heat_j_per_kgk=1550.0, htf_specific_heat_j_per_kgk=1085.0,
+        melting_point_c=306.0,
+        latent_heat_j_per_kg=177_000.0,
+        solid_density_kg_per_m3=2257.0,
+        solid_specific_heat_j_per_kgk=1095.0,
+        liquid_specific_heat_j_per_kgk=1550.0,
+        htf_specific_heat_j_per_kgk=1085.0,
         reference_module_volume_m3=10.0,
     )
     big = PcmDynamicsConfig(
-        melting_point_c=306.0, latent_heat_j_per_kg=177_000.0,
-        solid_density_kg_per_m3=2257.0, solid_specific_heat_j_per_kgk=1095.0,
-        liquid_specific_heat_j_per_kgk=1550.0, htf_specific_heat_j_per_kgk=1085.0,
+        melting_point_c=306.0,
+        latent_heat_j_per_kg=177_000.0,
+        solid_density_kg_per_m3=2257.0,
+        solid_specific_heat_j_per_kgk=1095.0,
+        liquid_specific_heat_j_per_kgk=1550.0,
+        htf_specific_heat_j_per_kgk=1085.0,
         reference_module_volume_m3=20.0,
     )
     e_small = reference_energy_capacity_mwh(small, T_MAX_C, T_MIN_C)
@@ -91,8 +110,12 @@ def test_mass_flow_for_target_duration_yields_the_requested_duration(
         config, target_duration_hours, T_MAX_C, T_MIN_C, HTF_RETURN_C
     )
     curve = discharge_power_curve(
-        config, mass_flow_kg_per_s=mass_flow, t_max_c=T_MAX_C, t_min_c=T_MIN_C,
-        htf_return_temperature_c=HTF_RETURN_C, process_temperature_c=PROCESS_C,
+        config,
+        mass_flow_kg_per_s=mass_flow,
+        t_max_c=T_MAX_C,
+        t_min_c=T_MIN_C,
+        htf_return_temperature_c=HTF_RETURN_C,
+        process_temperature_c=PROCESS_C,
         delta_t_min_hot_side_c=0.0,
     )
     reference_energy = reference_energy_capacity_mwh(config, T_MAX_C, T_MIN_C)
@@ -116,9 +139,14 @@ def test_piecewise_fit_safety_is_checked_not_assumed(config, n_segments: int) ->
     # empirically at every segment count actually swept, not assumed from
     # concavity (which does not hold here) or from a single segment count.
     curve = discharge_power_curve(
-        config, mass_flow_kg_per_s=5.0, t_max_c=T_MAX_C, t_min_c=T_MIN_C,
-        htf_return_temperature_c=HTF_RETURN_C, process_temperature_c=PROCESS_C,
-        delta_t_min_hot_side_c=0.0, n_points=2000,
+        config,
+        mass_flow_kg_per_s=5.0,
+        t_max_c=T_MAX_C,
+        t_min_c=T_MIN_C,
+        htf_return_temperature_c=HTF_RETURN_C,
+        process_temperature_c=PROCESS_C,
+        delta_t_min_hot_side_c=0.0,
+        n_points=2000,
     )
     reference_energy = reference_energy_capacity_mwh(config, T_MAX_C, T_MIN_C)
     fitted = fit_piecewise_curve_from_power_curve(curve, reference_energy, n_segments=n_segments)
@@ -134,7 +162,11 @@ def test_rejects_melting_point_outside_the_temperature_band() -> None:
     config = default_pcm_config()
     with pytest.raises(ValueError, match="melting_point_c"):
         discharge_power_curve(
-            config, mass_flow_kg_per_s=5.0, t_max_c=305.0, t_min_c=300.0,
-            htf_return_temperature_c=290.0, process_temperature_c=300.0,
+            config,
+            mass_flow_kg_per_s=5.0,
+            t_max_c=305.0,
+            t_min_c=300.0,
+            htf_return_temperature_c=290.0,
+            process_temperature_c=300.0,
             delta_t_min_hot_side_c=0.0,
         )

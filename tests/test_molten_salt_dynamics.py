@@ -30,18 +30,24 @@ def test_outlet_temperature_is_constant_at_the_hot_tank_temperature(config) -> N
     # The whole physical premise of a two-tank store: no thermocline, so no
     # temperature degradation with state of charge, at any state of charge.
     curve = discharge_power_curve(
-        config, mass_flow_kg_per_s=5.0,
-        hot_tank_temperature_c=HOT_C, cold_tank_temperature_c=COLD_C,
-        process_temperature_c=PROCESS_C, delta_t_min_hot_side_c=0.0,
+        config,
+        mass_flow_kg_per_s=5.0,
+        hot_tank_temperature_c=HOT_C,
+        cold_tank_temperature_c=COLD_C,
+        process_temperature_c=PROCESS_C,
+        delta_t_min_hot_side_c=0.0,
     )
     assert (curve["outlet_temperature_c"] == HOT_C).all()
 
 
 def test_power_is_rated_above_the_heel_and_tapers_to_zero_below_it(config) -> None:
     curve = discharge_power_curve(
-        config, mass_flow_kg_per_s=5.0,
-        hot_tank_temperature_c=HOT_C, cold_tank_temperature_c=COLD_C,
-        process_temperature_c=PROCESS_C, delta_t_min_hot_side_c=0.0,
+        config,
+        mass_flow_kg_per_s=5.0,
+        hot_tank_temperature_c=HOT_C,
+        cold_tank_temperature_c=COLD_C,
+        process_temperature_c=PROCESS_C,
+        delta_t_min_hot_side_c=0.0,
     )
     above_heel = curve[curve["state_of_charge"] >= config.heel_fraction]
     rated = curve["deliverable_power_mw"].max()
@@ -55,20 +61,27 @@ def test_power_is_rated_above_the_heel_and_tapers_to_zero_below_it(config) -> No
 def test_rejects_hot_tank_temperature_at_or_below_required_outlet(config) -> None:
     with pytest.raises(ValueError, match="hot_tank_temperature_c"):
         discharge_power_curve(
-            config, mass_flow_kg_per_s=5.0,
-            hot_tank_temperature_c=300.0, cold_tank_temperature_c=COLD_C,
-            process_temperature_c=300.0, delta_t_min_hot_side_c=0.0,
+            config,
+            mass_flow_kg_per_s=5.0,
+            hot_tank_temperature_c=300.0,
+            cold_tank_temperature_c=COLD_C,
+            process_temperature_c=300.0,
+            delta_t_min_hot_side_c=0.0,
         )
 
 
 def test_reference_energy_capacity_scales_with_reference_tank_volume() -> None:
     small = MoltenSaltDynamicsConfig(
-        salt_density_kg_per_m3=1900.0, salt_specific_heat_j_per_kgk=1550.0,
-        heel_fraction=0.05, reference_tank_volume_m3=10.0,
+        salt_density_kg_per_m3=1900.0,
+        salt_specific_heat_j_per_kgk=1550.0,
+        heel_fraction=0.05,
+        reference_tank_volume_m3=10.0,
     )
     big = MoltenSaltDynamicsConfig(
-        salt_density_kg_per_m3=1900.0, salt_specific_heat_j_per_kgk=1550.0,
-        heel_fraction=0.05, reference_tank_volume_m3=20.0,
+        salt_density_kg_per_m3=1900.0,
+        salt_specific_heat_j_per_kgk=1550.0,
+        heel_fraction=0.05,
+        reference_tank_volume_m3=20.0,
     )
     e_small = reference_energy_capacity_mwh(small, HOT_C, COLD_C)
     e_big = reference_energy_capacity_mwh(big, HOT_C, COLD_C)
@@ -81,9 +94,12 @@ def test_mass_flow_for_target_duration_yields_the_requested_duration(
 ) -> None:
     mass_flow = mass_flow_for_target_duration(config, target_duration_hours, HOT_C, COLD_C)
     curve = discharge_power_curve(
-        config, mass_flow_kg_per_s=mass_flow,
-        hot_tank_temperature_c=HOT_C, cold_tank_temperature_c=COLD_C,
-        process_temperature_c=PROCESS_C, delta_t_min_hot_side_c=0.0,
+        config,
+        mass_flow_kg_per_s=mass_flow,
+        hot_tank_temperature_c=HOT_C,
+        cold_tank_temperature_c=COLD_C,
+        process_temperature_c=PROCESS_C,
+        delta_t_min_hot_side_c=0.0,
     )
     reference_energy = reference_energy_capacity_mwh(config, HOT_C, COLD_C)
     reference_power = curve["deliverable_power_mw"].iloc[0]
@@ -92,9 +108,12 @@ def test_mass_flow_for_target_duration_yields_the_requested_duration(
 
 def test_fitted_curve_is_safe_against_the_analytic_data(config) -> None:
     curve = discharge_power_curve(
-        config, mass_flow_kg_per_s=5.0,
-        hot_tank_temperature_c=HOT_C, cold_tank_temperature_c=COLD_C,
-        process_temperature_c=PROCESS_C, delta_t_min_hot_side_c=0.0,
+        config,
+        mass_flow_kg_per_s=5.0,
+        hot_tank_temperature_c=HOT_C,
+        cold_tank_temperature_c=COLD_C,
+        process_temperature_c=PROCESS_C,
+        delta_t_min_hot_side_c=0.0,
     )
     reference_energy = reference_energy_capacity_mwh(config, HOT_C, COLD_C)
     fitted = fit_piecewise_curve_from_power_curve(curve, reference_energy, n_segments=5)

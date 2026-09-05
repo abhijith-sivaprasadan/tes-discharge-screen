@@ -308,11 +308,7 @@ def ergun_pressure_drop_and_blower_power(
         150 * config.air_viscosity_pa_s * (1 - eps) ** 2 / (eps**3 * dp**2) * superficial_velocity
     )
     turbulent_term = (
-        1.75
-        * config.air_density_kg_per_m3
-        * (1 - eps)
-        / (eps**3 * dp)
-        * superficial_velocity**2
+        1.75 * config.air_density_kg_per_m3 * (1 - eps) / (eps**3 * dp) * superficial_velocity**2
     )
     pressure_drop_per_length = laminar_term + turbulent_term
     pressure_drop_pa = pressure_drop_per_length * config.bed_length_m

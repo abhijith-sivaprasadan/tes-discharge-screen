@@ -273,9 +273,7 @@ def main() -> None:
         "samples": samples.tolist(),
         "responses": responses,
         "mu_star": dict(zip(PROBLEM["names"], morris_result["mu_star"].tolist(), strict=True)),
-        "mu_star_conf": dict(
-            zip(PROBLEM["names"], morris_result["mu_star_conf"], strict=True)
-        ),
+        "mu_star_conf": dict(zip(PROBLEM["names"], morris_result["mu_star_conf"], strict=True)),
         "sigma": dict(zip(PROBLEM["names"], morris_result["sigma"].tolist(), strict=True)),
         "mu": dict(zip(PROBLEM["names"], morris_result["mu"].tolist(), strict=True)),
         "ranked_by_mu_star": [name for name, _, _ in ranked],

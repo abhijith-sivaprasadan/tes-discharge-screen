@@ -124,9 +124,10 @@ def _pcm_temperature_at_soc(
     in_subcooled = soc < soc_b
 
     span_a = max(1.0 - soc_a, 1e-15)
-    temperature[in_superheat] = config.melting_point_c + (t_max_c - config.melting_point_c) * (
-        soc[in_superheat] - soc_a
-    ) / span_a
+    temperature[in_superheat] = (
+        config.melting_point_c
+        + (t_max_c - config.melting_point_c) * (soc[in_superheat] - soc_a) / span_a
+    )
     temperature[in_latent] = config.melting_point_c
     span_b = max(soc_b, 1e-15)
     temperature[in_subcooled] = t_min_c + (config.melting_point_c - t_min_c) * (

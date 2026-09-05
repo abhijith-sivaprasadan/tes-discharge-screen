@@ -183,9 +183,7 @@ def main() -> None:
     # full-family number, not instead of it: excluding the least reachable
     # construction is a legitimate operational-relevance caveat, not a way
     # to quietly shrink an inconvenient result.
-    restricted = table[
-        (table["profile"] != "step_hot_at_inlet") & (table["checkpoint_s"] > 0)
-    ]
+    restricted = table[(table["profile"] != "step_hot_at_inlet") & (table["checkpoint_s"] > 0)]
     restricted_scatter_rows = []
     for _group_key, group in restricted.groupby(["target_energy_fraction", "checkpoint_s"]):
         power = group["deliverable_power_mw"].to_numpy()

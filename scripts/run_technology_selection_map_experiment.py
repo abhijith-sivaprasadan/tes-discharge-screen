@@ -267,13 +267,9 @@ def main() -> None:
     for temperature_c in [300.0, 400.0]:
         for tau in DURATIONS_HOURS:
             group = [
-                c
-                for c in cases
-                if c["temperature_c"] == temperature_c and c["tau_hours"] == tau
+                c for c in cases if c["temperature_c"] == temperature_c and c["tau_hours"] == tau
             ]
-            cheapest_constant = min(group, key=lambda c: c["constant_total_cost_eur"])[
-                "technology"
-            ]
+            cheapest_constant = min(group, key=lambda c: c["constant_total_cost_eur"])["technology"]
             cheapest_soc = min(group, key=lambda c: c["soc_total_cost_eur"])["technology"]
             ranking_rows.append(
                 {
@@ -319,8 +315,7 @@ def main() -> None:
     print()
     if any_flip:
         print(
-            "RESULT: the technology ranking DOES flip somewhere in this "
-            "duration x temperature map."
+            "RESULT: the technology ranking DOES flip somewhere in this duration x temperature map."
         )
     else:
         print(

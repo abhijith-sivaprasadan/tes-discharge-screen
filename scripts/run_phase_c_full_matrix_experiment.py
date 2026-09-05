@@ -288,9 +288,7 @@ def _plot_technology_figure(
             label=f"{temperature_c:.0f} C process: analytic deliverable power",
         )
         e_cap = curve.reference_energy_capacity_mwh
-        fitted = [
-            curve.limit_mw(soc * e_cap, e_cap) for soc in power_curve["state_of_charge"]
-        ]
+        fitted = [curve.limit_mw(soc * e_cap, e_cap) for soc in power_curve["state_of_charge"]]
         ax.plot(
             power_curve["state_of_charge"],
             fitted,
@@ -494,12 +492,16 @@ def main() -> None:
     print(ranking_table.to_string(index=False))
     print()
     if any_ranking_flip:
-        print("RESULT: the SOC-dependent discharge-limit correction DOES change the cheapest "
-              "technology in at least one (temperature, profile) case; see ranking_table.csv.")
+        print(
+            "RESULT: the SOC-dependent discharge-limit correction DOES change the cheapest "
+            "technology in at least one (temperature, profile) case; see ranking_table.csv."
+        )
     else:
-        print("RESULT: the SOC-dependent discharge-limit correction does NOT change the cheapest "
-              "technology in any (temperature, profile) case; the ranking is identical under both "
-              "formulations across the full matrix.")
+        print(
+            "RESULT: the SOC-dependent discharge-limit correction does NOT change the cheapest "
+            "technology in any (temperature, profile) case; the ranking is identical under both "
+            "formulations across the full matrix."
+        )
     print(f"Written to {output_dir}")
 
     if not all_verified:

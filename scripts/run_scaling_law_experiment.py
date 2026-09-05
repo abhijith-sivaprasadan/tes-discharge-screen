@@ -75,13 +75,17 @@ def _normalized_curve(config, mass_flow_kg_per_s: float) -> pd.DataFrame:
     )
     curve = discharge_power_curve(result, PROCESS_TEMPERATURE_C, DELTA_T_MIN_HOT_SIDE_C)
     power_fraction = curve["deliverable_power_mw"] / curve["deliverable_power_mw"].iloc[0]
-    return pd.DataFrame(
-        {
-            "time_s": curve["time_s"],
-            "state_of_charge": curve["state_of_charge"],
-            "power_fraction_of_rated": power_fraction,
-        }
-    ), result, curve
+    return (
+        pd.DataFrame(
+            {
+                "time_s": curve["time_s"],
+                "state_of_charge": curve["state_of_charge"],
+                "power_fraction_of_rated": power_fraction,
+            }
+        ),
+        result,
+        curve,
+    )
 
 
 def main() -> None:
@@ -186,8 +190,10 @@ def main() -> None:
     )
 
     print(f"Max deviation across all scale factors: {max_deviation:.3e}")
-    print(f"Scaling approximation supported (threshold {DEVIATION_THRESHOLD:.0e}): "
-          f"{scaling_approximation_supported}")
+    print(
+        f"Scaling approximation supported (threshold {DEVIATION_THRESHOLD:.0e}): "
+        f"{scaling_approximation_supported}"
+    )
     print(f"Written to {output_dir}")
 
     if not scaling_approximation_supported:
