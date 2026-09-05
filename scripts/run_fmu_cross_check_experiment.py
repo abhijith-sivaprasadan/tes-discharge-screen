@@ -12,9 +12,9 @@ been silently blocking every earlier load attempt) contains only a
 Wine. It is meant to be run on whatever machine holds a working FMU plus a
 Python environment with this project installed (`pip install -e .` or
 `uv sync`) -- Windows, in the case that produced the FMU checked into this
-repository's history. `tes_screen.fmu.simulate_fmu` already fails loudly,
-not silently, when `fmpy` or a matching binary is unavailable; this script
-adds nothing to change that.
+repository's history. `tes_screen.fmu.simulate_fmu_staged` already fails
+loudly, not silently, when `fmpy` or a matching binary is unavailable; this
+script adds nothing to change that.
 
 Both halves of the comparison use the exact same physical scenario, chosen
 to match `modelica/tes_screen/package.mo`'s own default parameters exactly
@@ -39,6 +39,21 @@ formula `simulate_discharge` uses internally
 over time) rather than comparing a quantity the FMU never actually output,
 so "relative energy deviation" stays an apples-to-apples check on both
 sides.
+
+A real first run against the compiled FMU (at a uniform 60s communication
+step) blew up (`fmi2GetReal failed`, `a=inf`); a real second run (at a
+uniform 0.05s step) blew up too, to ~1e10 C by t=6.6s, before *recovering*
+and matching the shadow twin to <1e-3 C for the rest of an 1800s run --
+diagnosing this as a transient numerical artifact specific to the sudden
+t=0 step change in inlet temperature (fluidCapacityPerVolume is ~4600x
+below solidCapacityPerVolume, driving an extremely fast inlet
+boundary-layer transient), not a persistent instability, since the same
+0.05s step stayed accurate for the following ~1780s without drift. This
+script therefore uses `tes_screen.fmu.simulate_fmu_staged` with two
+segments: a short window at the FMU's own advertised
+`DefaultExperiment stepSize` (0.002s) to get safely past that transient,
+then the already-validated coarser step for the remainder -- see that
+function's own docstring for the full reasoning.
 """
 
 from __future__ import annotations
@@ -54,7 +69,7 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from tes_screen.fmu import simulate_fmu  # noqa: E402
+from tes_screen.fmu import simulate_fmu_staged  # noqa: E402
 from tes_screen.packed_bed_dynamics import (  # noqa: E402
     default_packed_bed_config,
     simulate_discharge,
@@ -65,19 +80,14 @@ INLET_TEMPERATURE_C = 320.0  # package.mo's inletTemperature (T_return)
 INITIAL_BED_TEMPERATURE_C = 400.0  # package.mo's initialBedTemperature
 FIXED_H_V_W_PER_M3K = 5800.0  # package.mo's volumetricHeatTransferCoefficient
 STOP_TIME_HOURS = 8.0
-# For a Co-Simulation FMU, fmpy's `output_interval` *is* the communication
-# step size handed to the FMU's own doStep() -- there is no separate finer
-# internal integration happening underneath in this code path. This model
-# is numerically stiff (fluid thermal capacity ~4600x below the rock's:
-# fluidCapacityPerVolume=245 vs solidCapacityPerVolume=1.14e6 J/(m3.K)),
-# and a first attempt at 60s blew up (`fmi2GetReal failed`, `a=inf`) well
-# before the 8h window finished. The FMU's own modelDescription.xml
-# publishes `DefaultExperiment stepSize="0.002"` -- 30,000x smaller than
-# that first attempt -- as its author-recommended stable step; this default
-# is a pragmatic middle ground, not that exact value (which would take
-# millions of doStep calls), meant to be tuned down further via
-# --output-interval-s if it still diverges.
-OUTPUT_INTERVAL_S = 0.05
+# The FMU's own modelDescription.xml publishes
+# `DefaultExperiment stepSize="0.002"`; used only through TRANSIENT_WINDOW_S
+# (see simulate_fmu_staged's docstring for why), which is a >3x margin over
+# the ~20-25s the real diagnostic run took to recover and start matching the
+# shadow twin again.
+TRANSIENT_WINDOW_S = 90.0
+TRANSIENT_STEP_S = 0.002
+BULK_STEP_S = 0.05  # validated stable for the full remainder of a real 1800s run
 TWIN_DT_S = 14.4  # dt at the original 8h/2000-step design point, held fixed as stop-time changes
 
 
@@ -116,17 +126,30 @@ def main() -> None:
         type=float,
         default=STOP_TIME_HOURS,
         help="Discharge duration to simulate. Use a short window (e.g. 0.5) to "
-        "quickly check that a given --output-interval-s is numerically stable "
-        "before committing to the full run.",
+        "quickly check that --transient-window-s/--transient-step-s/--bulk-step-s "
+        "are numerically stable before committing to the full run.",
     )
     parser.add_argument(
-        "--output-interval-s",
+        "--transient-window-s",
         type=float,
-        default=OUTPUT_INTERVAL_S,
-        help="Communication step size handed to the FMU's doStep() -- for this "
-        "Co-Simulation FMU there is no separate finer internal step, so this "
-        "IS the integration step. Shrink it if fmpy raises "
-        "'fmi2GetReal failed'/'division leads to inf or nan'.",
+        default=TRANSIENT_WINDOW_S,
+        help="How long (from t=0) to use --transient-step-s before switching to "
+        "--bulk-step-s. Widen this if the FMU still produces huge/non-finite "
+        "values past the current window.",
+    )
+    parser.add_argument(
+        "--transient-step-s",
+        type=float,
+        default=TRANSIENT_STEP_S,
+        help="Communication step size used through --transient-window-s, to get "
+        "safely past the fast t=0 inlet boundary-layer transient. Shrink further "
+        "if the run still produces huge/non-finite values.",
+    )
+    parser.add_argument(
+        "--bulk-step-s",
+        type=float,
+        default=BULK_STEP_S,
+        help="Communication step size used from --transient-window-s to the end of the run.",
     )
     parser.add_argument(
         "--csv-max-rows",
@@ -143,12 +166,11 @@ def main() -> None:
         raise FileNotFoundError(f"FMU not found: {args.fmu}")
 
     stop_time_s = args.stop_time_hours * 3600.0
-    fmu_frame = simulate_fmu(
-        args.fmu, stop_time_s=stop_time_s, output_interval=args.output_interval_s
-    )
-    fmu_frame = fmu_frame.rename(
-        columns={"time": "time_s", "outletTemperature": "outlet_temperature_c"}
-    )
+    transient_window_s = min(args.transient_window_s, stop_time_s)
+    segments = [(transient_window_s, args.transient_step_s)]
+    if stop_time_s > transient_window_s:
+        segments.append((stop_time_s, args.bulk_step_s))
+    fmu_frame = simulate_fmu_staged(args.fmu, segments=segments)
 
     twin_result = simulate_discharge(
         default_packed_bed_config(),
@@ -245,7 +267,9 @@ def main() -> None:
             "initial_bed_temperature_c": INITIAL_BED_TEMPERATURE_C,
             "fixed_h_v_w_per_m3k": FIXED_H_V_W_PER_M3K,
             "stop_time_hours": args.stop_time_hours,
-            "output_interval_s": args.output_interval_s,
+            "transient_window_s": transient_window_s,
+            "transient_step_s": args.transient_step_s,
+            "bulk_step_s": args.bulk_step_s,
             "twin_n_steps": max(1, round(stop_time_s / TWIN_DT_S)),
         },
         "max_absolute_outlet_temperature_deviation_c": max_abs_deviation_c,

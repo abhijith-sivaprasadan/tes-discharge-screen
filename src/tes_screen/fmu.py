@@ -97,6 +97,90 @@ def simulate_fmu(fmu: Path, stop_time_s: float, output_interval: float = 60.0) -
     return frame
 
 
+def simulate_fmu_staged(fmu: Path, segments: list[tuple[float, float]]) -> pd.DataFrame:
+    """Run the FMU's own Co-Simulation solver with a *variable* communication
+    step size across explicit time segments, rather than `simulate_fmu`'s one
+    uniform step for the whole run.
+
+    `segments` is a list of `(segment_end_time_s, communication_step_s)`
+    pairs, each applied from wherever the previous segment left off (or from
+    t=0 for the first) up to `segment_end_time_s`.
+
+    This exists because `simulate_fmu`'s single uniform `output_interval`
+    genuinely cannot serve `PackedBedThermocline`: a real P4.2 run against
+    the compiled FMU, at a uniform 0.05 s step, blew up to ~1e10 C by
+    t=6.6s -- fluidCapacityPerVolume (245 J/(m3.K)) is ~4600x below
+    solidCapacityPerVolume (1.14e6), so the sudden t=0 step change from a
+    uniform 400 C bed to a 320 C inlet drives an extremely fast inlet
+    boundary-layer transient -- then recovered and matched the Python
+    shadow twin to <1e-3 C for the rest of that 1800 s run once past it.
+    That same 0.05 s step is therefore already confirmed safe for the
+    quasi-steady remainder of an arbitrarily long discharge (validated
+    against 36,000 consecutive steps with no drift); only the initial
+    transient itself needs the much finer step the FMU's own
+    `modelDescription.xml` already recommends
+    (`DefaultExperiment stepSize="0.002"`). Running that fine step for an
+    entire multi-hour discharge is impractical (tens of millions of
+    `doStep` calls); running it only through the transient, then the
+    already-validated coarser step for the rest, is.
+
+    Uses fmpy's low-level `FMU2Slave` interface, not the `simulate_fmu`
+    convenience wrapper (which only accepts one uniform step). Requires
+    fmpy. Returns a DataFrame with `time_s` and `outlet_temperature_c`
+    columns (unlike `simulate_fmu`'s raw `time`/`outletTemperature`).
+    """
+
+    import fmpy  # type: ignore[import-untyped]
+    from fmpy.fmi2 import FMU2Slave  # type: ignore[import-untyped]
+
+    if not segments:
+        raise ValueError("segments must be non-empty")
+
+    model_description = fmpy.read_model_description(str(fmu))
+    output_vr = next(
+        variable.valueReference
+        for variable in model_description.modelVariables
+        if variable.name == "outletTemperature"
+    )
+    stop_time_s = segments[-1][0]
+
+    unzipdir = fmpy.extract(str(fmu))
+    try:
+        instance = FMU2Slave(
+            guid=model_description.guid,
+            unzipDirectory=unzipdir,
+            modelIdentifier=model_description.coSimulation.modelIdentifier,
+            instanceName="tes_screen_cross_check",
+        )
+        instance.instantiate()
+        instance.setupExperiment(startTime=0.0, stopTime=stop_time_s)
+        instance.enterInitializationMode()
+        instance.exitInitializationMode()
+
+        time_s = [0.0]
+        outlet_temperature_c = [instance.getReal([output_vr])[0]]
+        current_time = 0.0
+        for segment_end_s, step_s in segments:
+            if step_s <= 0:
+                raise ValueError("every segment step size must be positive")
+            while current_time < segment_end_s - 1e-9:
+                step = min(step_s, segment_end_s - current_time)
+                instance.doStep(currentCommunicationPoint=current_time, communicationStepSize=step)
+                current_time += step
+                time_s.append(current_time)
+                outlet_temperature_c.append(instance.getReal([output_vr])[0])
+
+        instance.terminate()
+        instance.freeInstance()
+    finally:
+        shutil.rmtree(unzipdir, ignore_errors=True)
+
+    frame = pd.DataFrame({"time_s": time_s, "outlet_temperature_c": outlet_temperature_c})
+    if frame.empty or not np.isfinite(frame.to_numpy(dtype=float)).all():
+        raise ValueError("FMU output is empty or non-finite")
+    return frame
+
+
 def write_build_receipt(receipt: dict[str, Any], path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
