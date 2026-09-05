@@ -1377,6 +1377,61 @@ therefore conditional not just on the CAPEX figures' own mixed [assumption]/
 on an unequal verification and completeness depth between technologies
 that a boundary table alone cannot fix -- only make visible.
 
+### D.2: Morris global sensitivity screening
+
+**Every prior sensitivity result in this repository (P5) is one-at-a-
+time.** Morris elementary-effects screening (SALib) perturbs all five
+factors the spec names together, along randomized trajectories through
+the whole space at once: `economics.storage_capex_eur_per_mwh` (0.5x-2x),
+a multiplier on the Wakao-Kaguei correlation's own `h_v` output (0.5x-2x,
+via `simulate_discharge`'s existing override parameter), `discount_rate`
+(3%-10%), electricity price volatility (0.5x-2x daily amplitude), and
+`theta_req` (P6's own dimensionless temperature-quality axis, reused
+directly, spanning -0.25 to 0.9). Response: the SOC-dependent-vs-constant
+annual-cost bias %, packed bed only, tau=6h, flat profile. 8 trajectories
+x 6 (5 factors + baseline) = 48 sample points, 96 solves, all `optimal`
+and independently verified.
+
+| Factor | mu_star (mean absolute effect) | sigma (nonlinearity/interaction) |
+|---|---:|---:|
+| **theta_req** | **7.14** | **8.02** |
+| energy_capex_multiplier | 0.607 | 0.907 |
+| discount_rate | 0.424 | 0.586 |
+| price_volatility_multiplier | 0.0198 | 0.0055 |
+| h_v_multiplier | 0.0022 | 0.0019 |
+
+**The temperature-quality requirement dominates every other factor by
+more than an order of magnitude, and its own screening confirms --
+quantitatively, not just visually -- the cliff P6 already found.**
+`theta_req`'s `mu_star` (7.14) is roughly 12x the next-largest factor
+(energy CAPEX, 0.607), and its `sigma` *exceeds* its own `mu_star` (8.02
+vs. 7.14) -- Morris's own standard signature of a highly nonlinear,
+interaction-heavy effect, not a smooth, additive one, exactly what a
+screening should show for a factor whose effect is "small everywhere
+except past a cliff" rather than "proportionally large everywhere."
+Energy CAPEX and discount rate have real, moderate, roughly comparable
+effects, both still over an order of magnitude below `theta_req`. Price
+volatility and -- notably -- **the heat transfer coefficient itself are
+essentially negligible** (`h_v_multiplier`'s `mu_star` is over 3,000x
+smaller than `theta_req`'s): even deliberately doubling or halving the
+Wakao-Kaguei correlation's own output barely moves the SOC-dependent-vs-
+constant cost bias at this reference bed's scale, a quantitative
+confirmation of P3.1's own qualitative finding that this project's
+sizing/cost decision is robust to the underlying heat-transfer physics'
+own precise magnitude, even though the raw curve shape is not.
+
+**Scope, stated plainly**: packed bed only, one duration, one profile --
+`h_v` and `theta_req` are both thermocline-specific concepts that do not
+transfer to molten salt or PCM without their own separate
+parameterisation, and this screens what drives the *size* of the fidelity
+correction for the one technology this project's dynamic-modelling
+apparatus was built around, not a cross-technology ranking-change Sobol
+study (a substantially larger undertaking the spec's own wording, "Sobol
+*or* Morris," does not require choosing). Every number traces to
+`outputs/morris_sensitivity/run_manifest.json`: all 48 samples, their
+responses, and the full Morris analysis output (`mu`, `mu_star`,
+`mu_star_conf`, `sigma` for every factor).
+
 ### D.3: technology-selection map
 
 **Extends Phase C3's single-duration technology ranking (packed bed
@@ -1546,16 +1601,21 @@ temperature-quality requirement gets high enough, with the exact
 threshold depending on design duration; this project's own actual case
 configs sit safely outside that regime, which is itself a finding, not an
 evasion) -> D (harmonised comparison and sensitivity, TES_SCREEN_SPEC.md
-section 7: D.1 boundary harmonisation table done -- surfaces a real,
-stated inconsistency in parasitic-load and verification depth across
-technologies rather than resolving one; D.3 technology-selection map done
--- packed bed cheapest at every one of 25 (technology, temperature,
-duration) combinations tested, extending C3's ranking-never-flips finding
-across the full duration dimension; D.2 Morris global sensitivity
-screening in progress as of this commit). Real ENTSO-E price data (the
-roadmap's own P7) is being pulled forward ahead of its default
-sequencing, at explicit user request; not yet wired in as of this commit
-(pending an ENTSOE_API_KEY).
+section 7, done in full: D.1 boundary harmonisation table -- surfaces a
+real, stated inconsistency in parasitic-load and verification depth
+across technologies rather than resolving one; D.2 Morris global
+sensitivity screening -- theta_req dominates every other factor
+(material cost, heat transfer coefficient, discount rate, price
+volatility) by more than an order of magnitude, quantitatively confirming
+P6's own cliff with a nonlinearity signature (sigma > mu_star) rather than
+a smooth effect, while the heat transfer coefficient itself is essentially
+negligible to the sizing decision; D.3 technology-selection map -- packed
+bed cheapest at every one of 25 (technology, temperature, duration)
+combinations tested, extending C3's ranking-never-flips finding across
+the full duration dimension). Real ENTSO-E price data (the roadmap's own
+P7) is being pulled forward ahead of its default sequencing, at explicit
+user request; not yet wired in as of this commit (pending an
+ENTSOE_API_KEY).
 
 ## Development
 

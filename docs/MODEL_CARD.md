@@ -1,6 +1,6 @@
 # Model card
 
-## Status: Phase 0, A, B (packed bed with full verification; molten salt and PCM with closed-form sub-models only), P0.3 (state-sufficiency test), C (MVP scope, archived), C2 (matched-duration fix, packed bed only), P0.4 (start-of-hour capability fix), P0.5 (MILP cycling prevention), C3 (full technology-ranking matrix), P2.1 (duration-family capability curves), P3.1-P3.3 (discretisation convergence, correlation-domain checks, Ergun pressure drop/blower power), P5 (economics sensitivity), and P6 (model-fidelity decision map) built; P4 (FMU/Modelica verification) confirmed blocked by environment constraints, not attempted
+## Status: Phase 0, A, B (packed bed with full verification; molten salt and PCM with closed-form sub-models only), P0.3 (state-sufficiency test), C (MVP scope, archived), C2 (matched-duration fix, packed bed only), P0.4 (start-of-hour capability fix), P0.5 (MILP cycling prevention), C3 (full technology-ranking matrix), P2.1 (duration-family capability curves), P3.1-P3.3 (discretisation convergence, correlation-domain checks, Ergun pressure drop/blower power), P5 (economics sensitivity), P6 (model-fidelity decision map), and Phase D (boundary harmonisation table, Morris global sensitivity screening, technology-selection map) built; P4 (FMU/Modelica verification) confirmed blocked by environment constraints, not attempted
 
 This card documents what is actually built at this commit, not what the project
 intends to build. It will be rewritten section by section as each phase lands,
@@ -507,8 +507,22 @@ economic value in PCM than the no-storage baseline while the SOC-dependent
 formulation still lands on exactly the no-storage cost at every duration
 -- a small-scale illustration of this project's own central theme, never
 changing which technology wins overall. **D.2, Morris global sensitivity
-screening**: in progress as of this commit; see the next commit for its
-own findings.
+screening (`scripts/run_morris_sensitivity_experiment.py`, SALib)**: done
+-- perturbs all five spec-named factors together (material cost, heat
+transfer coefficient via `simulate_discharge`'s own h_v override,
+discount rate, price volatility, `theta_req` reusing P6's own axis)
+along 8 randomized trajectories, 48 sample points, 96 solves, all
+verified. Response: SOC-dependent-vs-constant cost bias, packed bed only,
+tau=6h, flat profile. **`theta_req` dominates every other factor by more
+than an order of magnitude** (`mu_star` 7.14 vs. energy CAPEX's 0.607 and
+discount rate's 0.424), with `sigma` (8.02) exceeding its own `mu_star` --
+Morris's own signature of a highly nonlinear, cliff-like effect, not a
+smooth one -- quantitatively confirming P6's own finding rather than
+merely restating it. Price volatility and the heat transfer coefficient
+itself are both essentially negligible (`h_v_multiplier`'s `mu_star` is
+over 3,000x smaller than `theta_req`'s), a quantitative confirmation of
+P3.1's own qualitative finding that the sizing/cost decision is robust to
+h_v's precise magnitude even though the raw curve shape is not.
 
 ## What does not exist yet
 
@@ -566,10 +580,6 @@ own findings.
   (6h) and one set of capex assumptions C3 tested; whether a different
   duration or a different PCM capex figure would make it competitive
   enough to actually exercise the SOC-dependent correction is not tested.
-- **Phase D's Morris global sensitivity screening (D.2).** Written
-  (`scripts/run_morris_sensitivity_experiment.py`) and running as of this
-  commit; D.1 (boundary harmonisation table) and D.3 (technology-selection
-  map) are done, above.
 - **A `theta_req`-equivalent axis for molten salt or PCM.** P6's own
   `theta_req` (packed-bed thermocline-specific) does not transfer directly
   to molten salt (no thermocline) or PCM (a different, three-regime
