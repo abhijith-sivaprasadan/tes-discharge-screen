@@ -1,5 +1,5 @@
 within ;
-package TesScreen
+package tes_screen
   "Techno-economic screening of thermal storage for industrial process heat: Phase B dynamic sub-models"
 
   model PackedBedThermocline
@@ -81,4 +81,4 @@ package TesScreen
     current status, and docs/DATA.md for every cited material property.</p>
     </html>"));
   end PackedBedThermocline;
-end TesScreen;
+end tes_screen;

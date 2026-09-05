@@ -38,4 +38,4 @@ def test_build_script_requests_fmi2_cosimulation() -> None:
     assert 'version="2.0"' in script
     assert 'fmuType="cs"' in script
     assert 'fileNamePrefix="PackedBedThermocline"' in script
-    assert "TesScreen.PackedBedThermocline" in script
+    assert "tes_screen.PackedBedThermocline" in script

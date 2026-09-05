@@ -2,7 +2,7 @@ loadModel(Modelica);
 loadFile("../../modelica/tes_screen/package.mo");
 getErrorString();
 buildModelFMU(
-  TesScreen.PackedBedThermocline,
+  tes_screen.PackedBedThermocline,
   version="2.0",
   fmuType="cs",
   fileNamePrefix="PackedBedThermocline"
