@@ -2,182 +2,257 @@
   "any_ranking_flip": false,
   "cases": [
     {
-      "constant_total_cost_eur": 4019225.7576464945,
-      "soc_total_cost_eur": 4019225.7576464945,
+      "blower_specific_power_mw_per_mw": 0.08639691593968564,
+      "constant_blower_cost_eur": 57899.08091916242,
+      "constant_total_cost_eur": 4088011.2222764264,
+      "soc_blower_cost_eur": 57899.08091916242,
+      "soc_total_cost_eur": 4088011.2222764264,
       "tau_hours": 2.0,
       "technology": "packed_bed",
       "temperature_c": 300.0
     },
     {
-      "constant_total_cost_eur": 4000234.86251605,
-      "soc_total_cost_eur": 4000235.8861893956,
+      "blower_specific_power_mw_per_mw": 0.02306816866036436,
+      "constant_blower_cost_eur": 20774.823893915687,
+      "constant_total_cost_eur": 4021727.1709604883,
+      "soc_blower_cost_eur": 20775.61500137114,
+      "soc_total_cost_eur": 4021728.858039728,
       "tau_hours": 4.0,
       "technology": "packed_bed",
       "temperature_c": 300.0
     },
     {
-      "constant_total_cost_eur": 3993618.078114234,
-      "soc_total_cost_eur": 3994416.321542864,
+      "blower_specific_power_mw_per_mw": 0.010905381482581031,
+      "constant_blower_cost_eur": 10488.776431064854,
+      "constant_total_cost_eur": 4004309.699509225,
+      "soc_blower_cost_eur": 10532.121724465238,
+      "soc_total_cost_eur": 4005145.3173332224,
       "tau_hours": 6.0,
       "technology": "packed_bed",
       "temperature_c": 300.0
     },
     {
-      "constant_total_cost_eur": 3992555.333523555,
-      "soc_total_cost_eur": 3993991.3590774583,
+      "blower_specific_power_mw_per_mw": 0.006501512002812566,
+      "constant_blower_cost_eur": 6475.588507153113,
+      "constant_total_cost_eur": 3999110.6499786545,
+      "soc_blower_cost_eur": 6526.321596575835,
+      "soc_total_cost_eur": 4000586.7555570058,
       "tau_hours": 8.0,
       "technology": "packed_bed",
       "temperature_c": 300.0
     },
     {
-      "constant_total_cost_eur": 3996426.9931355994,
-      "soc_total_cost_eur": 3997959.3045858187,
+      "blower_specific_power_mw_per_mw": 0.003215991929126242,
+      "constant_blower_cost_eur": 3327.5074212750123,
+      "constant_total_cost_eur": 3999776.603979788,
+      "soc_blower_cost_eur": 3301.7112654426837,
+      "soc_total_cost_eur": 4001281.842751576,
       "tau_hours": 12.0,
       "technology": "packed_bed",
       "temperature_c": 300.0
     },
     {
-      "constant_total_cost_eur": 4019225.7576464945,
-      "soc_total_cost_eur": 4019225.7576464945,
+      "blower_specific_power_mw_per_mw": 0.08639691593968564,
+      "constant_blower_cost_eur": 57899.08091916242,
+      "constant_total_cost_eur": 4088011.2222764264,
+      "soc_blower_cost_eur": 57899.08091916242,
+      "soc_total_cost_eur": 4088011.2222764264,
       "tau_hours": 2.0,
       "technology": "packed_bed",
       "temperature_c": 400.0
     },
     {
-      "constant_total_cost_eur": 4000234.86251605,
-      "soc_total_cost_eur": 4000235.8861893956,
+      "blower_specific_power_mw_per_mw": 0.02306816866036436,
+      "constant_blower_cost_eur": 20774.823893915687,
+      "constant_total_cost_eur": 4021727.1709604883,
+      "soc_blower_cost_eur": 20775.61500137114,
+      "soc_total_cost_eur": 4021728.858039728,
       "tau_hours": 4.0,
       "technology": "packed_bed",
       "temperature_c": 400.0
     },
     {
-      "constant_total_cost_eur": 3993618.078114234,
-      "soc_total_cost_eur": 3994416.321542864,
+      "blower_specific_power_mw_per_mw": 0.010905381482581031,
+      "constant_blower_cost_eur": 10488.776431064854,
+      "constant_total_cost_eur": 4004309.699509225,
+      "soc_blower_cost_eur": 10532.121724465223,
+      "soc_total_cost_eur": 4005145.317333224,
       "tau_hours": 6.0,
       "technology": "packed_bed",
       "temperature_c": 400.0
     },
     {
-      "constant_total_cost_eur": 3992555.333523555,
-      "soc_total_cost_eur": 3993991.35907746,
+      "blower_specific_power_mw_per_mw": 0.006501512002812566,
+      "constant_blower_cost_eur": 6475.588507153113,
+      "constant_total_cost_eur": 3999110.6499786545,
+      "soc_blower_cost_eur": 6526.321596575839,
+      "soc_total_cost_eur": 4000586.755557005,
       "tau_hours": 8.0,
       "technology": "packed_bed",
       "temperature_c": 400.0
     },
     {
-      "constant_total_cost_eur": 3996426.9931355994,
-      "soc_total_cost_eur": 3997959.304571746,
+      "blower_specific_power_mw_per_mw": 0.003215991929126242,
+      "constant_blower_cost_eur": 3327.5074212750123,
+      "constant_total_cost_eur": 3999776.603979788,
+      "soc_blower_cost_eur": 3301.7112654426837,
+      "soc_total_cost_eur": 4001281.842751576,
       "tau_hours": 12.0,
       "technology": "packed_bed",
       "temperature_c": 400.0
     },
     {
+      "blower_specific_power_mw_per_mw": null,
+      "constant_blower_cost_eur": 0.0,
       "constant_total_cost_eur": 4121762.0825910284,
+      "soc_blower_cost_eur": 0.0,
       "soc_total_cost_eur": 4121762.0825910284,
       "tau_hours": 2.0,
       "technology": "molten_salt",
       "temperature_c": 300.0
     },
     {
+      "blower_specific_power_mw_per_mw": null,
+      "constant_blower_cost_eur": 0.0,
       "constant_total_cost_eur": 4087778.804731059,
+      "soc_blower_cost_eur": 0.0,
       "soc_total_cost_eur": 4087778.804731059,
       "tau_hours": 4.0,
       "technology": "molten_salt",
       "temperature_c": 300.0
     },
     {
+      "blower_specific_power_mw_per_mw": null,
+      "constant_blower_cost_eur": 0.0,
       "constant_total_cost_eur": 4075713.2585656545,
+      "soc_blower_cost_eur": 0.0,
       "soc_total_cost_eur": 4075957.3385042157,
       "tau_hours": 6.0,
       "technology": "molten_salt",
       "temperature_c": 300.0
     },
     {
+      "blower_specific_power_mw_per_mw": null,
+      "constant_blower_cost_eur": 0.0,
       "constant_total_cost_eur": 4071479.6297492287,
+      "soc_blower_cost_eur": 0.0,
       "soc_total_cost_eur": 4072184.0302967597,
       "tau_hours": 8.0,
       "technology": "molten_salt",
       "temperature_c": 300.0
     },
     {
+      "blower_specific_power_mw_per_mw": null,
+      "constant_blower_cost_eur": 0.0,
       "constant_total_cost_eur": 4093388.1595696295,
+      "soc_blower_cost_eur": 0.0,
       "soc_total_cost_eur": 4093957.6217362876,
       "tau_hours": 12.0,
       "technology": "molten_salt",
       "temperature_c": 300.0
     },
     {
+      "blower_specific_power_mw_per_mw": null,
+      "constant_blower_cost_eur": 0.0,
       "constant_total_cost_eur": 4121762.0825910284,
+      "soc_blower_cost_eur": 0.0,
       "soc_total_cost_eur": 4121762.0825910284,
       "tau_hours": 2.0,
       "technology": "molten_salt",
       "temperature_c": 400.0
     },
     {
+      "blower_specific_power_mw_per_mw": null,
+      "constant_blower_cost_eur": 0.0,
       "constant_total_cost_eur": 4087778.804731059,
+      "soc_blower_cost_eur": 0.0,
       "soc_total_cost_eur": 4087778.804731059,
       "tau_hours": 4.0,
       "technology": "molten_salt",
       "temperature_c": 400.0
     },
     {
+      "blower_specific_power_mw_per_mw": null,
+      "constant_blower_cost_eur": 0.0,
       "constant_total_cost_eur": 4075713.2585656545,
+      "soc_blower_cost_eur": 0.0,
       "soc_total_cost_eur": 4075957.3385042157,
       "tau_hours": 6.0,
       "technology": "molten_salt",
       "temperature_c": 400.0
     },
     {
+      "blower_specific_power_mw_per_mw": null,
+      "constant_blower_cost_eur": 0.0,
       "constant_total_cost_eur": 4071479.6297492287,
+      "soc_blower_cost_eur": 0.0,
       "soc_total_cost_eur": 4072184.0302967597,
       "tau_hours": 8.0,
       "technology": "molten_salt",
       "temperature_c": 400.0
     },
     {
+      "blower_specific_power_mw_per_mw": null,
+      "constant_blower_cost_eur": 0.0,
       "constant_total_cost_eur": 4093388.1595696295,
+      "soc_blower_cost_eur": 0.0,
       "soc_total_cost_eur": 4093957.6217362876,
       "tau_hours": 12.0,
       "technology": "molten_salt",
       "temperature_c": 400.0
     },
     {
+      "blower_specific_power_mw_per_mw": null,
+      "constant_blower_cost_eur": 0.0,
       "constant_total_cost_eur": 4172676.2783046854,
+      "soc_blower_cost_eur": 0.0,
       "soc_total_cost_eur": 4178028.841601672,
       "tau_hours": 2.0,
       "technology": "pcm",
       "temperature_c": 300.0
     },
     {
+      "blower_specific_power_mw_per_mw": null,
+      "constant_blower_cost_eur": 0.0,
       "constant_total_cost_eur": 4176566.6061148867,
+      "soc_blower_cost_eur": 0.0,
       "soc_total_cost_eur": 4178028.841601672,
       "tau_hours": 4.0,
       "technology": "pcm",
       "temperature_c": 300.0
     },
     {
+      "blower_specific_power_mw_per_mw": null,
+      "constant_blower_cost_eur": 0.0,
       "constant_total_cost_eur": 4178028.841601672,
+      "soc_blower_cost_eur": 0.0,
       "soc_total_cost_eur": 4178028.841601672,
       "tau_hours": 6.0,
       "technology": "pcm",
       "temperature_c": 300.0
     },
     {
+      "blower_specific_power_mw_per_mw": null,
+      "constant_blower_cost_eur": 0.0,
       "constant_total_cost_eur": 4178028.841601672,
+      "soc_blower_cost_eur": 0.0,
       "soc_total_cost_eur": 4178028.841601672,
       "tau_hours": 8.0,
       "technology": "pcm",
       "temperature_c": 300.0
     },
     {
+      "blower_specific_power_mw_per_mw": null,
+      "constant_blower_cost_eur": 0.0,
       "constant_total_cost_eur": 4178028.841601672,
+      "soc_blower_cost_eur": 0.0,
       "soc_total_cost_eur": 4178028.841601672,
       "tau_hours": 12.0,
       "technology": "pcm",
       "temperature_c": 300.0
     }
   ],
-  "conditional_on_note": "This map is conditional on the boundaries tabulated in docs/RESULTS.md's Phase D boundary-harmonisation table, not an absolute technology ranking -- per the spec's own explicit instruction. In particular: cost figures mix literature-cited and [assumption] values with different confidence levels across technologies, and only packed bed has any computed parasitic-load estimate (P3.3's blower power) at all, not wired into any technology's cost here.",
+  "conditional_on_note": "This map is conditional on the boundaries tabulated in docs/RESULTS.md's Phase D boundary-harmonisation table, not an absolute technology ranking -- per the spec's own explicit instruction. In particular: cost figures mix literature-cited and [assumption] values with different confidence levels across technologies, and only packed bed has any computed parasitic-load estimate (P3.3's blower power) at all -- now actually charged to its own operating cost (dispatch.py's blower_specific_power_mw_per_mw, applied identically to both the constant and soc-dependent legs of every packed-bed case here), where before it was computed and reported but not wired into any technology's cost. Molten salt and PCM still have none modelled at all -- that asymmetry remains, stated, not resolved.",
   "durations_hours": [
     2.0,
     4.0,
@@ -185,7 +260,7 @@
     8.0,
     12.0
   ],
-  "generated_at": "2026-09-05T12:58:30.180144+00:00",
+  "generated_at": "2026-09-05T21:56:45.752500+00:00",
   "profile_shape": "flat",
   "ranking_table": [
     {

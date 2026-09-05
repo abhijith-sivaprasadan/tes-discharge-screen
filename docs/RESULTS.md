@@ -1520,12 +1520,33 @@ and both discharge-limit formulations solved duration-matched. 25
 
 **Packed bed is cheapest everywhere in this map, under both
 formulations, at every duration tested -- the ranking does not flip
-anywhere.** This is consistent with, and extends, C3's own finding: the
+anywhere, including with its own blower parasitic-load cost now priced
+in.** This is consistent with, and extends, C3's own finding: the
 technology-cost gaps this project's own boundary-harmonisation table
 above already flags as resting on unequal CAPEX confidence levels
 (packed bed's own 7,000 EUR/MWh-th vs. PCM's 80,000 EUR/MWh-th, over an
 order of magnitude apart) are simply too large for any duration-dependent
 sizing effect within this map to close.
+
+**The blower fix bites hardest exactly where the ranking margin is
+thinnest, and the ranking still survives -- the sharpest test this
+project can currently run of the fairness concern the fix addresses.**
+The blower ratio itself rises sharply at short durations (Ergun's
+pressure drop is superlinear in mass flow): 0.32% of thermal power at
+12h, 0.65% at 8h, 1.09% at 6h, 2.31% at 4h, **8.64% at 2h** -- the same
+figure P3.3's own diagnostic reports. That drives packed bed's own
+2h-duration cost up from 4,019,226 EUR/yr (before this fix) to
+4,088,011 EUR/yr after, a 1.7% increase and by far the largest of any
+duration tested (12h: +0.08%; 8h: +0.16%; 6h: +0.27%; 4h: +0.54%) --
+monotonically larger as duration shortens, tracking the blower ratio
+itself exactly. At that same 2h point, packed bed's own margin over the
+next cheapest technology (molten salt, 4,121,762 EUR/yr) narrows to
+33,751 EUR/yr (0.8%), noticeably thinner than the 6h point's own
+71,403 EUR/yr (1.8%) margin -- **still comfortably in packed bed's favour,
+but the closest this project's own evidence comes to where a more
+severe parasitic-load model, or a technology-selection map extended to
+even shorter durations, could plausibly find a flip this one does not
+reach.**
 
 **One secondary nuance the duration sweep surfaces that C3's single tau=6h
 point did not:** PCM's own "priced out entirely, exactly matching the no-
@@ -1546,6 +1567,9 @@ cannot actually deliver.
 **Explicitly a conditional map, not an absolute one**, per the spec's own
 instruction: conditional on every boundary tabulated in D.1 above,
 including the stated unequal CAPEX citation confidence and unequal
-parasitic-load/verification depth between technologies. Every number
-traces to `outputs/technology_selection_map/run_manifest.json`.
+parasitic-load/verification depth between technologies -- narrower than
+before now that packed bed's own blower cost is priced here too, but
+still real: molten salt and PCM have no parasitic-load model of any kind
+at any duration in this map. Every number traces to
+`outputs/technology_selection_map/run_manifest.json`.
 

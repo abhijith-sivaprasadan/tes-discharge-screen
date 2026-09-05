@@ -61,7 +61,7 @@ summary, not the full story.
 | [P4](docs/RESULTS.md#p4-fmumodelica-verification----done-run-outside-this-environment) | Done (run outside this sandbox) | FMU-vs-Python-twin cross-check over an 8h discharge: **0.23% max temperature deviation, 0.0029% relative energy deviation.** The roadmap's own "single strongest verification story." |
 | [P5](docs/RESULTS.md#p5-economics-sensitivity-not-one-assumed-number) | Done | SOC-dependent cost delta stays flat (+0.019% to +0.020%) across an 8x storage-power-CAPEX sweep; gas price is the single most powerful lever found. |
 | [P6](docs/RESULTS.md#p6-the-model-fidelity-decision-map) | Done | Annual objective mostly insensitive, but SOC-dependent sizing **collapses to zero** once the temperature-quality requirement crosses a threshold. This project's own configs sit safely outside that regime. |
-| [Phase D](docs/RESULTS.md#phase-d-harmonised-comparison-and-sensitivity) | Done | Boundary-harmonisation table; Morris sensitivity (temperature-quality dominates every other factor by >10x); technology-selection map (packed bed cheapest at all 25 combinations tested). |
+| [Phase D](docs/RESULTS.md#phase-d-harmonised-comparison-and-sensitivity) | Done | Boundary-harmonisation table; Morris sensitivity (temperature-quality dominates every other factor by >10x); technology-selection map (packed bed cheapest at all 25 combinations, with its own blower cost priced in -- margin narrows to 0.8% at the shortest 2h duration, where that cost is largest, but never flips). |
 | P7 (real ENTSO-E prices) | Not done | Pending `ENTSOE_API_KEY` registration; pulled forward ahead of default sequencing at explicit user request. |
 
 ## Governing rules

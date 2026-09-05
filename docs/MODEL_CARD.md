@@ -555,7 +555,15 @@ stated priority ("one technology fully verified beats three unfinished").
 Phase C3's single-duration ranking (tau=6h) across the full 2-temperature
 x 5-duration grid C2 sweeps, 25 combinations, 50 solves, all verified,
 including packed bed's own blower parasitic-load cost. Packed bed remains
-cheapest everywhere; the ranking never flips. A
+cheapest everywhere; the ranking never flips, though the margin narrows
+as duration shortens and the blower ratio rises (Ergun's pressure drop is
+superlinear in mass flow): 0.32% of thermal power at 12h up to 8.64% at
+2h, driving packed bed's own 2h-duration cost up 1.7% (before this fix:
+4,019,226 EUR/yr; after: 4,088,011) and its margin over molten salt down
+to 0.8% (33,751 EUR/yr) at 2h, versus 1.8% at 6h -- still a clear win, but
+the sharpest test this project's own evidence currently offers of the
+fairness concern the fix addresses. See docs/RESULTS.md's D.3 section for
+the full per-duration numbers. A
 secondary nuance the duration sweep surfaces: PCM's own "priced out
 entirely" finding (C3) holds at tau=6h and longer, but at shorter
 durations (2h, 4h) the constant-limit formulation finds slightly more
