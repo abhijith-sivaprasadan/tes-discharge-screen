@@ -2,12 +2,18 @@
 
 `find_omc()` keeps the OpenModelica toolchain optional rather than a hard
 dependency, exactly as it does there. This working environment has neither
-`omc` nor `fmpy` installed, so nothing in this module has been exercised:
-`modelica/tes_screen/package.mo`'s `PackedBedThermocline` model has been
-authored but not compiled, and the FMU-vs-shadow-twin cross-check that would
-be this project's strongest verification story (per the build spec's own
-words) has not been run. Every function here fails loudly and specifically
-when the toolchain is absent, rather than silently skipping.
+`omc` nor `fmpy` installed, so none of `build_fmu`/`simulate_fmu` has ever
+been exercised *here*: every function in this module fails loudly and
+specifically when the toolchain is absent, rather than silently skipping.
+`modelica/tes_screen/package.mo`'s `PackedBedThermocline` model has since
+been compiled outside this environment (OpenModelica/OMEdit, Windows),
+producing an FMI 2.0 Co-Simulation FMU with win64 binaries only -- this
+sandbox is Linux with no Wine, so it cannot load that FMU either. The
+FMU-vs-shadow-twin cross-check that would be this project's strongest
+verification story (per the build spec's own words) therefore runs outside
+this environment too: `scripts/run_fmu_cross_check_experiment.py`, on
+whatever machine holds a working FMU. See the project README for current
+status.
 """
 
 from __future__ import annotations

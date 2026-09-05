@@ -75,10 +75,14 @@ package tes_screen
     integrator. Cross-checking the two (OpenSteamOpt's verification pattern)
     requires exporting this model as an FMU via OpenModelica
     (scripts/build_packed_bed_fmu.mos, src/tes_screen/fmu.py); no
-    OpenModelica toolchain is available in this working environment, so that
-    cross-check has not been run, and this model has not itself been
-    compiled. See the project README and fmu.py's module docstring for
-    current status, and docs/DATA.md for every cited material property.</p>
+    OpenModelica toolchain is available in this working environment, so
+    that cross-check cannot be run here. It has been compiled successfully
+    outside this environment (OpenModelica/OMEdit, Windows), producing an
+    FMI 2.0 Co-Simulation FMU with win64 binaries only; running the actual
+    cross-check therefore also happens outside this environment
+    (scripts/run_fmu_cross_check_experiment.py). See the project README
+    and fmu.py's module docstring for current status, and docs/DATA.md for
+    every cited material property.</p>
     </html>"));
   end PackedBedThermocline;
 end tes_screen;

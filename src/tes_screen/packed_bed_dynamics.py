@@ -15,12 +15,15 @@ heat transfer coefficient, axial conduction neglected.
 
 This module is a "shadow twin" in OpenSteamOpt's sense: a transparent Python
 reimplementation meant to cross-check a compiled Modelica/FMU model
-(`modelica/tes_screen/PackedBedThermocline.mo`, `fmu.py`). No OpenModelica
-toolchain is available in this working environment (no `omc`, no `fmpy`), so
-that cross-check has not been run; see fmu.py and the project README. This
-module's own correctness instead rests on the three analytic limits in
-`tests/test_packed_bed_dynamics.py` (zero draw rate, infinite heat transfer
-coefficient reducing to a well-mixed tank, and exact energy conservation).
+(`modelica/tes_screen/package.mo`, `fmu.py`). No OpenModelica toolchain is
+available in this working environment (no `omc`, no `fmpy`), so that
+cross-check cannot be run here; the model has since been compiled outside
+this environment (Windows/OMEdit) and the cross-check runs there instead
+(`scripts/run_fmu_cross_check_experiment.py`); see fmu.py and the project
+README for current status. This module's own correctness instead rests on
+the three analytic limits in `tests/test_packed_bed_dynamics.py` (zero draw
+rate, infinite heat transfer coefficient reducing to a well-mixed tank, and
+exact energy conservation).
 """
 
 from __future__ import annotations

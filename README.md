@@ -1089,24 +1089,55 @@ is preferable to a black-box property dependency nobody can explain in an
 interview." Not attempted in this pass, consistent with that instruction
 rather than as an oversight.
 
-## P4: FMU/Modelica verification -- blocked, confirmed not just assumed
+## P4: FMU/Modelica verification -- compiled outside this environment, cross-check still blocked here
 
 The roadmap calls the FMU-vs-shadow-twin cross-check "the single strongest
-verification story available here." It remains not done, for the same
-reason stated in [Phase B](#phase-b-packed-bed-dynamic-sub-model) above,
-but that reason was re-checked directly this session rather than carried
-forward from an earlier note: `apt-cache search openmodelica` finds no
-package in this container's default repositories, and the container's own
-outbound network gateway returns a hard `403` to OpenModelica's own
-distribution host (`build.openmodelica.org`) and to Ubuntu's
-`ppa.launchpadcontent.net` mirror. This is an allowlist-based network
-policy, not a transient failure -- no retry, alternate mirror, or `pip
-install fmpy` (installable; `entsoe-py`-style, from PyPI, which *is*
-reachable) changes the outcome, since `fmpy` only ever consumes an
-already-compiled FMU and there is no `omc` compiler available to produce
-one. Nothing further was attempted here; the roadmap's own P4.1
-environment step cannot be completed in this working environment, full
-stop.
+verification story available here." The roadmap's own P4.1 environment
+step cannot be completed *in this working environment*, full stop:
+`apt-cache search openmodelica` finds no package in this container's
+default repositories, and the container's own outbound network gateway
+returns a hard `403` to OpenModelica's own distribution host
+(`build.openmodelica.org`) and to Ubuntu's `ppa.launchpadcontent.net`
+mirror. This is an allowlist-based network policy, not a transient
+failure -- no retry, alternate mirror, or `pip install fmpy` (installable;
+`entsoe-py`-style, from PyPI, which *is* reachable) changes the outcome,
+since `fmpy` only ever consumes an already-compiled FMU and there is no
+`omc` compiler available to produce one.
+
+That blocker has since been worked around, outside this environment: the
+user compiled `modelica/tes_screen/package.mo`'s `PackedBedThermocline`
+model with OpenModelica/OMEdit on their own machine. Doing so surfaced and
+let us fix a real bug this session had no way to catch on its own -- the
+package declared `package TesScreen`/`end TesScreen;` inside a directory
+named `tes_screen`, violating Modelica's file-system package-name-matching
+convention (OMEdit's error named it exactly); every reference to the old
+name (`scripts/build_packed_bed_fmu.mos`, `tests/test_modelica_contract.py`)
+was updated to match. The resulting FMU is a valid FMI 2.0 Co-Simulation
+export (confirmed from its own `modelDescription.xml`) -- but it contains
+only `binaries/win64/`, no `binaries/linux64/`, and this sandbox is Linux
+with no Wine, so `fmpy` cannot load it *here* either. The blocker moved
+from "cannot compile" to "cannot execute this platform's binary," not away
+entirely.
+
+`scripts/run_fmu_cross_check_experiment.py` implements the actual P4.2
+comparison and is ready to run on whatever machine holds a working FMU
+(Windows, in this case) with the project installed: it runs the FMU via
+`tes_screen.fmu.simulate_fmu` and the Python shadow twin via
+`packed_bed_dynamics.simulate_discharge` at *exactly* matched
+parameters -- `mass_flow=3.0 kg/s`, `inlet=320 C`, `initial=400 C`, and a
+fixed `h_v=5800 W/(m3.K)` on both sides (the Modelica model's own fixed
+parameter, passed to the Python side via
+`heat_transfer_coefficient_override_w_per_m3k` so neither side silently
+recomputes it and turns a solver comparison into a hidden physics
+comparison) -- then reports max absolute outlet-temperature deviation,
+RMSE, breakthrough-time deviation, and relative delivered-energy deviation
+(reconstructed from the FMU's own `outletTemperature` trace with the same
+formula the Python twin integrates internally, since the FMU exposes no
+energy output directly). It was smoke-tested end to end in this session
+with a stubbed FMU call standing in for the real `fmpy` simulation, and
+the surrounding test suite (204 tests) still passes; the actual FMU
+numbers are not yet in this document because the script has not yet been
+run against the real compiled FMU.
 
 ## P5: economics sensitivity, not one assumed number
 
