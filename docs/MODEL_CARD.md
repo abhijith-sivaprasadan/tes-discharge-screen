@@ -429,12 +429,19 @@ dispatch LP's own objective is a natural next step, not attempted here.
   bidding-zone/date-range call (`fetch_and_record_entsoe` must be called
   directly), and no `ENTSOE_API_KEY` has been available to test it against
   until now.
-- **The FMU-vs-shadow-twin cross-check.** No OpenModelica toolchain (`omc`)
-  or `fmpy` is installed in this working environment, so the Modelica model
-  has been authored but never compiled, and this project's intended
-  strongest verification story (the build spec's own words) has not been
-  run. `fmu.py` fails loudly and specifically when the toolchain is absent
-  rather than silently skipping.
+- **The FMU-vs-shadow-twin cross-check (roadmap P4).** No OpenModelica
+  toolchain (`omc`) is installed in this working environment, so the
+  Modelica model has been authored but never compiled, and this project's
+  intended strongest verification story (the build spec's own words) has
+  not been run. Re-checked directly this session, not re-asserted:
+  `apt-cache search openmodelica` finds nothing in this container's
+  default repositories, and the container's outbound network gateway
+  returns a hard `403` to OpenModelica's own distribution host
+  (`build.openmodelica.org`) and to Ubuntu's `ppa.launchpadcontent.net`
+  mirror -- an allowlist policy, not a transient failure, so this is a
+  fixed environment constraint, not something a retry or different mirror
+  would resolve. `fmu.py` fails loudly and specifically when the toolchain
+  is absent rather than silently skipping.
 - **A Modelica twin or FMU cross-check for molten salt or PCM.** Both are
   closed-form models (see Phase C3 above), verified against their own
   specified physics, not against an independent analytic limit or a

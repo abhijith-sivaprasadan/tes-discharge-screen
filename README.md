@@ -244,18 +244,26 @@ stream was counted as if storage had supplied it -- inflating every
 SOC-dependent sizing result derived from this curve, including Phase C's
 original one.
 
-**What has not been done, and why.** No OpenModelica toolchain (`omc`) or
-`fmpy` is installed in this working environment, so the Modelica model above
-has been authored but never compiled, and the FMU-vs-shadow-twin cross-check
-that the build spec calls "the single strongest verification story available
-here" has not been run. `fmu.py` (ported from OpenSteamOpt's identical
-`find_omc()` pattern) fails loudly and specifically when the toolchain is
-absent rather than silently skipping; `tests/test_modelica_contract.py`
-statically checks the authored Modelica source instead, the same
-toolchain-independent pattern OpenSteamOpt itself uses for CI. Molten-salt and
-PCM dynamic sub-models do not exist yet: packed bed is the technology the
-project's hypothesis expects to show the largest effect, and a single
-technology fully verified is worth more here than three left unfinished.
+**What has not been done, and why -- confirmed, not just assumed (roadmap
+P4).** No OpenModelica toolchain (`omc`) is installed in this working
+environment, so the Modelica model above has been authored but never
+compiled, and the FMU-vs-shadow-twin cross-check that the build spec calls
+"the single strongest verification story available here" has not been
+run. This was re-checked directly (not re-asserted from an earlier
+session's note): `apt-cache search openmodelica` finds no package in this
+container's default repositories, and the container's own outbound
+network gateway returns a hard `403` to OpenModelica's own distribution
+host (`build.openmodelica.org`) and to Ubuntu's `ppa.launchpadcontent.net`
+mirror -- an allowlist-based policy, not a transient failure, so no retry
+or alternative mirror would succeed either. `fmu.py` (ported from
+OpenSteamOpt's identical `find_omc()` pattern) fails loudly and
+specifically when the toolchain is absent rather than silently skipping;
+`tests/test_modelica_contract.py` statically checks the authored Modelica
+source instead, the same toolchain-independent pattern OpenSteamOpt itself
+uses for CI. Molten-salt and PCM now have their own closed-form dynamic
+sub-models (see Phase C3), but neither has a Modelica twin: only packed
+bed's physics was judged to justify one, and a compiled cross-check for it
+remains blocked by the same environment constraint.
 
 ## P0.3: is scalar SOC a sufficient packed-bed state?
 
