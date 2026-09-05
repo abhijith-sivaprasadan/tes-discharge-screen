@@ -7,6 +7,7 @@ import pytest
 
 from tes_screen.packed_bed_dynamics import (
     bed_stored_energy_j,
+    blower_specific_power_mw_per_mw,
     default_packed_bed_config,
     discharge_power_curve,
     ergun_pressure_drop_and_blower_power,
@@ -438,3 +439,34 @@ def test_blower_efficiency_outside_unit_interval_is_rejected() -> None:
     config = dataclasses.replace(default_packed_bed_config(), blower_efficiency=1.5)
     with pytest.raises(ValueError, match="blower_efficiency"):
         config.validate()
+
+
+def test_blower_specific_power_matches_ergun_over_reference_power_by_hand() -> None:
+    config = default_packed_bed_config()
+    mass_flow = 2.43
+    reference_rated_power_mw = 3.1
+    expected = (
+        ergun_pressure_drop_and_blower_power(config, mass_flow).blower_power_w
+        / 1e6
+        / reference_rated_power_mw
+    )
+    ratio = blower_specific_power_mw_per_mw(config, mass_flow, reference_rated_power_mw)
+    assert ratio == pytest.approx(expected, rel=1e-12)
+
+
+def test_blower_specific_power_is_zero_at_zero_flow() -> None:
+    config = default_packed_bed_config()
+    assert blower_specific_power_mw_per_mw(config, 0.0, 1.0) == 0.0
+
+
+def test_blower_specific_power_scales_with_reference_power_inversely() -> None:
+    config = default_packed_bed_config()
+    small_reference = blower_specific_power_mw_per_mw(config, 2.43, 1.0)
+    large_reference = blower_specific_power_mw_per_mw(config, 2.43, 2.0)
+    assert large_reference == pytest.approx(small_reference / 2, rel=1e-12)
+
+
+def test_blower_specific_power_rejects_nonpositive_reference_power() -> None:
+    config = default_packed_bed_config()
+    with pytest.raises(ValueError, match="reference_rated_power_mw"):
+        blower_specific_power_mw_per_mw(config, 2.43, 0.0)

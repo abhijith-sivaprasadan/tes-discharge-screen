@@ -258,13 +258,13 @@ def volumetric_heat_transfer_coefficient(
 @dataclass(frozen=True)
 class PressureDropDiagnostics:
     """Ergun pressure drop and the blower electric power it implies
-    (roadmap P3.3) -- an optional, documented extension, not wired into
-    the annual dispatch LP's own economics: `dispatch.py`'s objective
-    still uses `economics.storage_capex_eur_per_mw` as its blower/ducting/
-    HX capital-cost proxy exactly as before, unchanged, so every already-
-    committed result in this repository is unaffected by this addition.
-    This makes that proxy's *operating*-cost counterpart computable and
-    reportable alongside a discharge curve, not a silent replacement for it."""
+    (roadmap P3.3). `blower_specific_power_mw_per_mw` below turns this into
+    the fixed per-MWh_thermal ratio `dispatch.py`'s objective actually
+    prices at the hourly electricity rate -- packed bed is the only
+    technology with a wired parasitic-load cost as a result; molten salt
+    and PCM still have none modelled, an explicit, stated asymmetry (see
+    docs/RESULTS.md's Phase D boundary-harmonisation table), not an
+    oversight."""
 
     superficial_velocity_m_per_s: float
     pressure_drop_pa_per_m: float
@@ -325,6 +325,52 @@ def ergun_pressure_drop_and_blower_power(
         volumetric_flow_m3_per_s=volumetric_flow,
         blower_power_w=blower_power_w,
     )
+
+
+def blower_specific_power_mw_per_mw(
+    config: PackedBedDynamicsConfig,
+    mass_flow_kg_per_s: float,
+    reference_rated_power_mw: float,
+) -> float:
+    """The fixed ratio (MW electric blower load per MW thermal delivered)
+    `dispatch.py`'s annual LP multiplies its own `p_dis[t]` decision by, so
+    that packed bed's own quantified auxiliary load (up to ~8.6% of thermal
+    power at a 2h design duration, P3.3/P5) is actually priced at the
+    hourly electricity rate rather than reported and then excluded --
+    the fairness gap the Phase D boundary-harmonisation table (D.1) named
+    directly.
+
+    `mass_flow_kg_per_s` is constant throughout this project's own
+    discharge model (`simulate_discharge`'s own signature), so the Ergun
+    blower power at that one mass flow is a single fixed number, not a
+    function of state of charge -- but the LP's own `p_dis[t]` is a free
+    decision variable the discharge curve only ever bounds from above, so
+    there is no way to know, in general, "what mass flow would this
+    hour's chosen power level actually require." This ratio resolves that
+    by assuming blower power scales *linearly* with delivered thermal
+    power, calibrated at the bed's own reference (fully-charged, design
+    mass flow) operating point -- `reference_rated_power_mw` is the same
+    `PiecewiseDischargeCurve.reference_rated_power_mw` the discharge curve
+    itself was fit against, so the two stay tied to the same physical
+    bed/mass-flow pair by construction, not by convention.
+
+    This is an explicit approximation, not a claim of engineering
+    precision: Ergun's own pressure drop is superlinear in mass flow
+    (a linear term plus a quadratic one), so real blower power scales
+    faster than linearly with flow, and therefore faster than linearly
+    with delivered thermal power too. A linear ratio calibrated at the
+    rated (full-flow) point *understates* the true parasitic cost at
+    partial discharge power and is exact only at full power -- a
+    conservative-toward-packed-bed bias worth stating plainly, not
+    hiding, given this ratio's whole purpose is removing a different,
+    larger bias (zero parasitic cost) from the technology comparison.
+    """
+    if reference_rated_power_mw <= 0:
+        raise ValueError("reference_rated_power_mw must be positive")
+    blower_power_mw = (
+        ergun_pressure_drop_and_blower_power(config, mass_flow_kg_per_s).blower_power_w / 1e6
+    )
+    return blower_power_mw / reference_rated_power_mw
 
 
 @dataclass(frozen=True)

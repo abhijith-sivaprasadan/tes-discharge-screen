@@ -663,3 +663,69 @@ def test_build_model_rejects_an_unknown_cycling_prevention_mode() -> None:
     )
     with pytest.raises(ValueError, match="cycling_prevention_mode"):
         build_model(config, load, price)
+
+
+def test_blower_specific_power_defaults_to_zero_parasitic_cost() -> None:
+    # No blower_specific_power_mw_per_mw given: every already-committed
+    # result in this repository must stay exactly reproducible.
+    _config, _load, _price, result = _solve_short()
+    assert (result.schedule["blower_power_mw"] == 0.0).all()
+    assert (result.schedule["blower_cost_eur"] == 0.0).all()
+    assert result.kpis["blower_cost_eur"] == 0.0
+    assert result.kpis["blower_energy_mwh"] == 0.0
+
+
+def test_blower_specific_power_prices_a_parasitic_load_proportional_to_discharge() -> None:
+    config = _short_case()
+    load = build_load_profile(
+        config.process.profile_shape, config.process.annual_peak_load_mw, SHORT_HORIZON
+    )
+    price = synthetic_daily_price_profile(SHORT_HORIZON)
+    blower_ratio = 0.086  # P3.3/P5's own reported ~8.6% figure at a 2h design duration
+    result = solve_dispatch(config, load, price, blower_specific_power_mw_per_mw=blower_ratio)
+    expected_blower_power = blower_ratio * result.schedule["p_dis_mw"]
+    assert np.allclose(result.schedule["blower_power_mw"], expected_blower_power, atol=1e-9)
+    expected_blower_cost = result.schedule["price_eur_per_mwh"] * expected_blower_power
+    assert np.allclose(result.schedule["blower_cost_eur"], expected_blower_cost, atol=1e-6)
+    assert result.kpis["blower_cost_eur"] == pytest.approx(
+        result.schedule["blower_cost_eur"].sum(), rel=1e-9
+    )
+    checks = verify_schedule(result.schedule, config, result.solver["objective_eur"])
+    assert all(checks.values()), checks
+
+
+def test_blower_specific_power_increases_total_cost_whenever_storage_discharges() -> None:
+    # _negative_price_case's fixed-size storage and volatile price profile
+    # guarantee real cycling (unlike the free-sizing default config over a
+    # short 72h horizon, which finds no arbitrage case for building any
+    # storage at all).
+    config, load, price = _negative_price_case()
+    without_blower = solve_dispatch(config, load, price)
+    with_blower = solve_dispatch(config, load, price, blower_specific_power_mw_per_mw=0.086)
+    assert without_blower.schedule["p_dis_mw"].sum() > 0, "test needs a case that discharges"
+    assert with_blower.kpis["total_cost_eur"] > without_blower.kpis["total_cost_eur"]
+
+
+def test_blower_specific_power_rejects_a_negative_ratio() -> None:
+    config, load, price = _negative_price_case()
+    with pytest.raises(ValueError, match="blower_specific_power_mw_per_mw"):
+        build_model(config, load, price, blower_specific_power_mw_per_mw=-0.01)
+
+
+def test_blower_specific_power_applies_identically_in_soc_dependent_mode() -> None:
+    config, load, price, result = _solve_short_soc_dependent()
+    result_with_blower = solve_dispatch(
+        config,
+        load,
+        price,
+        discharge_curve=_reference_discharge_curve(),
+        blower_specific_power_mw_per_mw=0.086,
+    )
+    expected_blower_power = 0.086 * result_with_blower.schedule["p_dis_mw"]
+    assert np.allclose(
+        result_with_blower.schedule["blower_power_mw"], expected_blower_power, atol=1e-9
+    )
+    checks = verify_schedule(
+        result_with_blower.schedule, config, result_with_blower.solver["objective_eur"]
+    )
+    assert all(checks.values()), checks

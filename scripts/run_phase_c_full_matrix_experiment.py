@@ -101,6 +101,7 @@ from tes_screen.molten_salt_dynamics import (  # noqa: E402
     reference_energy_capacity_mwh as molten_salt_reference_energy_capacity_mwh,
 )
 from tes_screen.packed_bed_dynamics import (  # noqa: E402
+    blower_specific_power_mw_per_mw,
     default_packed_bed_config,
     simulate_discharge,
 )
@@ -264,10 +265,37 @@ def _duration_matched_config(
     )
 
 
+def _blower_ratio(
+    technology: str, curve: PiecewiseDischargeCurve, mass_flow: float
+) -> float | None:
+    """Packed bed's own quantified parasitic-load ratio (P3.3), now actually
+    priced into the annual economics below via `dispatch.py`'s
+    `blower_specific_power_mw_per_mw`. Molten salt and PCM have no Ergun-
+    equivalent model, so they stay at `None` (no parasitic cost charged) --
+    an explicit, stated asymmetry (Phase D's D.1 boundary-harmonisation
+    table), not an oversight this fix pretends to have resolved for every
+    technology."""
+    if technology != "packed_bed":
+        return None
+    return blower_specific_power_mw_per_mw(
+        default_packed_bed_config(), mass_flow, curve.reference_rated_power_mw
+    )
+
+
 def _solved(
-    config: CaseConfig, load, price, discharge_curve: PiecewiseDischargeCurve | None = None
+    config: CaseConfig,
+    load,
+    price,
+    discharge_curve: PiecewiseDischargeCurve | None = None,
+    blower_ratio: float | None = None,
 ):
-    result = solve_dispatch(config, load, price, discharge_curve=discharge_curve)
+    result = solve_dispatch(
+        config,
+        load,
+        price,
+        discharge_curve=discharge_curve,
+        blower_specific_power_mw_per_mw=blower_ratio,
+    )
     checks = verify_schedule(result.schedule, config, result.solver["objective_eur"])
     return result, checks
 
@@ -329,6 +357,7 @@ def main() -> None:
         curve, power_curve, mass_flow = CURVE_BUILDERS[technology](temperature_c)
         safety = verify_piecewise_curve_against_power_curve(curve, power_curve)
         curves_by_case[(technology, temperature_c)] = (curve, power_curve, mass_flow, safety)
+        blower_ratio = _blower_ratio(technology, curve, mass_flow)
 
         horizon = base_config.optimization.horizon_hours
         for profile_shape in LOAD_PROFILES:
@@ -340,10 +369,14 @@ def main() -> None:
             constant_config = _duration_matched_config(
                 base_config, profile_shape, soc_dependent=False
             )
-            constant_result, constant_checks = _solved(constant_config, load, price)
+            constant_result, constant_checks = _solved(
+                constant_config, load, price, blower_ratio=blower_ratio
+            )
 
             soc_config = _duration_matched_config(base_config, profile_shape, soc_dependent=True)
-            soc_result, soc_checks = _solved(soc_config, load, price, discharge_curve=curve)
+            soc_result, soc_checks = _solved(
+                soc_config, load, price, discharge_curve=curve, blower_ratio=blower_ratio
+            )
 
             delta_cost_eur = (
                 soc_result.kpis["total_cost_eur"] - constant_result.kpis["total_cost_eur"]
@@ -355,6 +388,7 @@ def main() -> None:
                 "temperature_c": temperature_c,
                 "profile_shape": profile_shape,
                 "mass_flow_kg_per_s": mass_flow,
+                "blower_specific_power_mw_per_mw": blower_ratio,
                 "curve_fit_max_overestimate_mw": safety["max_overestimate_mw"],
                 "curve_fit_mean_absolute_error_mw": safety["mean_absolute_error_mw"],
                 "constant_limit": {
@@ -397,8 +431,11 @@ def main() -> None:
                 "technology": e["technology"],
                 "temperature_c": e["temperature_c"],
                 "profile_shape": e["profile_shape"],
+                "blower_specific_power_mw_per_mw": e["blower_specific_power_mw_per_mw"],
                 "total_cost_constant_eur": e["constant_limit"]["kpis"]["total_cost_eur"],
                 "total_cost_soc_dependent_eur": e["soc_dependent"]["kpis"]["total_cost_eur"],
+                "blower_cost_constant_eur": e["constant_limit"]["kpis"]["blower_cost_eur"],
+                "blower_cost_soc_dependent_eur": e["soc_dependent"]["kpis"]["blower_cost_eur"],
                 "delta_total_cost_eur": e["delta_soc_dependent_minus_constant"]["total_cost_eur"],
                 "delta_total_cost_pct": e["delta_soc_dependent_minus_constant"]["total_cost_pct"],
                 "delta_e_cap_mwh": e["delta_soc_dependent_minus_constant"]["e_cap_mwh"],
@@ -453,7 +490,24 @@ def main() -> None:
             "roadmap P0.1 (matched-duration-family sizing) + P0.2 "
             "(temperature-reference fix) + P0.4 (start-of-hour discharge "
             "capability reference), applied uniformly across packed bed, "
-            "two-tank molten salt, and PCM"
+            "two-tank molten salt, and PCM, plus packed bed's own blower "
+            "parasitic-load cost (P3.3's Ergun/blower power, previously "
+            "computed and reported but never charged to any technology's "
+            "operating cost -- see 'blower_parasitic_cost_fix' below)"
+        ),
+        "blower_parasitic_cost_fix": (
+            "Every packed-bed case here now charges "
+            "blower_specific_power_mw_per_mw * p_dis[t] at the same hour's "
+            "electricity price (dispatch.py), applied identically to both "
+            "the constant and SOC-dependent legs of each paired comparison "
+            "(the fixed ratio comes from the same reference mass flow/rated "
+            "power the discharge curve itself was fit at, so it does not "
+            "introduce a new sizing-degree-of-freedom asymmetry between the "
+            "two legs). Molten salt and PCM still have no parasitic-load "
+            "model at all (None charged) -- a real, stated asymmetry "
+            "between technologies (D.1's boundary-harmonisation table), not "
+            "resolved by this fix, only no longer silently zero for the one "
+            "technology that does have one quantified."
         ),
         "note": (
             "Full C3 technology-ranking matrix: 5 technology/temperature "

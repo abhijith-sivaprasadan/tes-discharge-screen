@@ -67,6 +67,7 @@ from tes_screen.molten_salt_dynamics import (  # noqa: E402
     reference_energy_capacity_mwh as molten_salt_reference_energy_capacity_mwh,
 )
 from tes_screen.packed_bed_dynamics import (  # noqa: E402
+    blower_specific_power_mw_per_mw,
     default_packed_bed_config,
     simulate_discharge,
 )
@@ -136,9 +137,10 @@ def _packed_bed_curve(process_temperature_c: float, tau: float):
         result, process_temperature_c, DELTA_T_MIN_HOT_SIDE_C
     )
     reference_energy_capacity_mwh = float(result.trace["bed_stored_energy_j"].iloc[0]) / 3.6e9
-    return fit_piecewise_curve_from_power_curve(
+    curve = fit_piecewise_curve_from_power_curve(
         power_curve, reference_energy_capacity_mwh, n_segments=N_SEGMENTS
     )
+    return curve, mass_flow
 
 
 def _molten_salt_curve(process_temperature_c: float, tau: float):
@@ -163,9 +165,10 @@ def _molten_salt_curve(process_temperature_c: float, tau: float):
         REFERENCE_MOLTEN_SALT_HOT_TANK_TEMPERATURE_C,
         REFERENCE_MOLTEN_SALT_COLD_TANK_TEMPERATURE_C,
     )
-    return fit_piecewise_curve_from_power_curve(
+    curve = fit_piecewise_curve_from_power_curve(
         power_curve, reference_energy_capacity_mwh, n_segments=N_SEGMENTS
     )
+    return curve, mass_flow
 
 
 def _pcm_curve(process_temperature_c: float, tau: float):
@@ -192,9 +195,10 @@ def _pcm_curve(process_temperature_c: float, tau: float):
     reference_energy_capacity_mwh = pcm_reference_energy_capacity_mwh(
         pcm_config, REFERENCE_PCM_T_MAX_C, REFERENCE_PCM_T_MIN_C
     )
-    return fit_piecewise_curve_from_power_curve(
+    curve = fit_piecewise_curve_from_power_curve(
         power_curve, reference_energy_capacity_mwh, n_segments=N_SEGMENTS
     )
+    return curve, mass_flow
 
 
 CURVE_BUILDERS = {
@@ -221,8 +225,27 @@ def _duration_matched_config(
     )
 
 
-def _solved(config: CaseConfig, load, price, discharge_curve=None):
-    result = solve_dispatch(config, load, price, discharge_curve=discharge_curve)
+def _blower_ratio(technology: str, curve, mass_flow: float) -> float | None:
+    """Packed bed's own quantified parasitic-load ratio (P3.3), now priced
+    into the annual economics below via dispatch.py's own
+    blower_specific_power_mw_per_mw; molten salt and PCM have no Ergun-
+    equivalent model and stay at None (no parasitic cost charged) -- a
+    real, stated asymmetry, not resolved by this fix."""
+    if technology != "packed_bed":
+        return None
+    return blower_specific_power_mw_per_mw(
+        default_packed_bed_config(), mass_flow, curve.reference_rated_power_mw
+    )
+
+
+def _solved(config: CaseConfig, load, price, discharge_curve=None, blower_ratio=None):
+    result = solve_dispatch(
+        config,
+        load,
+        price,
+        discharge_curve=discharge_curve,
+        blower_specific_power_mw_per_mw=blower_ratio,
+    )
     checks = verify_schedule(result.schedule, config, result.solver["objective_eur"])
     if not all(checks.values()):
         raise RuntimeError(f"{config.case_name} failed independent verification")
@@ -241,20 +264,26 @@ def main() -> None:
         price = synthetic_daily_price_profile(horizon)
 
         for tau in DURATIONS_HOURS:
-            curve = CURVE_BUILDERS[technology](temperature_c, tau)
+            curve, mass_flow = CURVE_BUILDERS[technology](temperature_c, tau)
+            blower_ratio = _blower_ratio(technology, curve, mass_flow)
 
             constant_config = _duration_matched_config(base_config, tau, soc_dependent=False)
-            constant_result = _solved(constant_config, load, price)
+            constant_result = _solved(constant_config, load, price, blower_ratio=blower_ratio)
 
             soc_config = _duration_matched_config(base_config, tau, soc_dependent=True)
-            soc_result = _solved(soc_config, load, price, discharge_curve=curve)
+            soc_result = _solved(
+                soc_config, load, price, discharge_curve=curve, blower_ratio=blower_ratio
+            )
 
             entry = {
                 "technology": technology,
                 "temperature_c": temperature_c,
                 "tau_hours": tau,
+                "blower_specific_power_mw_per_mw": blower_ratio,
                 "constant_total_cost_eur": constant_result.kpis["total_cost_eur"],
                 "soc_total_cost_eur": soc_result.kpis["total_cost_eur"],
+                "constant_blower_cost_eur": constant_result.kpis["blower_cost_eur"],
+                "soc_blower_cost_eur": soc_result.kpis["blower_cost_eur"],
             }
             cases.append(entry)
             print(
@@ -299,8 +328,14 @@ def main() -> None:
             "instruction. In particular: cost figures mix literature-cited "
             "and [assumption] values with different confidence levels "
             "across technologies, and only packed bed has any computed "
-            "parasitic-load estimate (P3.3's blower power) at all, not "
-            "wired into any technology's cost here."
+            "parasitic-load estimate (P3.3's blower power) at all -- now "
+            "actually charged to its own operating cost (dispatch.py's "
+            "blower_specific_power_mw_per_mw, applied identically to both "
+            "the constant and soc-dependent legs of every packed-bed case "
+            "here), where before it was computed and reported but not "
+            "wired into any technology's cost. Molten salt and PCM still "
+            "have none modelled at all -- that asymmetry remains, stated, "
+            "not resolved."
         ),
         "temperatures_c": [300.0, 400.0],
         "durations_hours": DURATIONS_HOURS,

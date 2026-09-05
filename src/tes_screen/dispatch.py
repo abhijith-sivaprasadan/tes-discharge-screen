@@ -12,6 +12,15 @@ Pattern carried from PyNEXUS's `optimization/dispatch.py` (storage block with
 terminal condition, sizing as decision variables, HiGHS via Pyomo) and from
 OpenSteamOpt's `src/opensteamopt/rto.py` (profile validation before model
 build, independent schedule extraction, solver status carried through).
+
+An optional `blower_specific_power_mw_per_mw` (see `build_model`) prices
+packed bed's own quantified auxiliary electric load
+(`packed_bed_dynamics.blower_specific_power_mw_per_mw`) at the same hour's
+electricity price -- the fix for a real fairness gap the Phase D boundary-
+harmonisation table named: packed bed's parasitic load was computed and
+reported (P3.3) but never actually charged to its own operating cost,
+while it alone (among this project's three technologies) had one modelled
+at all.
 """
 
 from __future__ import annotations
@@ -56,6 +65,7 @@ def build_model(
     process_load: pd.DataFrame,
     electricity_price: pd.DataFrame,
     discharge_curve: PiecewiseDischargeCurve | None = None,
+    blower_specific_power_mw_per_mw: float | None = None,
 ) -> pyo.ConcreteModel:
     """Build but do not solve the annual LP: constant limit (Phase A) or SOC-dependent (Phase C).
 
@@ -66,6 +76,19 @@ def build_model(
     `storage.discharge_power_max_mw` must be null: the curve replaces it
     entirely (C1: "replaces p_dis[t] <= P_dis_max"), so a value there would
     be silently ignored rather than honoured, which this rejects instead.
+
+    `blower_specific_power_mw_per_mw`, when given, prices a parasitic
+    electric load of `blower_specific_power_mw_per_mw * p_dis[t]` at the
+    same hour's electricity price -- packed bed's own quantified auxiliary
+    load (`packed_bed_dynamics.blower_specific_power_mw_per_mw`), which was
+    previously computed and reported but never charged to the technology
+    it belongs to. Applies identically regardless of discharge_limit_mode
+    (both legs of a duration-matched constant-vs-SOC-dependent comparison
+    get the same ratio, since it is the same physical hardware either way,
+    not a new source of asymmetry between them), and is `None` (no
+    parasitic cost charged) for every technology without one -- molten
+    salt and PCM currently, always, since neither has an Ergun-equivalent
+    model.
     """
 
     soc_dependent = config.storage.discharge_limit_mode == "soc_dependent"
@@ -85,6 +108,8 @@ def build_model(
             "'soc_dependent': the piecewise discharge_curve replaces it, so a given value "
             "would be silently ignored."
         )
+    if blower_specific_power_mw_per_mw is not None and blower_specific_power_mw_per_mw < 0:
+        raise ValueError("blower_specific_power_mw_per_mw must be nonnegative when given")
 
     validate_profile(process_load, PROCESS_LOAD_COLUMNS)
     validate_profile(
@@ -357,6 +382,8 @@ def build_model(
 
     model.c_heat_balance = pyo.Constraint(model.T, rule=heat_balance)
 
+    blower_ratio = blower_specific_power_mw_per_mw or 0.0
+
     def objective(m: pyo.ConcreteModel) -> Any:
         crf = capital_recovery_factor(economics.discount_rate, economics.storage_lifetime_years)
         capex = crf * (
@@ -370,6 +397,7 @@ def build_model(
             * (supply.backup_boiler.emission_factor_kg_co2_per_mwh / 1000.0)
             * m.boiler_heat[t]
             + UNMET_HEAT_PENALTY_EUR_PER_MWH * m.unmet_heat[t]
+            + price[t] * blower_ratio * m.p_dis[t]
             for t in m.T
         )
         return capex + operating
@@ -394,6 +422,7 @@ def build_model(
     model._design_duration_hours = storage.design_duration_hours
     model._discharge_curve_k = discharge_curve.k_mw_per_mwh if soc_dependent else None
     model._cycling_prevention_mode = cycling_prevention_mode
+    model._blower_specific_power_mw_per_mw = blower_specific_power_mw_per_mw
     return model
 
 
@@ -411,6 +440,7 @@ def extract_schedule(model: pyo.ConcreteModel) -> pd.DataFrame:
     supply = config.supply
     economics = config.economics
     crf = capital_recovery_factor(economics.discount_rate, economics.storage_lifetime_years)
+    blower_ratio = model._blower_specific_power_mw_per_mw or 0.0
 
     rows: list[dict[str, float | int]] = []
     for t in model.T:
@@ -421,12 +451,14 @@ def extract_schedule(model: pyo.ConcreteModel) -> pd.DataFrame:
         boiler_heat = _value(model.boiler_heat[t])
         unmet_heat = _value(model.unmet_heat[t])
         heater_heat = supply.electric_heater.efficiency * elec_to_heater
+        blower_power = blower_ratio * p_dis
 
         electricity_cost = model._price[t] * elec_to_heater
         fuel_cost = supply.backup_boiler.fuel_cost_eur_per_mwh * boiler_heat
         emissions_tco2 = boiler_heat * supply.backup_boiler.emission_factor_kg_co2_per_mwh / 1000.0
         carbon_cost = economics.carbon_price_eur_per_tco2 * emissions_tco2
         penalty_cost = 1_000_000.0 * unmet_heat
+        blower_cost = model._price[t] * blower_power
 
         rows.append(
             {
@@ -440,10 +472,12 @@ def extract_schedule(model: pyo.ConcreteModel) -> pd.DataFrame:
                 "heater_heat_mw": heater_heat,
                 "boiler_heat_mw": boiler_heat,
                 "unmet_heat_mw": unmet_heat,
+                "blower_power_mw": blower_power,
                 "electricity_cost_eur": electricity_cost,
                 "fuel_cost_eur": fuel_cost,
                 "carbon_cost_eur": carbon_cost,
                 "penalty_cost_eur": penalty_cost,
+                "blower_cost_eur": blower_cost,
                 "emissions_tco2": emissions_tco2,
                 "heat_balance_residual_mw": (
                     heater_heat + boiler_heat + p_dis + unmet_heat - model._load[t] - p_ch
@@ -484,14 +518,22 @@ def solve_dispatch(
     process_load: pd.DataFrame,
     electricity_price: pd.DataFrame,
     discharge_curve: PiecewiseDischargeCurve | None = None,
+    blower_specific_power_mw_per_mw: float | None = None,
 ) -> DispatchResult:
     """Solve the annual LP with HiGHS and return a schedule with recorded solver status.
 
     `discharge_curve` is required for `storage.discharge_limit_mode ==
-    "soc_dependent"`; see `build_model`.
+    "soc_dependent"`; see `build_model`. `blower_specific_power_mw_per_mw`
+    prices packed bed's own parasitic auxiliary load; see `build_model`.
     """
 
-    model = build_model(config, process_load, electricity_price, discharge_curve)
+    model = build_model(
+        config,
+        process_load,
+        electricity_price,
+        discharge_curve,
+        blower_specific_power_mw_per_mw,
+    )
     solver = pyo.SolverFactory("appsi_highs")
     solver.options["time_limit"] = config.optimization.time_limit_seconds
     solver.options["mip_rel_gap"] = config.optimization.mip_gap
@@ -532,6 +574,8 @@ def solve_dispatch(
         "electricity_cost_eur": float(schedule.electricity_cost_eur.sum()),
         "fuel_cost_eur": float(schedule.fuel_cost_eur.sum()),
         "carbon_cost_eur": float(schedule.carbon_cost_eur.sum()),
+        "blower_cost_eur": float(schedule.blower_cost_eur.sum()),
+        "blower_energy_mwh": float(schedule.blower_power_mw.sum()),
         "emissions_tco2": float(schedule.emissions_tco2.sum()),
         "unmet_heat_mwh": float(schedule.unmet_heat_mw.sum()),
         "max_heat_balance_residual_mw": float(schedule.heat_balance_residual_mw.abs().max()),

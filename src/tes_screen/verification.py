@@ -33,6 +33,7 @@ def reconstruct_objective(schedule: pd.DataFrame, config: CaseConfig) -> float:
         + schedule["fuel_cost_eur"].sum()
         + schedule["carbon_cost_eur"].sum()
         + schedule["penalty_cost_eur"].sum()
+        + schedule["blower_cost_eur"].sum()
     )
     return capex + operating
 
@@ -54,6 +55,7 @@ def verify_schedule(
         "heater_heat_mw",
         "boiler_heat_mw",
         "unmet_heat_mw",
+        "blower_power_mw",
     ]
     checks["nonnegativity"] = bool((schedule[nonnegative_columns] >= -TOLERANCE).all().all())
 
