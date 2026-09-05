@@ -1328,6 +1328,55 @@ them as anything more. Every number above traces to
 formulations' full KPIs, the bias/region classification, and the
 consistency-check result.
 
+## Phase D: harmonised comparison and sensitivity
+
+`TES_SCREEN_SPEC.md` section 7's own three deliverables, only attempted
+after Phase C had produced its result (it had, well before this).
+
+### D.1: boundary harmonisation table
+
+**The spec's own words: "This table is arguably the most transferable
+artefact the project produces, since inconsistent boundaries are exactly
+the problem the field complains about."** Building it surfaces exactly
+that problem inside this project's own repository, not just in the wider
+field it critiques.
+
+| | Packed bed | Molten salt | PCM |
+|---|---|---|---|
+| Storage lifetime | 25 yr | 25 yr | 25 yr |
+| Discount rate | 6% | 6% | 6% |
+| Currency / cost basis year | EUR, no explicit base year in any cited source | EUR, no explicit base year | EUR, no explicit base year |
+| Energy CAPEX | 7,000 EUR/MWh-th [search-quoted, Albrecht et al. 2016] | 26,000 EUR/MWh-th [search-quoted, Albrecht et al. 2016] | 80,000 EUR/MWh-th [search-quoted, Hirschey et al.] |
+| Power/BOP CAPEX | 20,000 EUR/MW [assumption] | 60,000 EUR/MW [assumption] | 40,000 EUR/MW [assumption] |
+| What's *inside* power/BOP CAPEX | Blowers, ducting, heat exchanger (lumped, not itemised) | Pumps, heat exchangers (lumped, not itemised) | PCM heat-exchanger network (lumped, not itemised) |
+| Round-trip efficiency (charge/discharge) | 0.95 / 0.95 [assumption] | 0.95 / 0.95 [assumption] | 0.95 / 0.95 [assumption] |
+| Standing loss (fraction/hour) | 0.001 [assumption] | 0.0005 [assumption] | 0.0007 [assumption] |
+| **Parasitic-load modelling** | **Ergun/blower power computed (P3.3), reported only -- not wired into any cost** | **None computed** | **None computed** |
+| **Dynamic sub-model verification depth** | **Full: Modelica twin authored (uncompiled, P4 blocked by environment), 3 analytic-limit checks, discretisation convergence checked (P3.1)** | **Closed-form; checked only against its own specified physics** | **Closed-form; checked only against its own specified physics** |
+
+What's *outside* every technology's storage boundary and priced
+identically across all three: the electric heater and backup boiler
+(capacity, efficiency, fuel cost, emission factor, carbon price) --
+supply-side equipment, not storage, and taken byte-for-byte identical
+across every case config in this repository, so it introduces no
+cross-technology inconsistency of its own.
+
+**The inconsistency this table itself surfaces, stated plainly rather
+than smoothed over:** parasitic-load modelling and dynamic-model
+verification depth are *not* harmonised across technologies, and this
+was true before this table was ever built -- only packed bed has a
+computed parasitic-power estimate (P3.3) and a genuinely deep
+verification story (analytic limits, discretisation convergence, an
+authored-but-uncompiled Modelica twin); molten salt and PCM have neither,
+because their own closed-form sub-models were built later, in less depth,
+and by design (Phase B's own stated priority: "one technology fully
+verified beats three unfinished"). Every technology-vs-technology cost
+comparison in this repository (Phase A, C3, this section's own D.3) is
+therefore conditional not just on the CAPEX figures' own mixed [assumption]/
+[search-quoted] provenance, already flagged throughout `docs/DATA.md`, but
+on an unequal verification and completeness depth between technologies
+that a boundary table alone cannot fix -- only make visible.
+
 ## Repository layout
 
 ```

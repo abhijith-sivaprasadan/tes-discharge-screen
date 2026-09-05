@@ -27,6 +27,7 @@ dependencies = [
   "pyomo==6.9.5",
   "highspy==1.13.1",
   "matplotlib==3.9.2",
+  "SALib==1.5.2",
 ]
 
 [project.optional-dependencies]
