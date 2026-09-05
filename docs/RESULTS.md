@@ -486,30 +486,65 @@ one `optimal` and independently verified.**
 | 400 C | two_shift | molten_salt, packed_bed | packed_bed | packed_bed | No |
 | 400 C | seasonal | molten_salt, packed_bed | packed_bed | packed_bed | No |
 
-Packed bed is cheapest in every group, under both formulations. The full
-per-case deltas behind that table:
+Packed bed is cheapest in every group, under both formulations --
+**including now that packed bed's own quantified blower parasitic load is
+actually priced**, not just reported. An earlier version of this matrix
+computed packed bed's Ergun/blower power (P3.3) but never charged it to
+any technology's operating cost -- a real fairness gap, since packed bed
+was winning a comparison partly on the strength of an operating cost the
+model itself excluded for that one technology, while molten salt and PCM
+never had one to exclude in the first place. `dispatch.py`'s
+`blower_specific_power_mw_per_mw` now prices `ratio * p_dis[t]` at the
+same hour's electricity rate for every packed-bed case here (ratio =
+0.0109 MW electric per MW thermal at this matrix's tau=6h design point --
+lower than P3.3's own often-quoted ~8.6% figure, which is reported at a
+much shorter, higher-mass-flow 2h duration; Ergun's pressure drop is
+superlinear in mass flow, so the ratio itself is duration-dependent, not
+a fixed technology constant). The full per-case deltas, with the added
+blower cost broken out:
 
-| Technology | Temp (C) | Profile | Constant cost (EUR/yr) | SOC-dependent cost (EUR/yr) | Delta | Delta E_cap (MWh) |
-|---|---:|---|---:|---:|---:|---:|
-| packed_bed | 300 | flat | 3,993,618.08 | 3,994,416.32 | +0.020% | +0.22 |
-| packed_bed | 300 | two_shift | 2,800,872.52 | 2,801,143.76 | +0.010% | +0.49 |
-| packed_bed | 300 | seasonal | 2,874,718.59 | 2,875,603.49 | +0.031% | +0.55 |
-| packed_bed | 400 | flat | 3,993,618.08 | 3,994,416.32 | +0.020% | +0.22 |
-| packed_bed | 400 | two_shift | 2,800,872.52 | 2,801,143.76 | +0.010% | +0.49 |
-| packed_bed | 400 | seasonal | 2,874,718.59 | 2,875,603.49 | +0.031% | +0.55 |
-| molten_salt | 300 | flat | 4,075,713.26 | 4,075,957.34 | +0.006% | ~0.00 |
-| molten_salt | 300 | two_shift | 2,944,030.16 | 2,944,140.94 | +0.004% | 0.00 |
-| molten_salt | 300 | seasonal | 2,991,108.49 | 2,991,423.82 | +0.011% | +0.07 |
-| molten_salt | 400 | flat | 4,075,713.26 | 4,075,957.34 | +0.006% | ~0.00 |
-| molten_salt | 400 | two_shift | 2,944,030.16 | 2,944,140.94 | +0.004% | 0.00 |
-| molten_salt | 400 | seasonal | 2,991,108.49 | 2,991,423.82 | +0.011% | +0.07 |
-| pcm | 300 | flat | 4,178,028.84 | 4,178,028.84 | +0.000% | 0.00 |
-| pcm | 300 | two_shift | 3,059,527.90 | 3,059,527.90 | +0.000% | 0.00 |
-| pcm | 300 | seasonal | 3,132,422.34 | 3,132,422.34 | +0.000% | 0.00 |
+| Technology | Temp (C) | Profile | Constant cost (EUR/yr) | SOC-dependent cost (EUR/yr) | Delta | Blower cost (EUR/yr, both legs) | Delta E_cap (MWh) |
+|---|---:|---|---:|---:|---:|---:|---:|
+| packed_bed | 300 | flat | 4,004,309.70 | 4,005,145.32 | +0.021% | ~10,489 / ~10,532 | 0.00 |
+| packed_bed | 300 | two_shift | 2,817,116.20 | 2,817,469.77 | +0.013% | ~15,866 / ~15,891 | 0.00 |
+| packed_bed | 300 | seasonal | 2,890,012.76 | 2,890,904.65 | +0.031% | ~14,920 / ~14,998 | +0.02 |
+| packed_bed | 400 | flat | 4,004,309.70 | 4,005,145.32 | +0.021% | ~10,489 / ~10,532 | 0.00 |
+| packed_bed | 400 | two_shift | 2,817,116.20 | 2,817,469.77 | +0.013% | ~15,866 / ~15,891 | 0.00 |
+| packed_bed | 400 | seasonal | 2,890,012.76 | 2,890,904.65 | +0.031% | ~14,920 / ~14,998 | +0.02 |
+| molten_salt | 300 | flat | 4,075,713.26 | 4,075,957.34 | +0.006% | 0 (no model) | ~0.00 |
+| molten_salt | 300 | two_shift | 2,944,030.16 | 2,944,140.94 | +0.004% | 0 (no model) | 0.00 |
+| molten_salt | 300 | seasonal | 2,991,108.49 | 2,991,423.82 | +0.011% | 0 (no model) | +0.07 |
+| molten_salt | 400 | flat | 4,075,713.26 | 4,075,957.34 | +0.006% | 0 (no model) | ~0.00 |
+| molten_salt | 400 | two_shift | 2,944,030.16 | 2,944,140.94 | +0.004% | 0 (no model) | 0.00 |
+| molten_salt | 400 | seasonal | 2,991,108.49 | 2,991,423.82 | +0.011% | 0 (no model) | +0.07 |
+| pcm | 300 | flat | 4,178,028.84 | 4,178,028.84 | +0.000% | 0 (no model) | 0.00 |
+| pcm | 300 | two_shift | 3,059,527.90 | 3,059,527.90 | +0.000% | 0 (no model) | 0.00 |
+| pcm | 300 | seasonal | 3,132,422.34 | 3,132,422.34 | +0.000% | 0 (no model) | 0.00 |
+
+Two things worth stating plainly about this fix's actual effect. First,
+**it moved the absolute numbers, not the finding**: pricing the blower
+raised packed bed's own annual cost by ~10,500-15,900 EUR/yr (about
+0.26-0.56% of its own total cost) at every (temperature, profile) point,
+and packed bed is still cheaper than molten salt by roughly
+70,000-100,000 EUR/yr and PCM by over 170,000 EUR/yr at every point -- an
+order of magnitude more margin than the blower cost consumed. The
+constant-vs-SOC-dependent delta itself barely moved (e.g. 300 C flat:
++0.020% before this fix, +0.021% after), exactly as expected: the same
+fixed ratio applies to `p_dis[t]` identically in both legs of the
+comparison, so it is not a new source of asymmetry between the two
+formulations, only a real cost previously missing from packed bed's
+comparison against the *other two* technologies. Second, molten salt and
+PCM's own numbers above are bit-identical to before this fix (confirmed
+against the previously committed values): they pass `None` for
+`blower_specific_power_mw_per_mw` and always have, so nothing about their
+own cost changed -- only packed bed's did, which is exactly the asymmetry
+this fix was meant to correct, not eliminate. **The asymmetry is smaller
+now, not gone**: molten salt and PCM still have no parasitic-load model
+of any kind (D.1's boundary-harmonisation table below still flags this).
 
 **Molten salt's own correction is smaller than packed bed's at every
 matched (temperature, profile) pair** (e.g. 300 C flat: +0.006% vs.
-+0.020%) -- consistent with this project's own opening hypothesis and the
++0.021%) -- consistent with this project's own opening hypothesis and the
 control-case comment already in `configs/molten_salt_300c_flat.yaml`
 ("molten salt discharges at a near-constant temperature, so the
 SOC-dependent correction should barely move it"). It is not literally
@@ -561,15 +596,29 @@ temperature-agnostic-dispatch limitation does:
   temperature cases are, by this model's own construction, the same case.
 
 **The headline, restated plainly.** Once matched-duration sizing (P0.1),
-consistent temperature referencing (P0.2), and start-of-hour discharge
-capability (P0.4) are all applied, the SOC-dependent discharge-limit
-correction moves total annualised cost by at most +0.031% anywhere in this
-15-case matrix, never changes which technology is cheapest in any of the 6
-(temperature, profile) groups, and for two of the three technologies
-(molten salt, and especially PCM) the effect is smaller still or entirely
-unexercised. The technology ranking Phase A's constant-limit baseline
-already found (packed bed cheapest, PCM most expensive) is unchanged by
-moving to the corrected SOC-dependent model.
+consistent temperature referencing (P0.2), start-of-hour discharge
+capability (P0.4), and packed bed's own blower parasitic-load cost are all
+applied, the SOC-dependent discharge-limit correction moves total
+annualised cost by at most +0.031% anywhere in this 15-case matrix, never
+changes which technology is cheapest in any of the 6 (temperature,
+profile) groups, and for two of the three technologies (molten salt, and
+especially PCM) the effect is smaller still or entirely unexercised. The
+technology ranking Phase A's constant-limit baseline already found (packed
+bed cheapest, PCM most expensive) is unchanged by moving to the corrected
+SOC-dependent model, and survives correctly pricing the one operating cost
+this project can actually quantify that it had previously been excluding
+for the technology that wins.
+
+**A staleness note, stated rather than left for a reader to discover.**
+Only this section (C3) and Phase D.3 below have been re-run against the
+blower-parasitic-cost fix. Phase C2 above, P5, P6, and D.2 all still
+report costs computed *before* that fix -- their own packed-bed absolute
+cost numbers do not include the blower term, though the fix's own effect
+on any of them would be small and one-sided (it raises packed bed's own
+cost by under 1% and applies identically to both compared legs in every
+one of those experiments too, per C3's own finding above), not a reason
+to doubt their qualitative conclusions, only a reason not to quote their
+absolute EUR figures as if they already included it.
 
 **One figure per technology**, each overlaying the analytic deliverable-power
 curve, its 5-segment piecewise fit, and the constant-limit reference power,
@@ -1357,7 +1406,7 @@ field it critiques.
 | What's *inside* power/BOP CAPEX | Blowers, ducting, heat exchanger (lumped, not itemised) | Pumps, heat exchangers (lumped, not itemised) | PCM heat-exchanger network (lumped, not itemised) |
 | Round-trip efficiency (charge/discharge) | 0.95 / 0.95 [assumption] | 0.95 / 0.95 [assumption] | 0.95 / 0.95 [assumption] |
 | Standing loss (fraction/hour) | 0.001 [assumption] | 0.0005 [assumption] | 0.0007 [assumption] |
-| **Parasitic-load modelling** | **Ergun/blower power computed (P3.3), reported only -- not wired into any cost** | **None computed** | **None computed** |
+| **Parasitic-load modelling** | **Ergun/blower power computed (P3.3) and priced into operating cost (`dispatch.py`'s `blower_specific_power_mw_per_mw`, applied in C3 and D.3 below)** | **None computed** | **None computed** |
 | **Dynamic sub-model verification depth** | **Full: Modelica FMU cross-check (P4, 0.23% max deviation over an 8h discharge), 3 analytic-limit checks, discretisation convergence checked (P3.1)** | **Closed-form; checked only against its own specified physics** | **Closed-form; checked only against its own specified physics** |
 
 What's *outside* every technology's storage boundary and priced
@@ -1369,14 +1418,21 @@ cross-technology inconsistency of its own.
 
 **The inconsistency this table itself surfaces, stated plainly rather
 than smoothed over:** parasitic-load modelling and dynamic-model
-verification depth are *not* harmonised across technologies, and this
-was true before this table was ever built -- only packed bed has a
-computed parasitic-power estimate (P3.3) and a genuinely deep
-verification story (analytic limits, discretisation convergence, an
-authored-but-uncompiled Modelica twin); molten salt and PCM have neither,
-because their own closed-form sub-models were built later, in less depth,
-and by design (Phase B's own stated priority: "one technology fully
-verified beats three unfinished"). Every technology-vs-technology cost
+verification depth are *not* harmonised across technologies, and this was
+true before this table was ever built -- only packed bed has a computed
+parasitic-power estimate (P3.3), now actually priced into its own
+operating cost (C3, D.3), and a genuinely deep verification story
+(analytic limits, discretisation convergence, a compiled and cross-checked
+Modelica/FMU twin, P4); molten salt and PCM have neither, because their
+own closed-form sub-models were built later, in less depth, and by design
+(Phase B's own stated priority: "one technology fully verified beats three
+unfinished"). Pricing packed bed's own parasitic load *narrowed* this
+asymmetry (it no longer gets a free pass on an operating cost the model
+can actually compute for it) but did not remove it: molten salt and PCM
+still have no parasitic-load model at all, not even a cruder placeholder,
+so the technology-ranking comparisons below still likely understate their
+own true operating costs relative to packed bed's, in a direction this
+project cannot currently quantify. Every technology-vs-technology cost
 comparison in this repository (Phase A, C3, this section's own D.3) is
 therefore conditional not just on the CAPEX figures' own mixed [assumption]/
 [search-quoted] provenance, already flagged throughout `docs/DATA.md`, but

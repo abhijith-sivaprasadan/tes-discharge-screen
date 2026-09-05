@@ -65,7 +65,7 @@ inventory is actually drainable, and a reference tank size.
 | Thermal conductivity | ~2.5 W/m K (2.43-2.56 W/m K reported) | Same sources as density. [search-quoted] |
 | Storage CAPEX | commonly cited <10, and specifically 5-8 $/kWh-th at scale (>1000 MWh-th) | Albrecht, K.J. et al. (2016), AIP Conference Proceedings 1734, 050003, "Rock bed thermal storage: Concepts and costs." [search-quoted] |
 | Standing loss fraction/hour | 0.001 (0.1%/h) | [assumption] insulated packed bed, larger surface-to-volume ratio than a tank, order-of-magnitude estimate. |
-| Storage power CAPEX ($/MW) | see config | [assumption] represents blowers/ducting/heat exchanger; no literature figure found. |
+| Storage power CAPEX ($/MW) | see config | [assumption] represents blowers/ducting/heat exchanger *capital* cost; no literature figure found. Distinct from the blower's own *operating* (electricity) cost, which `blower_specific_power_mw_per_mw` below now separately prices -- capital and operating cost of the same equipment, not a double-count of one. |
 
 This is the technology the project's own hypothesis expects to show the largest
 effect from the SOC-dependent discharge correction, because a packed bed develops
@@ -85,7 +85,7 @@ transfer correlation) and air (HTF) properties.
 | Volumetric heat transfer coefficient (h_v) | derived, not assumed | Wakao, N., Kaguei, S. (1982), *Heat and Mass Transfer in Packed Beds*, Gordon and Breach. Nu = 2 + 1.1 Re^0.6 Pr^(1/3) (valid 15 < Re < 8500), scaled to a volumetric coefficient via the packing's specific surface area a_v = 6(1-eps)/d_p. A well-established, widely-cited correlation from general domain knowledge, not confirmed via search this session; deriving h_v from more fundamental quantities (particle size, flow rate, fluid properties) is more defensible than asserting a single bare h_v number, which is why this project computes it rather than picking one. |
 | Governing equations | Schumann two-phase model, axial conduction neglected | Schumann, T.E.W. (1929), "Heat transfer: A liquid flowing through a porous prism," *Journal of the Franklin Institute*, 208(3), 405-416. Foundational, universally-cited packed-bed TES formulation; the same structure Zanganeh et al. (2012, see above) and the wider literature use. |
 | Pressure drop | Ergun equation, dP/L = 150*mu*(1-eps)^2/(eps^3*dp^2)*v_s + 1.75*rho*(1-eps)/(eps^3*dp)*v_s^2 | Ergun, S. (1952), "Fluid flow through packed columns," *Chemical Engineering Progress* 48(2), 89-94. [textbook-standard] laminar-plus-turbulent packed-bed correlation, widely used; roadmap P3.3. |
-| Blower efficiency | 0.65 | [assumption] typical industrial centrifugal blower/fan efficiency, commonly cited 0.55-0.75 range; no unit-specific figure sourced this session. Feeds `ergun_pressure_drop_and_blower_power`'s parasitic-power estimate (P3.3), not `dispatch.py`'s own economics. |
+| Blower efficiency | 0.65 | [assumption] typical industrial centrifugal blower/fan efficiency, commonly cited 0.55-0.75 range; no unit-specific figure sourced this session. Feeds `ergun_pressure_drop_and_blower_power`'s parasitic-power estimate (P3.3), which `packed_bed_dynamics.blower_specific_power_mw_per_mw` turns into the fixed ratio `dispatch.py`'s own economics now actually price (C3, D.3) -- previously computed and reported only. |
 
 ## High-temperature PCM (single-salt sodium nitrate, NaNO3)
 

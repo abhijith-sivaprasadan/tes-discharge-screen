@@ -1,6 +1,6 @@
 # Model card
 
-## Status: Phase 0, A, B (packed bed with full verification; molten salt and PCM with closed-form sub-models only), P0.3 (state-sufficiency test), C (MVP scope, archived), C2 (matched-duration fix, packed bed only), P0.4 (start-of-hour capability fix), P0.5 (MILP cycling prevention), C3 (full technology-ranking matrix), P2.1 (duration-family capability curves), P3.1-P3.3 (discretisation convergence, correlation-domain checks, Ergun pressure drop/blower power), P5 (economics sensitivity), P6 (model-fidelity decision map), and Phase D (boundary harmonisation table, Morris global sensitivity screening, technology-selection map) built; P4 (FMU/Modelica verification): done -- model compiled and cross-checked against the Python shadow twin outside this environment (this sandbox cannot compile or execute the FMU), agreeing to within 0.23% of the full temperature swing over an 8h discharge
+## Status: Phase 0, A, B (packed bed with full verification; molten salt and PCM with closed-form sub-models only), P0.3 (state-sufficiency test), C (MVP scope, archived), C2 (matched-duration fix, packed bed only), P0.4 (start-of-hour capability fix), P0.5 (MILP cycling prevention), C3 (full technology-ranking matrix), P2.1 (duration-family capability curves), P3.1-P3.3 (discretisation convergence, correlation-domain checks, Ergun pressure drop/blower power now priced into packed bed's own dispatch economics, re-run into C3 and D.3), P5 (economics sensitivity), P6 (model-fidelity decision map), and Phase D (boundary harmonisation table, Morris global sensitivity screening, technology-selection map) built; P4 (FMU/Modelica verification): done -- model compiled and cross-checked against the Python shadow twin outside this environment (this sandbox cannot compile or execute the FMU), agreeing to within 0.23% of the full temperature swing over an 8h discharge
 
 This card documents what is actually built at this commit, not what the project
 intends to build. It will be rewritten section by section as each phase lands,
@@ -393,18 +393,38 @@ run's own manifest rather than merely asserted.
 `ergun_pressure_drop_and_blower_power` (`packed_bed_dynamics.py`) adds the
 Ergun-equation pressure drop (Ergun, 1952; `docs/DATA.md`) and the blower
 electric power it implies at an explicit `blower_efficiency` config field
-(0.65, [assumption], `docs/DATA.md`) -- an optional, documented extension
-per the roadmap's own instruction, reported in each duration's own
-`outputs/capability_curves/` manifest, **not wired into `dispatch.py`'s
-own economics** (every case's objective still uses
-`economics.storage_capex_eur_per_mw` unchanged, so no existing committed
-result changes). Blower power ranges from 0.32% of reference rated
-thermal power at the longest (12h) design duration tested up to 8.64% at
-the shortest (2h) -- Ergun's turbulent term scales with the square of
-superficial velocity, so shorter, higher-flow designs pay a
+(0.65, [assumption], `docs/DATA.md`), reported in each duration's own
+`outputs/capability_curves/` manifest. Blower power ranges from 0.32% of
+reference rated thermal power at the longest (12h) design duration tested
+up to 8.64% at the shortest (2h) -- Ergun's turbulent term scales with the
+square of superficial velocity, so shorter, higher-flow designs pay a
 disproportionately larger parasitic-power penalty, exactly the physical
-trade-off the roadmap named as the reason to add this. Wiring it into the
-dispatch LP's own objective is a natural next step, not attempted here.
+trade-off the roadmap named as the reason to add this.
+
+**Now actually priced into the dispatch LP's own economics, not just
+reported**: `packed_bed_dynamics.blower_specific_power_mw_per_mw` turns
+this into the fixed ratio (MW electric per MW thermal, calibrated at the
+same reference mass flow/rated power the discharge curve itself was fit
+at) that `dispatch.py`'s `build_model`/`solve_dispatch` multiply by
+`p_dis[t]` and charge at the same hour's electricity price -- a real
+fairness fix: packed bed had been winning every technology-ranking
+comparison (C3, D.3) partly on the strength of an operating cost the
+model could compute for it but was excluding, while molten salt and PCM
+never had one to exclude. Applied identically to both legs of a
+duration-matched constant-vs-SOC-dependent comparison (same physical
+hardware either way), so it does not introduce a new asymmetry between
+those two, only correct a real one against the *other* technologies.
+C3's own re-run with this fix included: packed bed's own annual cost rose
+by ~10,500-15,900 EUR/yr (about 0.3-0.6%) at its own headline (tau=6h)
+design point, and it is still the cheapest technology in every one of the
+15 cases -- by a margin an order of magnitude larger than the blower cost
+added (see docs/RESULTS.md's C3 section for the full numbers). This is a
+linear approximation, not engineering precision (true Ergun-derived
+blower power is superlinear in mass flow, so a ratio calibrated at full
+flow understates parasitic cost at partial discharge -- stated in the
+function's own docstring). Molten salt and PCM still have no
+parasitic-load model of any kind; that asymmetry is narrower now, not
+resolved (D.1's boundary-harmonisation table below).
 
 ## P5: economics sensitivity, not one assumed number
 
@@ -524,15 +544,18 @@ figures and citation tier, what is/is not inside each technology's own
 power/BOP capex, round-trip efficiency, standing loss, for all three
 technologies. Building it surfaces a real inconsistency rather than
 resolving one: only packed bed has a computed parasitic-load estimate
-(P3.3) and the deepest verification story (analytic limits,
-discretisation convergence, an authored Modelica twin); molten salt and
-PCM have neither, a real, stated gap in verification depth, not an
-oversight, tracing back to Phase B's own stated priority ("one technology
-fully verified beats three unfinished"). **D.3, technology-selection map
+(P3.3, now actually priced into its own operating cost, not just
+reported) and the deepest verification story (analytic limits,
+discretisation convergence, a compiled and cross-checked Modelica/FMU
+twin, P4); molten salt and PCM have neither, a real, stated gap in
+verification depth, not an oversight, tracing back to Phase B's own
+stated priority ("one technology fully verified beats three unfinished").
+**D.3, technology-selection map
 (`scripts/run_technology_selection_map_experiment.py`)**: done -- extends
 Phase C3's single-duration ranking (tau=6h) across the full 2-temperature
-x 5-duration grid C2 sweeps, 25 combinations, 50 solves, all verified.
-Packed bed remains cheapest everywhere; the ranking never flips. A
+x 5-duration grid C2 sweeps, 25 combinations, 50 solves, all verified,
+including packed bed's own blower parasitic-load cost. Packed bed remains
+cheapest everywhere; the ranking never flips. A
 secondary nuance the duration sweep surfaces: PCM's own "priced out
 entirely" finding (C3) holds at tau=6h and longer, but at shorter
 durations (2h, 4h) the constant-limit formulation finds slightly more
@@ -564,12 +587,6 @@ h_v's precise magnitude even though the raw curve shape is not.
   parasitics): explicitly deferred by the roadmap itself until the simpler
   duration-family comparison (P2.1, done above) is confirmed correct. Not
   attempted.
-- **P3.3's blower parasitic power wired into the dispatch LP's own
-  economics.** Currently computed and reported alongside each duration's
-  discharge curve only; `dispatch.py`'s objective still uses
-  `economics.storage_capex_eur_per_mw` unchanged. A natural next step, not
-  attempted here since it would change every existing committed cost
-  result and was not asked for.
 - **P3.4, temperature-dependent air/material properties.** The roadmap's
   own instruction is "do not rush this": re-verify current property values
   against a primary/open source first, then decide whether constant

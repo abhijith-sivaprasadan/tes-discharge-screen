@@ -1,59 +1,65 @@
 {
   "all_runs_verified": true,
   "any_ranking_flip": false,
+  "blower_parasitic_cost_fix": "Every packed-bed case here now charges blower_specific_power_mw_per_mw * p_dis[t] at the same hour's electricity price (dispatch.py), applied identically to both the constant and SOC-dependent legs of each paired comparison (the fixed ratio comes from the same reference mass flow/rated power the discharge curve itself was fit at, so it does not introduce a new sizing-degree-of-freedom asymmetry between the two legs). Molten salt and PCM still have no parasitic-load model at all (None charged) -- a real, stated asymmetry between technologies (D.1's boundary-harmonisation table), not resolved by this fix, only no longer silently zero for the one technology that does have one quantified.",
   "cases": [
     {
+      "blower_specific_power_mw_per_mw": 0.010905381482581031,
       "constant_limit": {
         "kpis": {
-          "carbon_cost_eur": 409961.4583755109,
+          "blower_cost_eur": 10488.776431064854,
+          "blower_energy_mwh": 162.62815713959014,
+          "carbon_cost_eur": 418505.89184585924,
           "e_cap_mwh": 54.98691637293239,
-          "electricity_cost_eur": 2524452.2591885687,
-          "emissions_tco2": 5124.518229693886,
-          "fuel_cost_eur": 1014756.0850878982,
+          "electricity_cost_eur": 2494961.08288425,
+          "emissions_tco2": 5231.323648073239,
+          "fuel_cost_eur": 1035905.6728857902,
           "max_heat_balance_residual_mw": 8.881784197001252e-16,
           "power_rating_mw": 9.1644860621554,
-          "total_cost_eur": 3993618.078114234,
+          "total_cost_eur": 4004309.699509225,
           "unmet_heat_mwh": 0.0
         },
         "solver": {
           "name": "HiGHS",
-          "objective_eur": 3993618.078114234,
+          "objective_eur": 4004309.699509225,
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 6.009056257000111
+          "wall_time_seconds": 7.142521865999925
         },
         "verification_passed": true
       },
       "curve_fit_max_overestimate_mw": 4.341537767808951e-06,
       "curve_fit_mean_absolute_error_mw": 0.006193856920972547,
       "delta_soc_dependent_minus_constant": {
-        "e_cap_mwh": 0.2174249120289602,
-        "power_rating_mw": 0.03623748533815885,
-        "total_cost_eur": 798.2434286302887,
-        "total_cost_pct": 0.019987976141354388
+        "e_cap_mwh": 0.0,
+        "power_rating_mw": 0.0,
+        "total_cost_eur": 835.6178239975125,
+        "total_cost_pct": 0.020867961938606478
       },
       "mass_flow_kg_per_s": 2.427558478409285,
       "profile_shape": "flat",
       "soc_dependent": {
         "kpis": {
-          "carbon_cost_eur": 412691.70006000606,
-          "e_cap_mwh": 55.20434128496135,
-          "electricity_cost_eur": 2515586.4831088833,
-          "emissions_tco2": 5158.6462507500755,
-          "fuel_cost_eur": 1021514.1090594208,
+          "blower_cost_eur": 10532.121724465238,
+          "blower_energy_mwh": 162.136858635723,
+          "carbon_cost_eur": 421625.52370727353,
+          "e_cap_mwh": 54.98691637293239,
+          "electricity_cost_eur": 2484911.8625103915,
+          "emissions_tco2": 5270.319046340919,
+          "fuel_cost_eur": 1043627.5339288949,
           "max_heat_balance_residual_mw": 8.881784197001252e-16,
-          "power_rating_mw": 9.200723547493558,
-          "total_cost_eur": 3994416.321542864,
+          "power_rating_mw": 9.1644860621554,
+          "total_cost_eur": 4005145.3173332224,
           "unmet_heat_mwh": 0.0
         },
         "solver": {
           "name": "HiGHS",
-          "objective_eur": 3994416.321542864,
+          "objective_eur": 4005145.3173332224,
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 17.615685302999964
+          "wall_time_seconds": 18.762407152000037
         },
         "verification_passed": true
       },
@@ -61,57 +67,62 @@
       "temperature_c": 300.0
     },
     {
+      "blower_specific_power_mw_per_mw": 0.010905381482581031,
       "constant_limit": {
         "kpis": {
-          "carbon_cost_eur": 173255.4622836875,
-          "e_cap_mwh": 78.22632071187732,
-          "electricity_cost_eur": 2135533.2214383883,
-          "emissions_tco2": 2165.6932785460936,
-          "fuel_cost_eur": 428850.1541675433,
-          "max_heat_balance_residual_mw": 1.7763568394002505e-15,
-          "power_rating_mw": 13.03772011864622,
-          "total_cost_eur": 2800872.517476454,
+          "blower_cost_eur": 15865.648891800487,
+          "blower_energy_mwh": 237.1708080790769,
+          "carbon_cost_eur": 186414.51447618305,
+          "e_cap_mwh": 77.10000000000001,
+          "electricity_cost_eur": 2091090.7480168515,
+          "emissions_tco2": 2330.1814309522883,
+          "fuel_cost_eur": 461422.0655351065,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 12.850000000000001,
+          "total_cost_eur": 2817116.2033196865,
           "unmet_heat_mwh": 0.0
         },
         "solver": {
           "name": "HiGHS",
-          "objective_eur": 2800872.517476454,
+          "objective_eur": 2817116.2033196865,
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 7.296659256999874
+          "wall_time_seconds": 8.23227392199999
         },
         "verification_passed": true
       },
       "curve_fit_max_overestimate_mw": 4.341537767808951e-06,
       "curve_fit_mean_absolute_error_mw": 0.006193856920972547,
       "delta_soc_dependent_minus_constant": {
-        "e_cap_mwh": 0.48880338910997523,
-        "power_rating_mw": 0.0814672315183298,
-        "total_cost_eur": 271.2410646658391,
-        "total_cost_pct": 0.009684163166063102
+        "e_cap_mwh": 0.0,
+        "power_rating_mw": 0.0,
+        "total_cost_eur": 353.5672175097279,
+        "total_cost_pct": 0.01255067920496445
       },
       "mass_flow_kg_per_s": 2.427558478409285,
       "profile_shape": "two_shift",
       "soc_dependent": {
         "kpis": {
-          "carbon_cost_eur": 172756.62323653942,
-          "e_cap_mwh": 78.7151241009873,
-          "electricity_cost_eur": 2137142.93098879,
-          "emissions_tco2": 2159.4577904567427,
-          "fuel_cost_eur": 427615.4040508401,
+          "blower_cost_eur": 15890.505494236098,
+          "blower_energy_mwh": 237.02242276940044,
+          "carbon_cost_eur": 186331.37432706886,
+          "e_cap_mwh": 77.10000000000001,
+          "electricity_cost_eur": 2091708.3912293543,
+          "emissions_tco2": 2329.142179088361,
+          "fuel_cost_eur": 461216.27308680414,
           "max_heat_balance_residual_mw": 8.881784197001252e-16,
-          "power_rating_mw": 13.11918735016455,
-          "total_cost_eur": 2801143.7585411198,
+          "power_rating_mw": 12.850000000000001,
+          "total_cost_eur": 2817469.770537196,
           "unmet_heat_mwh": 0.0
         },
         "solver": {
           "name": "HiGHS",
-          "objective_eur": 2801143.7585411198,
+          "objective_eur": 2817469.770537196,
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 17.853746082000043
+          "wall_time_seconds": 14.880961692000028
         },
         "verification_passed": true
       },
@@ -119,57 +130,62 @@
       "temperature_c": 300.0
     },
     {
+      "blower_specific_power_mw_per_mw": 0.010905381482581031,
       "constant_limit": {
         "kpis": {
-          "carbon_cost_eur": 185812.91039537836,
-          "e_cap_mwh": 70.57876950383753,
-          "electricity_cost_eur": 2171920.8977902248,
-          "emissions_tco2": 2322.66137994223,
-          "fuel_cost_eur": 459932.9465232139,
+          "blower_cost_eur": 14920.163181299542,
+          "blower_energy_mwh": 221.88051590856443,
+          "carbon_cost_eur": 195407.92703260237,
+          "e_cap_mwh": 69.06107413036317,
+          "electricity_cost_eur": 2140176.6676134677,
+          "emissions_tco2": 2442.59908790753,
+          "fuel_cost_eur": 483682.98770446127,
           "max_heat_balance_residual_mw": 1.7763568394002505e-15,
-          "power_rating_mw": 11.76312825063959,
-          "total_cost_eur": 2874718.591684194,
+          "power_rating_mw": 11.510179021727195,
+          "total_cost_eur": 2890012.764447981,
           "unmet_heat_mwh": 0.0
         },
         "solver": {
           "name": "HiGHS",
-          "objective_eur": 2874718.591684194,
+          "objective_eur": 2890012.764447981,
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 7.587034426000173
+          "wall_time_seconds": 7.2859623659999215
         },
         "verification_passed": true
       },
       "curve_fit_max_overestimate_mw": 4.341537767808951e-06,
       "curve_fit_mean_absolute_error_mw": 0.006193856920972547,
       "delta_soc_dependent_minus_constant": {
-        "e_cap_mwh": 0.5533508656337744,
-        "power_rating_mw": 0.09222514427229633,
-        "total_cost_eur": 884.8996367142536,
-        "total_cost_pct": 0.030782130789220062
+        "e_cap_mwh": 0.0210579853320354,
+        "power_rating_mw": 0.003509664222004716,
+        "total_cost_eur": 891.8837971650064,
+        "total_cost_pct": 0.030860894738482733
       },
       "mass_flow_kg_per_s": 2.427558478409285,
       "profile_shape": "seasonal",
       "soc_dependent": {
         "kpis": {
-          "carbon_cost_eur": 186919.11026099906,
-          "e_cap_mwh": 71.13212036947131,
-          "electricity_cost_eur": 2168514.181918929,
-          "emissions_tco2": 2336.4888782624885,
-          "fuel_cost_eur": 462671.0650024729,
+          "blower_cost_eur": 14997.884118271131,
+          "blower_energy_mwh": 221.01025505251525,
+          "carbon_cost_eur": 196735.91100131473,
+          "e_cap_mwh": 69.0821321156952,
+          "electricity_cost_eur": 2136358.735403592,
+          "emissions_tco2": 2459.1988875164343,
+          "fuel_cost_eur": 486970.0767359275,
           "max_heat_balance_residual_mw": 1.7763568394002505e-15,
-          "power_rating_mw": 11.855353394911885,
-          "total_cost_eur": 2875603.491320908,
+          "power_rating_mw": 11.5136886859492,
+          "total_cost_eur": 2890904.648245146,
           "unmet_heat_mwh": 0.0
         },
         "solver": {
           "name": "HiGHS",
-          "objective_eur": 2875603.491320908,
+          "objective_eur": 2890904.648245146,
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 19.116900548999865
+          "wall_time_seconds": 15.894273381999938
         },
         "verification_passed": true
       },
@@ -177,57 +193,62 @@
       "temperature_c": 300.0
     },
     {
+      "blower_specific_power_mw_per_mw": 0.010905381482581031,
       "constant_limit": {
         "kpis": {
-          "carbon_cost_eur": 409961.4583755109,
+          "blower_cost_eur": 10488.776431064854,
+          "blower_energy_mwh": 162.62815713959014,
+          "carbon_cost_eur": 418505.89184585924,
           "e_cap_mwh": 54.98691637293239,
-          "electricity_cost_eur": 2524452.2591885687,
-          "emissions_tco2": 5124.518229693886,
-          "fuel_cost_eur": 1014756.0850878982,
+          "electricity_cost_eur": 2494961.08288425,
+          "emissions_tco2": 5231.323648073239,
+          "fuel_cost_eur": 1035905.6728857902,
           "max_heat_balance_residual_mw": 8.881784197001252e-16,
           "power_rating_mw": 9.1644860621554,
-          "total_cost_eur": 3993618.078114234,
+          "total_cost_eur": 4004309.699509225,
           "unmet_heat_mwh": 0.0
         },
         "solver": {
           "name": "HiGHS",
-          "objective_eur": 3993618.078114234,
+          "objective_eur": 4004309.699509225,
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 6.826650321999978
+          "wall_time_seconds": 7.010892326999965
         },
         "verification_passed": true
       },
       "curve_fit_max_overestimate_mw": 4.341537774709022e-06,
       "curve_fit_mean_absolute_error_mw": 0.006193856920971062,
       "delta_soc_dependent_minus_constant": {
-        "e_cap_mwh": 0.21742491202892467,
-        "power_rating_mw": 0.03623748533815352,
-        "total_cost_eur": 798.2434286302887,
-        "total_cost_pct": 0.019987976141354388
+        "e_cap_mwh": 0.0,
+        "power_rating_mw": 0.0,
+        "total_cost_eur": 835.6178239993751,
+        "total_cost_pct": 0.020867961938652993
       },
       "mass_flow_kg_per_s": 2.427558478409285,
       "profile_shape": "flat",
       "soc_dependent": {
         "kpis": {
-          "carbon_cost_eur": 412691.70006000606,
-          "e_cap_mwh": 55.204341284961316,
-          "electricity_cost_eur": 2515586.4831088833,
-          "emissions_tco2": 5158.646250750076,
-          "fuel_cost_eur": 1021514.109059421,
+          "blower_cost_eur": 10532.121724465223,
+          "blower_energy_mwh": 162.13685863572303,
+          "carbon_cost_eur": 421625.52370727353,
+          "e_cap_mwh": 54.98691637293239,
+          "electricity_cost_eur": 2484911.862510391,
+          "emissions_tco2": 5270.319046340919,
+          "fuel_cost_eur": 1043627.5339288949,
           "max_heat_balance_residual_mw": 8.881784197001252e-16,
-          "power_rating_mw": 9.200723547493553,
-          "total_cost_eur": 3994416.321542864,
+          "power_rating_mw": 9.1644860621554,
+          "total_cost_eur": 4005145.317333224,
           "unmet_heat_mwh": 0.0
         },
         "solver": {
           "name": "HiGHS",
-          "objective_eur": 3994416.321542864,
+          "objective_eur": 4005145.317333224,
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 17.234978143000035
+          "wall_time_seconds": 16.156313442000055
         },
         "verification_passed": true
       },
@@ -235,57 +256,62 @@
       "temperature_c": 400.0
     },
     {
+      "blower_specific_power_mw_per_mw": 0.010905381482581031,
       "constant_limit": {
         "kpis": {
-          "carbon_cost_eur": 173255.4622836875,
-          "e_cap_mwh": 78.22632071187732,
-          "electricity_cost_eur": 2135533.2214383883,
-          "emissions_tco2": 2165.6932785460936,
-          "fuel_cost_eur": 428850.1541675433,
-          "max_heat_balance_residual_mw": 1.7763568394002505e-15,
-          "power_rating_mw": 13.03772011864622,
-          "total_cost_eur": 2800872.517476454,
+          "blower_cost_eur": 15865.648891800487,
+          "blower_energy_mwh": 237.1708080790769,
+          "carbon_cost_eur": 186414.51447618305,
+          "e_cap_mwh": 77.10000000000001,
+          "electricity_cost_eur": 2091090.7480168515,
+          "emissions_tco2": 2330.1814309522883,
+          "fuel_cost_eur": 461422.0655351065,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 12.850000000000001,
+          "total_cost_eur": 2817116.2033196865,
           "unmet_heat_mwh": 0.0
         },
         "solver": {
           "name": "HiGHS",
-          "objective_eur": 2800872.517476454,
+          "objective_eur": 2817116.2033196865,
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 8.738501022000037
+          "wall_time_seconds": 7.292098669999859
         },
         "verification_passed": true
       },
       "curve_fit_max_overestimate_mw": 4.341537774709022e-06,
       "curve_fit_mean_absolute_error_mw": 0.006193856920971062,
       "delta_soc_dependent_minus_constant": {
-        "e_cap_mwh": 0.4888033891100889,
-        "power_rating_mw": 0.08146723151834756,
-        "total_cost_eur": 271.24106466630474,
-        "total_cost_pct": 0.009684163166079727
+        "e_cap_mwh": 0.0,
+        "power_rating_mw": 0.0,
+        "total_cost_eur": 353.5672175111249,
+        "total_cost_pct": 0.012550679205014039
       },
       "mass_flow_kg_per_s": 2.427558478409285,
       "profile_shape": "two_shift",
       "soc_dependent": {
         "kpis": {
-          "carbon_cost_eur": 172756.62323653925,
-          "e_cap_mwh": 78.71512410098741,
-          "electricity_cost_eur": 2137142.93098879,
-          "emissions_tco2": 2159.457790456741,
-          "fuel_cost_eur": 427615.4040508398,
+          "blower_cost_eur": 15890.50549423608,
+          "blower_energy_mwh": 237.0224227694005,
+          "carbon_cost_eur": 186331.37432706883,
+          "e_cap_mwh": 77.10000000000001,
+          "electricity_cost_eur": 2091708.3912293545,
+          "emissions_tco2": 2329.1421790883605,
+          "fuel_cost_eur": 461216.273086804,
           "max_heat_balance_residual_mw": 8.881784197001252e-16,
-          "power_rating_mw": 13.119187350164568,
-          "total_cost_eur": 2801143.75854112,
+          "power_rating_mw": 12.850000000000001,
+          "total_cost_eur": 2817469.7705371976,
           "unmet_heat_mwh": 0.0
         },
         "solver": {
           "name": "HiGHS",
-          "objective_eur": 2801143.75854112,
+          "objective_eur": 2817469.7705371976,
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 17.483409418999827
+          "wall_time_seconds": 20.344321077999894
         },
         "verification_passed": true
       },
@@ -293,57 +319,62 @@
       "temperature_c": 400.0
     },
     {
+      "blower_specific_power_mw_per_mw": 0.010905381482581031,
       "constant_limit": {
         "kpis": {
-          "carbon_cost_eur": 185812.91039537836,
-          "e_cap_mwh": 70.57876950383753,
-          "electricity_cost_eur": 2171920.8977902248,
-          "emissions_tco2": 2322.66137994223,
-          "fuel_cost_eur": 459932.9465232139,
+          "blower_cost_eur": 14920.163181299542,
+          "blower_energy_mwh": 221.88051590856443,
+          "carbon_cost_eur": 195407.92703260237,
+          "e_cap_mwh": 69.06107413036317,
+          "electricity_cost_eur": 2140176.6676134677,
+          "emissions_tco2": 2442.59908790753,
+          "fuel_cost_eur": 483682.98770446127,
           "max_heat_balance_residual_mw": 1.7763568394002505e-15,
-          "power_rating_mw": 11.76312825063959,
-          "total_cost_eur": 2874718.591684194,
+          "power_rating_mw": 11.510179021727195,
+          "total_cost_eur": 2890012.764447981,
           "unmet_heat_mwh": 0.0
         },
         "solver": {
           "name": "HiGHS",
-          "objective_eur": 2874718.591684194,
+          "objective_eur": 2890012.764447981,
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 8.352911257000187
+          "wall_time_seconds": 9.201045991
         },
         "verification_passed": true
       },
       "curve_fit_max_overestimate_mw": 4.341537774709022e-06,
       "curve_fit_mean_absolute_error_mw": 0.006193856920971062,
       "delta_soc_dependent_minus_constant": {
-        "e_cap_mwh": 0.5533508656336892,
-        "power_rating_mw": 0.09222514427228212,
-        "total_cost_eur": 884.8996367151849,
-        "total_cost_pct": 0.03078213078925246
+        "e_cap_mwh": 0.02105798533202119,
+        "power_rating_mw": 0.0035096642220029395,
+        "total_cost_eur": 891.8837971636094,
+        "total_cost_pct": 0.030860894738434397
       },
       "mass_flow_kg_per_s": 2.427558478409285,
       "profile_shape": "seasonal",
       "soc_dependent": {
         "kpis": {
-          "carbon_cost_eur": 186919.11026099906,
-          "e_cap_mwh": 71.13212036947122,
-          "electricity_cost_eur": 2168514.1819189284,
-          "emissions_tco2": 2336.488878262488,
-          "fuel_cost_eur": 462671.065002473,
+          "blower_cost_eur": 14997.884118271126,
+          "blower_energy_mwh": 221.01025505251528,
+          "carbon_cost_eur": 196735.91100131464,
+          "e_cap_mwh": 69.08213211569519,
+          "electricity_cost_eur": 2136358.735403592,
+          "emissions_tco2": 2459.1988875164334,
+          "fuel_cost_eur": 486970.0767359273,
           "max_heat_balance_residual_mw": 1.7763568394002505e-15,
-          "power_rating_mw": 11.855353394911871,
-          "total_cost_eur": 2875603.491320909,
+          "power_rating_mw": 11.513688685949198,
+          "total_cost_eur": 2890904.6482451446,
           "unmet_heat_mwh": 0.0
         },
         "solver": {
           "name": "HiGHS",
-          "objective_eur": 2875603.491320909,
+          "objective_eur": 2890904.6482451446,
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 18.623377666999886
+          "wall_time_seconds": 21.337816671000155
         },
         "verification_passed": true
       },
@@ -351,8 +382,11 @@
       "temperature_c": 400.0
     },
     {
+      "blower_specific_power_mw_per_mw": null,
       "constant_limit": {
         "kpis": {
+          "blower_cost_eur": 0.0,
+          "blower_energy_mwh": 0.0,
           "carbon_cost_eur": 445261.42955583835,
           "e_cap_mwh": 36.779465434968145,
           "electricity_cost_eur": 2424742.6500051483,
@@ -369,7 +403,7 @@
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 7.530332417999944
+          "wall_time_seconds": 5.90896442799999
         },
         "verification_passed": true
       },
@@ -385,6 +419,8 @@
       "profile_shape": "flat",
       "soc_dependent": {
         "kpis": {
+          "blower_cost_eur": 0.0,
+          "blower_energy_mwh": 0.0,
           "carbon_cost_eur": 446661.2680141666,
           "e_cap_mwh": 36.779465462050744,
           "electricity_cost_eur": 2420121.9447300383,
@@ -401,7 +437,7 @@
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 13.557994952999934
+          "wall_time_seconds": 11.196847720999813
         },
         "verification_passed": true
       },
@@ -409,8 +445,11 @@
       "temperature_c": 300.0
     },
     {
+      "blower_specific_power_mw_per_mw": null,
       "constant_limit": {
         "kpis": {
+          "blower_cost_eur": 0.0,
+          "blower_energy_mwh": 0.0,
           "carbon_cost_eur": 206980.44871360593,
           "e_cap_mwh": 60.0,
           "electricity_cost_eur": 2055752.1582742096,
@@ -427,7 +466,7 @@
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 8.094518434000065
+          "wall_time_seconds": 6.019364161999874
         },
         "verification_passed": true
       },
@@ -443,6 +482,8 @@
       "profile_shape": "two_shift",
       "soc_dependent": {
         "kpis": {
+          "blower_cost_eur": 0.0,
+          "blower_energy_mwh": 0.0,
           "carbon_cost_eur": 207507.34511200374,
           "e_cap_mwh": 60.0,
           "electricity_cost_eur": 2054031.8459329368,
@@ -459,7 +500,7 @@
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 13.368080708999969
+          "wall_time_seconds": 9.894311163000111
         },
         "verification_passed": true
       },
@@ -467,8 +508,11 @@
       "temperature_c": 300.0
     },
     {
+      "blower_specific_power_mw_per_mw": null,
       "constant_limit": {
         "kpis": {
+          "blower_cost_eur": 0.0,
+          "blower_energy_mwh": 0.0,
           "carbon_cost_eur": 213155.97963689198,
           "e_cap_mwh": 54.502324339540216,
           "electricity_cost_eur": 2096851.3286201146,
@@ -485,7 +529,7 @@
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 8.432822563999935
+          "wall_time_seconds": 7.086606593999932
         },
         "verification_passed": true
       },
@@ -501,6 +545,8 @@
       "profile_shape": "seasonal",
       "soc_dependent": {
         "kpis": {
+          "blower_cost_eur": 0.0,
+          "blower_energy_mwh": 0.0,
           "carbon_cost_eur": 214026.2372565278,
           "e_cap_mwh": 54.576710906683395,
           "electricity_cost_eur": 2093932.81645918,
@@ -517,7 +563,7 @@
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 12.286121316999925
+          "wall_time_seconds": 11.822035370999856
         },
         "verification_passed": true
       },
@@ -525,8 +571,11 @@
       "temperature_c": 300.0
     },
     {
+      "blower_specific_power_mw_per_mw": null,
       "constant_limit": {
         "kpis": {
+          "blower_cost_eur": 0.0,
+          "blower_energy_mwh": 0.0,
           "carbon_cost_eur": 445261.42955583835,
           "e_cap_mwh": 36.779465434968145,
           "electricity_cost_eur": 2424742.6500051483,
@@ -543,7 +592,7 @@
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 7.1772268029999395
+          "wall_time_seconds": 6.488470546999906
         },
         "verification_passed": true
       },
@@ -559,6 +608,8 @@
       "profile_shape": "flat",
       "soc_dependent": {
         "kpis": {
+          "blower_cost_eur": 0.0,
+          "blower_energy_mwh": 0.0,
           "carbon_cost_eur": 446661.2680141666,
           "e_cap_mwh": 36.779465462050744,
           "electricity_cost_eur": 2420121.9447300383,
@@ -575,7 +626,7 @@
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 13.205507433000093
+          "wall_time_seconds": 10.805869611999924
         },
         "verification_passed": true
       },
@@ -583,8 +634,11 @@
       "temperature_c": 400.0
     },
     {
+      "blower_specific_power_mw_per_mw": null,
       "constant_limit": {
         "kpis": {
+          "blower_cost_eur": 0.0,
+          "blower_energy_mwh": 0.0,
           "carbon_cost_eur": 206980.44871360593,
           "e_cap_mwh": 60.0,
           "electricity_cost_eur": 2055752.1582742096,
@@ -601,7 +655,7 @@
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 7.455992004999871
+          "wall_time_seconds": 6.426657974000136
         },
         "verification_passed": true
       },
@@ -617,6 +671,8 @@
       "profile_shape": "two_shift",
       "soc_dependent": {
         "kpis": {
+          "blower_cost_eur": 0.0,
+          "blower_energy_mwh": 0.0,
           "carbon_cost_eur": 207507.34511200374,
           "e_cap_mwh": 60.0,
           "electricity_cost_eur": 2054031.8459329368,
@@ -633,7 +689,7 @@
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 10.810103336999873
+          "wall_time_seconds": 11.413877793999973
         },
         "verification_passed": true
       },
@@ -641,8 +697,11 @@
       "temperature_c": 400.0
     },
     {
+      "blower_specific_power_mw_per_mw": null,
       "constant_limit": {
         "kpis": {
+          "blower_cost_eur": 0.0,
+          "blower_energy_mwh": 0.0,
           "carbon_cost_eur": 213155.97963689198,
           "e_cap_mwh": 54.502324339540216,
           "electricity_cost_eur": 2096851.3286201146,
@@ -659,7 +718,7 @@
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 8.180457703000002
+          "wall_time_seconds": 7.436653191000005
         },
         "verification_passed": true
       },
@@ -675,6 +734,8 @@
       "profile_shape": "seasonal",
       "soc_dependent": {
         "kpis": {
+          "blower_cost_eur": 0.0,
+          "blower_energy_mwh": 0.0,
           "carbon_cost_eur": 214026.2372565278,
           "e_cap_mwh": 54.576710906683395,
           "electricity_cost_eur": 2093932.81645918,
@@ -691,7 +752,7 @@
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 10.232995464000169
+          "wall_time_seconds": 11.577251054000044
         },
         "verification_passed": true
       },
@@ -699,8 +760,11 @@
       "temperature_c": 400.0
     },
     {
+      "blower_specific_power_mw_per_mw": null,
       "constant_limit": {
         "kpis": {
+          "blower_cost_eur": 0.0,
+          "blower_energy_mwh": 0.0,
           "carbon_cost_eur": 643814.4,
           "e_cap_mwh": -0.0,
           "electricity_cost_eur": 1940614.4416014154,
@@ -717,7 +781,7 @@
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 6.62462735400004
+          "wall_time_seconds": 6.484988096000052
         },
         "verification_passed": true
       },
@@ -733,6 +797,8 @@
       "profile_shape": "flat",
       "soc_dependent": {
         "kpis": {
+          "blower_cost_eur": 0.0,
+          "blower_energy_mwh": 0.0,
           "carbon_cost_eur": 643814.4,
           "e_cap_mwh": -0.0,
           "electricity_cost_eur": 1940614.4416014154,
@@ -749,7 +815,7 @@
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 4.669283396000083
+          "wall_time_seconds": 4.5816106229999605
         },
         "verification_passed": true
       },
@@ -757,8 +823,11 @@
       "temperature_c": 300.0
     },
     {
+      "blower_specific_power_mw_per_mw": null,
       "constant_limit": {
         "kpis": {
+          "blower_cost_eur": 0.0,
+          "blower_energy_mwh": 0.0,
           "carbon_cost_eur": 496176.64,
           "e_cap_mwh": -0.0,
           "electricity_cost_eur": 1335191.2642009442,
@@ -775,7 +844,7 @@
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 9.631462064000061
+          "wall_time_seconds": 7.816614398000183
         },
         "verification_passed": true
       },
@@ -791,6 +860,8 @@
       "profile_shape": "two_shift",
       "soc_dependent": {
         "kpis": {
+          "blower_cost_eur": 0.0,
+          "blower_energy_mwh": 0.0,
           "carbon_cost_eur": 496176.64,
           "e_cap_mwh": -0.0,
           "electricity_cost_eur": 1335191.2642009442,
@@ -807,7 +878,7 @@
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 4.16369743700011
+          "wall_time_seconds": 3.859319054000025
         },
         "verification_passed": true
       },
@@ -815,8 +886,11 @@
       "temperature_c": 300.0
     },
     {
+      "blower_specific_power_mw_per_mw": null,
       "constant_limit": {
         "kpis": {
+          "blower_cost_eur": 0.0,
+          "blower_energy_mwh": 0.0,
           "carbon_cost_eur": 483049.3933200143,
           "e_cap_mwh": -0.0,
           "electricity_cost_eur": 1453706.1339327432,
@@ -833,7 +907,7 @@
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 9.898061402999929
+          "wall_time_seconds": 8.585114970999939
         },
         "verification_passed": true
       },
@@ -849,6 +923,8 @@
       "profile_shape": "seasonal",
       "soc_dependent": {
         "kpis": {
+          "blower_cost_eur": 0.0,
+          "blower_energy_mwh": 0.0,
           "carbon_cost_eur": 483049.3933200143,
           "e_cap_mwh": -0.0,
           "electricity_cost_eur": 1453706.1339327432,
@@ -865,7 +941,7 @@
           "status": "ok",
           "termination": "optimal",
           "time_limit_hit": false,
-          "wall_time_seconds": 4.794895340000039
+          "wall_time_seconds": 4.11043015700011
         },
         "verification_passed": true
       },
@@ -874,8 +950,8 @@
     }
   ],
   "delta_t_min_hot_side_c": 0.0,
-  "fix": "roadmap P0.1 (matched-duration-family sizing) + P0.2 (temperature-reference fix) + P0.4 (start-of-hour discharge capability reference), applied uniformly across packed bed, two-tank molten salt, and PCM",
-  "generated_at": "2026-09-04T12:42:54.772784+00:00",
+  "fix": "roadmap P0.1 (matched-duration-family sizing) + P0.2 (temperature-reference fix) + P0.4 (start-of-hour discharge capability reference), applied uniformly across packed bed, two-tank molten salt, and PCM, plus packed bed's own blower parasitic-load cost (P3.3's Ergun/blower power, previously computed and reported but never charged to any technology's operating cost -- see 'blower_parasitic_cost_fix' below)",
+  "generated_at": "2026-09-05T21:47:42.126824+00:00",
   "headline_duration_hours": 6.0,
   "load_profiles": [
     "flat",
