@@ -1,0 +1,24 @@
+{
+  "generated_at": "2026-09-05T19:23:50.302905+00:00",
+  "roadmap_item": "P4.2 (FMU-vs-shadow-twin cross-check)",
+  "fmu_path": "C:\\Users\\prasa\\AppData\\Local\\Temp\\OpenModelica\\OMEdit\\PackedBedThermocline.fmu",
+  "scenario": {
+    "mass_flow_kg_per_s": 3.0,
+    "inlet_temperature_c": 320.0,
+    "initial_bed_temperature_c": 400.0,
+    "fixed_h_v_w_per_m3k": 5800.0,
+    "stop_time_hours": 8.0,
+    "transient_window_s": 90.0,
+    "transient_step_s": 0.002,
+    "bulk_step_s": 0.05,
+    "twin_n_steps": 2000
+  },
+  "max_absolute_outlet_temperature_deviation_c": 0.18381582169814692,
+  "rmse_outlet_temperature_c": 0.09166750244093691,
+  "fmu_breakthrough_time_s": 17251.899999889174,
+  "twin_breakthrough_time_s": 17265.600000000002,
+  "breakthrough_time_deviation_s": -13.700000110828114,
+  "fmu_delivered_energy_j": 4549573627.972909,
+  "twin_delivered_energy_j": 4549440419.645694,
+  "relative_energy_deviation": 2.9280156442969494e-05
+}

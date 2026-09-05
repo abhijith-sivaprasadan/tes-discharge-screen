@@ -1089,55 +1089,83 @@ is preferable to a black-box property dependency nobody can explain in an
 interview." Not attempted in this pass, consistent with that instruction
 rather than as an oversight.
 
-## P4: FMU/Modelica verification -- compiled outside this environment, cross-check still blocked here
+## P4: FMU/Modelica verification -- done, run outside this environment
 
 The roadmap calls the FMU-vs-shadow-twin cross-check "the single strongest
-verification story available here." The roadmap's own P4.1 environment
-step cannot be completed *in this working environment*, full stop:
-`apt-cache search openmodelica` finds no package in this container's
-default repositories, and the container's own outbound network gateway
-returns a hard `403` to OpenModelica's own distribution host
-(`build.openmodelica.org`) and to Ubuntu's `ppa.launchpadcontent.net`
-mirror. This is an allowlist-based network policy, not a transient
-failure -- no retry, alternate mirror, or `pip install fmpy` (installable;
-`entsoe-py`-style, from PyPI, which *is* reachable) changes the outcome,
-since `fmpy` only ever consumes an already-compiled FMU and there is no
-`omc` compiler available to produce one.
+verification story available here." This working environment cannot
+compile or execute the FMU itself, full stop: `apt-cache search
+openmodelica` finds no package in this container's default repositories,
+the container's own outbound network gateway returns a hard `403` to
+OpenModelica's own distribution host, and the FMU that was eventually
+compiled elsewhere turned out to contain only Windows (`win64`) binaries,
+which this Linux sandbox with no Wine cannot load either. Every step below
+therefore ran on the user's own machine (OpenModelica/OMEdit, Windows),
+with the resulting artifacts reported back and committed here
+(`outputs/fmu_cross_check/`) -- this project's only result in this
+document that was not produced inside this session.
 
-That blocker has since been worked around, outside this environment: the
-user compiled `modelica/tes_screen/package.mo`'s `PackedBedThermocline`
-model with OpenModelica/OMEdit on their own machine. Doing so surfaced and
-let us fix a real bug this session had no way to catch on its own -- the
-package declared `package TesScreen`/`end TesScreen;` inside a directory
-named `tes_screen`, violating Modelica's file-system package-name-matching
-convention (OMEdit's error named it exactly); every reference to the old
-name (`scripts/build_packed_bed_fmu.mos`, `tests/test_modelica_contract.py`)
-was updated to match. The resulting FMU is a valid FMI 2.0 Co-Simulation
-export (confirmed from its own `modelDescription.xml`) -- but it contains
-only `binaries/win64/`, no `binaries/linux64/`, and this sandbox is Linux
-with no Wine, so `fmpy` cannot load it *here* either. The blocker moved
-from "cannot compile" to "cannot execute this platform's binary," not away
-entirely.
+**Getting there took three real attempts, each one informative, not just
+a clean run:**
 
-`scripts/run_fmu_cross_check_experiment.py` implements the actual P4.2
-comparison and is ready to run on whatever machine holds a working FMU
-(Windows, in this case) with the project installed: it runs the FMU via
-`tes_screen.fmu.simulate_fmu` and the Python shadow twin via
-`packed_bed_dynamics.simulate_discharge` at *exactly* matched
-parameters -- `mass_flow=3.0 kg/s`, `inlet=320 C`, `initial=400 C`, and a
-fixed `h_v=5800 W/(m3.K)` on both sides (the Modelica model's own fixed
-parameter, passed to the Python side via
+1. Compiling `modelica/tes_screen/package.mo`'s `PackedBedThermocline`
+   model surfaced a bug this session had no way to catch on its own: the
+   package declared `package TesScreen`/`end TesScreen;` inside a
+   directory named `tes_screen`, violating Modelica's file-system
+   package-name-matching convention. OMEdit's error named it exactly;
+   fixed here, along with every reference to the old name
+   (`scripts/build_packed_bed_fmu.mos`, `tests/test_modelica_contract.py`).
+2. The first cross-check run (a uniform 60s FMU communication step)
+   crashed outright (`fmi2GetReal failed`, `division leads to inf or nan`).
+   The second (a uniform 0.05s step, 1200x finer) didn't crash, but the
+   outlet temperature blew up to ~-4.6e10 C by t=6.6s -- then
+   *recovered*, matching the Python shadow twin to <1e-3 C for the
+   remaining ~1780s of that diagnostic run. That pattern (huge but
+   bounded, decaying back to correct behaviour) diagnoses a transient
+   numerical artifact, not a persistent instability: `PackedBedThermocline`
+   imposes an instantaneous t=0 step change from a uniform 400 C bed to a
+   320 C inlet, and `fluidCapacityPerVolume` (245 J/(m3.K)) is ~4600x
+   below `solidCapacityPerVolume` (1.14e6), so that step change drives an
+   extremely fast inlet boundary-layer transient the FMU's internal
+   Co-Simulation solver needs a much finer communication step to resolve
+   -- confirmed by the FMU's own `modelDescription.xml`, which publishes
+   `DefaultExperiment stepSize="0.002"`, 25x finer than the step that
+   still blew up.
+3. `tes_screen.fmu.simulate_fmu_staged` (added for this) runs the FMU
+   with a *variable* communication step via fmpy's low-level `FMU2Slave`
+   interface rather than one uniform step: 90s at the FMU's own
+   recommended 0.002s to get safely past the transient, then the
+   already-validated 0.05s for the remainder of the discharge. That run
+   is the result below.
+
+**Result** (`scripts/run_fmu_cross_check_experiment.py`, full 8h
+discharge, `mass_flow=3.0 kg/s`, `inlet=320 C`, `initial=400 C`, and a
+*fixed* `h_v=5800 W/(m3.K)` on both sides -- the Modelica model's own
+fixed parameter, passed to the Python twin via
 `heat_transfer_coefficient_override_w_per_m3k` so neither side silently
 recomputes it and turns a solver comparison into a hidden physics
-comparison) -- then reports max absolute outlet-temperature deviation,
-RMSE, breakthrough-time deviation, and relative delivered-energy deviation
-(reconstructed from the FMU's own `outletTemperature` trace with the same
-formula the Python twin integrates internally, since the FMU exposes no
-energy output directly). It was smoke-tested end to end in this session
-with a stubbed FMU call standing in for the real `fmpy` simulation, and
-the surrounding test suite (204 tests) still passes; the actual FMU
-numbers are not yet in this document because the script has not yet been
-run against the real compiled FMU.
+comparison):
+
+| Metric | Value |
+|---|---:|
+| Max absolute outlet-temperature deviation | 0.184 C (over an 80 C discharge swing) |
+| RMSE (outlet temperature) | 0.092 C |
+| Breakthrough-time deviation | -13.7 s (FMU crosses the midpoint 13.7s before the twin, of a ~17,260s/4.8h breakthrough) |
+| Relative delivered-energy deviation | +0.0029% |
+
+The deviation trace (`outputs/fmu_cross_check/fmu_vs_twin.png`) is a
+smooth curve, not noise: it peaks near the steepest part of the
+thermocline front (~t=3.7h, +0.15 C) and troughs during the descent
+(~t=5.8h, -0.18 C) -- the expected signature of two independent numerical
+schemes (the Python twin's own hand-derived implicit backward-Euler
+stepping vs. OpenModelica's internal DAE solver) resolving the same
+moving front slightly differently, not a modelling discrepancy. **Two
+independent implementations of Schumann's governing equations, solved by
+two genuinely different numerical methods, agree to within 0.23% of the
+full temperature swing and 0.003% of delivered energy over an 8-hour
+transient.** This is "verified," in this project's own stated sense
+(governing rule 1): checked against an independent implementation of the
+same physics, not against measured data -- but it is the strongest such
+check in this repository, exactly as the roadmap said it would be.
 
 ## P5: economics sensitivity, not one assumed number
 
@@ -1430,7 +1458,7 @@ field it critiques.
 | Round-trip efficiency (charge/discharge) | 0.95 / 0.95 [assumption] | 0.95 / 0.95 [assumption] | 0.95 / 0.95 [assumption] |
 | Standing loss (fraction/hour) | 0.001 [assumption] | 0.0005 [assumption] | 0.0007 [assumption] |
 | **Parasitic-load modelling** | **Ergun/blower power computed (P3.3), reported only -- not wired into any cost** | **None computed** | **None computed** |
-| **Dynamic sub-model verification depth** | **Full: Modelica twin authored (uncompiled, P4 blocked by environment), 3 analytic-limit checks, discretisation convergence checked (P3.1)** | **Closed-form; checked only against its own specified physics** | **Closed-form; checked only against its own specified physics** |
+| **Dynamic sub-model verification depth** | **Full: Modelica FMU cross-check (P4, 0.23% max deviation over an 8h discharge), 3 analytic-limit checks, discretisation convergence checked (P3.1)** | **Closed-form; checked only against its own specified physics** | **Closed-form; checked only against its own specified physics** |
 
 What's *outside* every technology's storage boundary and priced
 identically across all three: the electric heater and backup boiler

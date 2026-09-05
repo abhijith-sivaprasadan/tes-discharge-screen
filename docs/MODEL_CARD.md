@@ -1,6 +1,6 @@
 # Model card
 
-## Status: Phase 0, A, B (packed bed with full verification; molten salt and PCM with closed-form sub-models only), P0.3 (state-sufficiency test), C (MVP scope, archived), C2 (matched-duration fix, packed bed only), P0.4 (start-of-hour capability fix), P0.5 (MILP cycling prevention), C3 (full technology-ranking matrix), P2.1 (duration-family capability curves), P3.1-P3.3 (discretisation convergence, correlation-domain checks, Ergun pressure drop/blower power), P5 (economics sensitivity), P6 (model-fidelity decision map), and Phase D (boundary harmonisation table, Morris global sensitivity screening, technology-selection map) built; P4 (FMU/Modelica verification): model compiled and cross-check script built, but not yet run against the real FMU -- blocked by this environment's platform/network constraints, not by the model or the comparison method
+## Status: Phase 0, A, B (packed bed with full verification; molten salt and PCM with closed-form sub-models only), P0.3 (state-sufficiency test), C (MVP scope, archived), C2 (matched-duration fix, packed bed only), P0.4 (start-of-hour capability fix), P0.5 (MILP cycling prevention), C3 (full technology-ranking matrix), P2.1 (duration-family capability curves), P3.1-P3.3 (discretisation convergence, correlation-domain checks, Ergun pressure drop/blower power), P5 (economics sensitivity), P6 (model-fidelity decision map), and Phase D (boundary harmonisation table, Morris global sensitivity screening, technology-selection map) built; P4 (FMU/Modelica verification): done -- model compiled and cross-checked against the Python shadow twin outside this environment (this sandbox cannot compile or execute the FMU), agreeing to within 0.23% of the full temperature swing over an 8h discharge
 
 This card documents what is actually built at this commit, not what the project
 intends to build. It will be rewritten section by section as each phase lands,
@@ -436,32 +436,49 @@ heat, is what binds in every single sensitivity point tested except the
 one where storage is priced out entirely. See README's P5 section for the
 full tables and the illustrative before/after cost decomposition.
 
-## P4: FMU/Modelica verification -- compiled outside this environment, cross-check still blocked here
+## P4: FMU/Modelica verification -- done, run outside this environment
 
 `apt-cache search openmodelica` finds no package in this container's
 default repositories, and the container's own outbound network gateway
-returns a hard `403` to OpenModelica's own distribution host
-(`build.openmodelica.org`) and to Ubuntu's `ppa.launchpadcontent.net`
-mirror -- an allowlist policy, not a transient failure. `fmpy` itself is
-pip-installable (PyPI is reachable) but consumes an already-compiled FMU;
-with no `omc` compiler reachable, there is nothing for it to consume. The
-roadmap's own P4.1 environment step cannot be completed *here*.
+returns a hard `403` to OpenModelica's own distribution host -- this
+sandbox cannot compile or execute the FMU, full stop. Every step below ran
+on the user's own machine (OpenModelica/OMEdit, Windows), with the
+resulting artifacts reported back and committed here
+(`outputs/fmu_cross_check/`).
 
-That was worked around outside this environment: the user compiled
-`modelica/tes_screen/package.mo`'s `PackedBedThermocline` model with
-OpenModelica/OMEdit locally, which surfaced a real bug this session had no
-way to catch on its own -- the package declared `package
-TesScreen`/`end TesScreen;` inside a directory named `tes_screen`,
-violating Modelica's file-system package-name-matching convention -- fixed
-here, along with every reference to the old name. The resulting FMU
-(confirmed valid FMI 2.0 Co-Simulation from its own `modelDescription.xml`)
-contains only `binaries/win64/`; this sandbox is Linux with no Wine, so it
-cannot be executed here either. `scripts/run_fmu_cross_check_experiment.py`
-implements the P4.2 comparison (matched parameters on both sides,
-including the fixed `h_v=5800 W/(m3.K)` the Modelica model itself does not
-recompute) and is ready to run wherever the FMU can actually load; it was
-smoke-tested end to end here with a stubbed FMU call, but the real FMU
-numbers are not yet in this document.
+Compiling `modelica/tes_screen/package.mo`'s `PackedBedThermocline` model
+surfaced a real bug this session had no way to catch on its own -- the
+package declared `package TesScreen`/`end TesScreen;` inside a directory
+named `tes_screen`, violating Modelica's file-system package-name-matching
+convention -- fixed here, along with every reference to the old name. The
+resulting FMU (confirmed valid FMI 2.0 Co-Simulation from its own
+`modelDescription.xml`) contains only `binaries/win64/`, unusable in this
+Linux, Wine-less sandbox. Two real cross-check attempts against it then
+diverged numerically before a third succeeded: a uniform 60s FMU
+communication step crashed outright; a uniform 0.05s step didn't crash but
+blew up to ~-4.6e10 C by t=6.6s before *recovering* and matching the
+Python shadow twin to <1e-3 C for the rest of that run -- diagnosing a
+transient numerical artifact (the model's instantaneous t=0 step change
+from 400 C to a 320 C inlet drives an extremely fast inlet boundary-layer
+transient; `fluidCapacityPerVolume` is ~4600x below
+`solidCapacityPerVolume`), not a persistent instability. Added
+`tes_screen.fmu.simulate_fmu_staged` (fmpy's low-level `FMU2Slave`
+interface, a *variable* communication step rather than one uniform value):
+90s at the FMU's own advertised `DefaultExperiment stepSize` (0.002s) to
+clear the transient, then the already-validated 0.05s for the rest.
+
+**Result** (`scripts/run_fmu_cross_check_experiment.py`, full 8h
+discharge, matched parameters on both sides including the fixed
+`h_v=5800 W/(m3.K)` the Modelica model itself does not recompute): max
+absolute outlet-temperature deviation 0.184 C (over an 80 C swing), RMSE
+0.092 C, breakthrough-time deviation -13.7s (of ~17,260s), relative
+delivered-energy deviation +0.0029%. Two independent implementations of
+Schumann's governing equations, solved by two genuinely different
+numerical methods (the Python twin's hand-derived implicit backward Euler
+vs. OpenModelica's internal DAE solver), agree to within 0.23% of the full
+temperature swing over an 8-hour transient -- "verified," in this
+project's own stated sense (governing rule 1), and the strongest such
+check in this repository.
 
 ## P6: the model-fidelity decision map
 

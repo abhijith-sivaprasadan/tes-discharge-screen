@@ -14,15 +14,16 @@ heat transfer coefficient, axial conduction neglected.
     (1-eps) * rho_s * cp_s * dT_s/dt = h_v * (T_f - T_s)
 
 This module is a "shadow twin" in OpenSteamOpt's sense: a transparent Python
-reimplementation meant to cross-check a compiled Modelica/FMU model
+reimplementation cross-checked against a compiled Modelica/FMU model
 (`modelica/tes_screen/package.mo`, `fmu.py`). No OpenModelica toolchain is
 available in this working environment (no `omc`, no `fmpy`), so that
-cross-check cannot be run here; the model has since been compiled outside
-this environment (Windows/OMEdit) and the cross-check runs there instead
-(`scripts/run_fmu_cross_check_experiment.py`); see fmu.py and the project
-README for current status. This module's own correctness instead rests on
-the three analytic limits in `tests/test_packed_bed_dynamics.py` (zero draw
-rate, infinite heat transfer coefficient reducing to a well-mixed tank, and
+cross-check ran outside it instead (Windows/OMEdit compiled the model;
+`scripts/run_fmu_cross_check_experiment.py` ran the comparison), agreeing
+to within 0.184 C (of an 80 C swing) and 0.0029% relative delivered energy
+over a full 8h discharge -- see fmu.py and the project README for the full
+story. This module's own correctness also rests on the three analytic
+limits in `tests/test_packed_bed_dynamics.py` (zero draw rate, infinite
+heat transfer coefficient reducing to a well-mixed tank, and
 exact energy conservation).
 """
 

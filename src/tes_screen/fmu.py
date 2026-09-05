@@ -9,11 +9,16 @@ specifically when the toolchain is absent, rather than silently skipping.
 been compiled outside this environment (OpenModelica/OMEdit, Windows),
 producing an FMI 2.0 Co-Simulation FMU with win64 binaries only -- this
 sandbox is Linux with no Wine, so it cannot load that FMU either. The
-FMU-vs-shadow-twin cross-check that would be this project's strongest
-verification story (per the build spec's own words) therefore runs outside
-this environment too: `scripts/run_fmu_cross_check_experiment.py`, on
-whatever machine holds a working FMU. See the project README for current
-status.
+FMU-vs-shadow-twin cross-check that is this project's strongest
+verification story (per the build spec's own words) has therefore also
+run outside this environment: `scripts/run_fmu_cross_check_experiment.py`,
+on the machine holding the working FMU, using `simulate_fmu_staged` below
+(plain `simulate_fmu`'s single uniform communication step turned out to be
+numerically unusable for this particular model -- see that function's own
+docstring). The result (0.184 C max deviation over an 80 C swing, 0.0029%
+relative delivered-energy deviation across a full 8h discharge) is
+committed under `outputs/fmu_cross_check/`; see the project README for the
+full story.
 """
 
 from __future__ import annotations

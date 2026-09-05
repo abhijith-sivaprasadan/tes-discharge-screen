@@ -72,17 +72,18 @@ package tes_screen
     src/tes_screen/packed_bed_dynamics.py's pure-Python shadow twin, which
     solves the identical governing equations with a hand-derived implicit
     time-stepping scheme rather than Modelica's own variable-step
-    integrator. Cross-checking the two (OpenSteamOpt's verification pattern)
-    requires exporting this model as an FMU via OpenModelica
+    integrator. Cross-checking the two (OpenSteamOpt's verification
+    pattern) requires exporting this model as an FMU via OpenModelica
     (scripts/build_packed_bed_fmu.mos, src/tes_screen/fmu.py); no
     OpenModelica toolchain is available in this working environment, so
-    that cross-check cannot be run here. It has been compiled successfully
-    outside this environment (OpenModelica/OMEdit, Windows), producing an
-    FMI 2.0 Co-Simulation FMU with win64 binaries only; running the actual
-    cross-check therefore also happens outside this environment
-    (scripts/run_fmu_cross_check_experiment.py). See the project README
-    and fmu.py's module docstring for current status, and docs/DATA.md for
-    every cited material property.</p>
+    neither compiling this model nor running that cross-check happens
+    here. Both have been done outside this environment (OpenModelica/
+    OMEdit, Windows; scripts/run_fmu_cross_check_experiment.py), and the
+    result is committed under outputs/fmu_cross_check/: over a full 8h
+    discharge, the two independent implementations agree to within 0.184 C
+    max deviation (an 80 C swing) and 0.0029% relative delivered energy.
+    See the project README and fmu.py's module docstring for the full
+    story, and docs/DATA.md for every cited material property.</p>
     </html>"));
   end PackedBedThermocline;
 end tes_screen;
