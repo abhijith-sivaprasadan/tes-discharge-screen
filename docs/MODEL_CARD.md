@@ -483,6 +483,33 @@ temperature-quality regime. One matplotlib heatmap per load profile
 materially-design-changing cells labelled directly. See README's P6
 section for the full grid table and figures.
 
+## Phase D: harmonised comparison and sensitivity
+
+`TES_SCREEN_SPEC.md` section 7's three deliverables. **D.1, boundary
+harmonisation table (README.md)**: done -- lifetime, discount rate, CAPEX
+figures and citation tier, what is/is not inside each technology's own
+power/BOP capex, round-trip efficiency, standing loss, for all three
+technologies. Building it surfaces a real inconsistency rather than
+resolving one: only packed bed has a computed parasitic-load estimate
+(P3.3) and the deepest verification story (analytic limits,
+discretisation convergence, an authored Modelica twin); molten salt and
+PCM have neither, a real, stated gap in verification depth, not an
+oversight, tracing back to Phase B's own stated priority ("one technology
+fully verified beats three unfinished"). **D.3, technology-selection map
+(`scripts/run_technology_selection_map_experiment.py`)**: done -- extends
+Phase C3's single-duration ranking (tau=6h) across the full 2-temperature
+x 5-duration grid C2 sweeps, 25 combinations, 50 solves, all verified.
+Packed bed remains cheapest everywhere; the ranking never flips. A
+secondary nuance the duration sweep surfaces: PCM's own "priced out
+entirely" finding (C3) holds at tau=6h and longer, but at shorter
+durations (2h, 4h) the constant-limit formulation finds slightly more
+economic value in PCM than the no-storage baseline while the SOC-dependent
+formulation still lands on exactly the no-storage cost at every duration
+-- a small-scale illustration of this project's own central theme, never
+changing which technology wins overall. **D.2, Morris global sensitivity
+screening**: in progress as of this commit; see the next commit for its
+own findings.
+
 ## What does not exist yet
 
 - **P2.2, the full swept capability envelope** (sweep feasible mass flow at
@@ -539,13 +566,15 @@ section for the full grid table and figures.
   (6h) and one set of capex assumptions C3 tested; whether a different
   duration or a different PCM capex figure would make it competitive
   enough to actually exercise the SOC-dependent correction is not tested.
-- **The boundary-harmonisation table** (Phase D). P6's own
-  model-fidelity decision map is done (above), for packed bed; a
-  cross-technology boundary-harmonisation table (molten salt, PCM) is a
-  further Phase D step, not attempted -- P6's own `theta_req` axis does
-  not transfer directly to molten salt (no thermocline) or PCM (a
-  different, three-regime degradation shape), so a comparable map for
-  either would need its own axis definition, not a reuse of this one.
+- **Phase D's Morris global sensitivity screening (D.2).** Written
+  (`scripts/run_morris_sensitivity_experiment.py`) and running as of this
+  commit; D.1 (boundary harmonisation table) and D.3 (technology-selection
+  map) are done, above.
+- **A `theta_req`-equivalent axis for molten salt or PCM.** P6's own
+  `theta_req` (packed-bed thermocline-specific) does not transfer directly
+  to molten salt (no thermocline) or PCM (a different, three-regime
+  degradation shape); a comparable model-fidelity map for either
+  technology would need its own axis definition, not attempted here.
 - **A reduced-order state beyond scalar SOC.** P0.3 found scalar SOC
   insufficient but did not build a replacement (e.g. thermocline position/
   front width, or a useful-energy-weighted SOC, as the roadmap itself

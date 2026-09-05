@@ -1,0 +1,312 @@
+{
+  "any_ranking_flip": false,
+  "cases": [
+    {
+      "constant_total_cost_eur": 4019225.7576464945,
+      "soc_total_cost_eur": 4019225.7576464945,
+      "tau_hours": 2.0,
+      "technology": "packed_bed",
+      "temperature_c": 300.0
+    },
+    {
+      "constant_total_cost_eur": 4000234.86251605,
+      "soc_total_cost_eur": 4000235.8861893956,
+      "tau_hours": 4.0,
+      "technology": "packed_bed",
+      "temperature_c": 300.0
+    },
+    {
+      "constant_total_cost_eur": 3993618.078114234,
+      "soc_total_cost_eur": 3994416.321542864,
+      "tau_hours": 6.0,
+      "technology": "packed_bed",
+      "temperature_c": 300.0
+    },
+    {
+      "constant_total_cost_eur": 3992555.333523555,
+      "soc_total_cost_eur": 3993991.3590774583,
+      "tau_hours": 8.0,
+      "technology": "packed_bed",
+      "temperature_c": 300.0
+    },
+    {
+      "constant_total_cost_eur": 3996426.9931355994,
+      "soc_total_cost_eur": 3997959.3045858187,
+      "tau_hours": 12.0,
+      "technology": "packed_bed",
+      "temperature_c": 300.0
+    },
+    {
+      "constant_total_cost_eur": 4019225.7576464945,
+      "soc_total_cost_eur": 4019225.7576464945,
+      "tau_hours": 2.0,
+      "technology": "packed_bed",
+      "temperature_c": 400.0
+    },
+    {
+      "constant_total_cost_eur": 4000234.86251605,
+      "soc_total_cost_eur": 4000235.8861893956,
+      "tau_hours": 4.0,
+      "technology": "packed_bed",
+      "temperature_c": 400.0
+    },
+    {
+      "constant_total_cost_eur": 3993618.078114234,
+      "soc_total_cost_eur": 3994416.321542864,
+      "tau_hours": 6.0,
+      "technology": "packed_bed",
+      "temperature_c": 400.0
+    },
+    {
+      "constant_total_cost_eur": 3992555.333523555,
+      "soc_total_cost_eur": 3993991.35907746,
+      "tau_hours": 8.0,
+      "technology": "packed_bed",
+      "temperature_c": 400.0
+    },
+    {
+      "constant_total_cost_eur": 3996426.9931355994,
+      "soc_total_cost_eur": 3997959.304571746,
+      "tau_hours": 12.0,
+      "technology": "packed_bed",
+      "temperature_c": 400.0
+    },
+    {
+      "constant_total_cost_eur": 4121762.0825910284,
+      "soc_total_cost_eur": 4121762.0825910284,
+      "tau_hours": 2.0,
+      "technology": "molten_salt",
+      "temperature_c": 300.0
+    },
+    {
+      "constant_total_cost_eur": 4087778.804731059,
+      "soc_total_cost_eur": 4087778.804731059,
+      "tau_hours": 4.0,
+      "technology": "molten_salt",
+      "temperature_c": 300.0
+    },
+    {
+      "constant_total_cost_eur": 4075713.2585656545,
+      "soc_total_cost_eur": 4075957.3385042157,
+      "tau_hours": 6.0,
+      "technology": "molten_salt",
+      "temperature_c": 300.0
+    },
+    {
+      "constant_total_cost_eur": 4071479.6297492287,
+      "soc_total_cost_eur": 4072184.0302967597,
+      "tau_hours": 8.0,
+      "technology": "molten_salt",
+      "temperature_c": 300.0
+    },
+    {
+      "constant_total_cost_eur": 4093388.1595696295,
+      "soc_total_cost_eur": 4093957.6217362876,
+      "tau_hours": 12.0,
+      "technology": "molten_salt",
+      "temperature_c": 300.0
+    },
+    {
+      "constant_total_cost_eur": 4121762.0825910284,
+      "soc_total_cost_eur": 4121762.0825910284,
+      "tau_hours": 2.0,
+      "technology": "molten_salt",
+      "temperature_c": 400.0
+    },
+    {
+      "constant_total_cost_eur": 4087778.804731059,
+      "soc_total_cost_eur": 4087778.804731059,
+      "tau_hours": 4.0,
+      "technology": "molten_salt",
+      "temperature_c": 400.0
+    },
+    {
+      "constant_total_cost_eur": 4075713.2585656545,
+      "soc_total_cost_eur": 4075957.3385042157,
+      "tau_hours": 6.0,
+      "technology": "molten_salt",
+      "temperature_c": 400.0
+    },
+    {
+      "constant_total_cost_eur": 4071479.6297492287,
+      "soc_total_cost_eur": 4072184.0302967597,
+      "tau_hours": 8.0,
+      "technology": "molten_salt",
+      "temperature_c": 400.0
+    },
+    {
+      "constant_total_cost_eur": 4093388.1595696295,
+      "soc_total_cost_eur": 4093957.6217362876,
+      "tau_hours": 12.0,
+      "technology": "molten_salt",
+      "temperature_c": 400.0
+    },
+    {
+      "constant_total_cost_eur": 4172676.2783046854,
+      "soc_total_cost_eur": 4178028.841601672,
+      "tau_hours": 2.0,
+      "technology": "pcm",
+      "temperature_c": 300.0
+    },
+    {
+      "constant_total_cost_eur": 4176566.6061148867,
+      "soc_total_cost_eur": 4178028.841601672,
+      "tau_hours": 4.0,
+      "technology": "pcm",
+      "temperature_c": 300.0
+    },
+    {
+      "constant_total_cost_eur": 4178028.841601672,
+      "soc_total_cost_eur": 4178028.841601672,
+      "tau_hours": 6.0,
+      "technology": "pcm",
+      "temperature_c": 300.0
+    },
+    {
+      "constant_total_cost_eur": 4178028.841601672,
+      "soc_total_cost_eur": 4178028.841601672,
+      "tau_hours": 8.0,
+      "technology": "pcm",
+      "temperature_c": 300.0
+    },
+    {
+      "constant_total_cost_eur": 4178028.841601672,
+      "soc_total_cost_eur": 4178028.841601672,
+      "tau_hours": 12.0,
+      "technology": "pcm",
+      "temperature_c": 300.0
+    }
+  ],
+  "conditional_on_note": "This map is conditional on the boundaries tabulated in README's Phase D boundary-harmonisation table, not an absolute technology ranking -- per the spec's own explicit instruction. In particular: cost figures mix literature-cited and [assumption] values with different confidence levels across technologies, and only packed bed has any computed parasitic-load estimate (P3.3's blower power) at all, not wired into any technology's cost here.",
+  "durations_hours": [
+    2.0,
+    4.0,
+    6.0,
+    8.0,
+    12.0
+  ],
+  "generated_at": "2026-09-05T12:58:30.180144+00:00",
+  "profile_shape": "flat",
+  "ranking_table": [
+    {
+      "cheapest_technology_constant": "packed_bed",
+      "cheapest_technology_soc_dependent": "packed_bed",
+      "ranking_flipped": false,
+      "tau_hours": 2.0,
+      "technologies_compared": [
+        "molten_salt",
+        "packed_bed",
+        "pcm"
+      ],
+      "temperature_c": 300.0
+    },
+    {
+      "cheapest_technology_constant": "packed_bed",
+      "cheapest_technology_soc_dependent": "packed_bed",
+      "ranking_flipped": false,
+      "tau_hours": 4.0,
+      "technologies_compared": [
+        "molten_salt",
+        "packed_bed",
+        "pcm"
+      ],
+      "temperature_c": 300.0
+    },
+    {
+      "cheapest_technology_constant": "packed_bed",
+      "cheapest_technology_soc_dependent": "packed_bed",
+      "ranking_flipped": false,
+      "tau_hours": 6.0,
+      "technologies_compared": [
+        "molten_salt",
+        "packed_bed",
+        "pcm"
+      ],
+      "temperature_c": 300.0
+    },
+    {
+      "cheapest_technology_constant": "packed_bed",
+      "cheapest_technology_soc_dependent": "packed_bed",
+      "ranking_flipped": false,
+      "tau_hours": 8.0,
+      "technologies_compared": [
+        "molten_salt",
+        "packed_bed",
+        "pcm"
+      ],
+      "temperature_c": 300.0
+    },
+    {
+      "cheapest_technology_constant": "packed_bed",
+      "cheapest_technology_soc_dependent": "packed_bed",
+      "ranking_flipped": false,
+      "tau_hours": 12.0,
+      "technologies_compared": [
+        "molten_salt",
+        "packed_bed",
+        "pcm"
+      ],
+      "temperature_c": 300.0
+    },
+    {
+      "cheapest_technology_constant": "packed_bed",
+      "cheapest_technology_soc_dependent": "packed_bed",
+      "ranking_flipped": false,
+      "tau_hours": 2.0,
+      "technologies_compared": [
+        "molten_salt",
+        "packed_bed"
+      ],
+      "temperature_c": 400.0
+    },
+    {
+      "cheapest_technology_constant": "packed_bed",
+      "cheapest_technology_soc_dependent": "packed_bed",
+      "ranking_flipped": false,
+      "tau_hours": 4.0,
+      "technologies_compared": [
+        "molten_salt",
+        "packed_bed"
+      ],
+      "temperature_c": 400.0
+    },
+    {
+      "cheapest_technology_constant": "packed_bed",
+      "cheapest_technology_soc_dependent": "packed_bed",
+      "ranking_flipped": false,
+      "tau_hours": 6.0,
+      "technologies_compared": [
+        "molten_salt",
+        "packed_bed"
+      ],
+      "temperature_c": 400.0
+    },
+    {
+      "cheapest_technology_constant": "packed_bed",
+      "cheapest_technology_soc_dependent": "packed_bed",
+      "ranking_flipped": false,
+      "tau_hours": 8.0,
+      "technologies_compared": [
+        "molten_salt",
+        "packed_bed"
+      ],
+      "temperature_c": 400.0
+    },
+    {
+      "cheapest_technology_constant": "packed_bed",
+      "cheapest_technology_soc_dependent": "packed_bed",
+      "ranking_flipped": false,
+      "tau_hours": 12.0,
+      "technologies_compared": [
+        "molten_salt",
+        "packed_bed"
+      ],
+      "temperature_c": 400.0
+    }
+  ],
+  "roadmap_item": "Phase D.3 (technology-selection map, TES_SCREEN_SPEC.md section 7)",
+  "temperatures_c": [
+    300.0,
+    400.0
+  ]
+}

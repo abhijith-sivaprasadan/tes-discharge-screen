@@ -1377,6 +1377,61 @@ therefore conditional not just on the CAPEX figures' own mixed [assumption]/
 on an unequal verification and completeness depth between technologies
 that a boundary table alone cannot fix -- only make visible.
 
+### D.3: technology-selection map
+
+**Extends Phase C3's single-duration technology ranking (packed bed
+cheapest at every valid technology/temperature/profile combination, at
+tau=6h) across the full duration dimension C3 held fixed.** For each of 2
+process temperatures x 5 design durations (2h-12h, C2's own grid), every
+valid technology's curve is rebuilt at that duration exactly as C3 does,
+and both discharge-limit formulations solved duration-matched. 25
+(technology, temperature, duration) combinations, 50 solves, all
+`optimal` and independently verified.
+
+| Temperature | Duration | Cheapest (constant) | Cheapest (SOC-dependent) | Flipped? |
+|---:|---:|---|---|:---:|
+| 300 C | 2h | packed_bed | packed_bed | No |
+| 300 C | 4h | packed_bed | packed_bed | No |
+| 300 C | 6h | packed_bed | packed_bed | No |
+| 300 C | 8h | packed_bed | packed_bed | No |
+| 300 C | 12h | packed_bed | packed_bed | No |
+| 400 C | 2h | packed_bed | packed_bed | No |
+| 400 C | 4h | packed_bed | packed_bed | No |
+| 400 C | 6h | packed_bed | packed_bed | No |
+| 400 C | 8h | packed_bed | packed_bed | No |
+| 400 C | 12h | packed_bed | packed_bed | No |
+
+**Packed bed is cheapest everywhere in this map, under both
+formulations, at every duration tested -- the ranking does not flip
+anywhere.** This is consistent with, and extends, C3's own finding: the
+technology-cost gaps this project's own boundary-harmonisation table
+above already flags as resting on unequal CAPEX confidence levels
+(packed bed's own 7,000 EUR/MWh-th vs. PCM's 80,000 EUR/MWh-th, over an
+order of magnitude apart) are simply too large for any duration-dependent
+sizing effect within this map to close.
+
+**One secondary nuance the duration sweep surfaces that C3's single tau=6h
+point did not:** PCM's own "priced out entirely, exactly matching the no-
+storage baseline cost" finding from C3 holds at tau=6h and longer (8h,
+12h: constant and SOC-dependent both land on exactly the same
+4,178,029 EUR/yr no-storage cost), but at *shorter* durations (2h, 4h) the
+constant-limit formulation finds slightly more value in building some PCM
+capacity than the no-storage baseline (4,172,676 and 4,176,567 EUR/yr
+respectively, roughly 0.03-0.13% cheaper) -- while the SOC-dependent
+formulation still lands on exactly the no-storage cost at *every* duration
+tested. A small effect, and it never changes which technology wins
+overall, but it is a clean, small-scale illustration of this project's own
+central theme: the temperature-blind constant model can see slightly more
+economic value in a technology than the SOC-dependent model, which
+correctly discounts capacity PCM's own three-regime discharge shape
+cannot actually deliver.
+
+**Explicitly a conditional map, not an absolute one**, per the spec's own
+instruction: conditional on every boundary tabulated in D.1 above,
+including the stated unequal CAPEX citation confidence and unequal
+parasitic-load/verification depth between technologies. Every number
+traces to `outputs/technology_selection_map/run_manifest.json`.
+
 ## Repository layout
 
 ```
@@ -1407,7 +1462,10 @@ scripts/          Run harnesses: run_case.py (Phase A), run_packed_bed_dynamics.
                   secondary-parameter sensitivity sweeps, cost
                   decomposition, and binding-constraint diagnosis),
                   run_model_fidelity_map_experiment.py (P6's theta_req x
-                  tau decision map)
+                  tau decision map), run_technology_selection_map_experiment.py
+                  (Phase D.3's duration x temperature technology-ranking
+                  map), run_morris_sensitivity_experiment.py (Phase D.2's
+                  Morris global sensitivity screening)
 tests/            Physics and contract tests, not syntax tests
 configs/          One YAML per case; no parameter lives in source
 outputs/          Committed run evidence: config + schedule + solver/verification manifest
@@ -1487,10 +1545,17 @@ SOC-dependent model refuses to build any storage at all -- once the
 temperature-quality requirement gets high enough, with the exact
 threshold depending on design duration; this project's own actual case
 configs sit safely outside that regime, which is itself a finding, not an
-evasion) -> D (harmonised comparison and sensitivity, optional
-enrichment; not started). Real ENTSO-E price data (the roadmap's own P7)
-is being pulled forward ahead of its default sequencing, at explicit user
-request; not yet wired in as of this commit (pending an ENTSOE_API_KEY).
+evasion) -> D (harmonised comparison and sensitivity, TES_SCREEN_SPEC.md
+section 7: D.1 boundary harmonisation table done -- surfaces a real,
+stated inconsistency in parasitic-load and verification depth across
+technologies rather than resolving one; D.3 technology-selection map done
+-- packed bed cheapest at every one of 25 (technology, temperature,
+duration) combinations tested, extending C3's ranking-never-flips finding
+across the full duration dimension; D.2 Morris global sensitivity
+screening in progress as of this commit). Real ENTSO-E price data (the
+roadmap's own P7) is being pulled forward ahead of its default
+sequencing, at explicit user request; not yet wired in as of this commit
+(pending an ENTSOE_API_KEY).
 
 ## Development
 
@@ -1544,4 +1609,12 @@ python scripts/run_economics_sensitivity_experiment.py
 # Run the P6 model-fidelity decision map (theta_req x tau x load profile;
 # writes outputs/model_fidelity_map/, including the per-profile heatmaps):
 python scripts/run_model_fidelity_map_experiment.py
+
+# Run Phase D.3's technology-selection map (temperature x duration,
+# extends C3's ranking across durations; writes outputs/technology_selection_map/):
+python scripts/run_technology_selection_map_experiment.py
+
+# Run Phase D.2's Morris global sensitivity screening (writes
+# outputs/morris_sensitivity/):
+python scripts/run_morris_sensitivity_experiment.py
 ```
