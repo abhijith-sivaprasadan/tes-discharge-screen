@@ -1,6 +1,6 @@
 # Model card
 
-## Status: Phase 0, A, B (packed bed with full verification; molten salt and PCM with closed-form sub-models only), P0.3 (state-sufficiency test), C (MVP scope, archived), C2 (matched-duration fix, packed bed only), P0.4 (start-of-hour capability fix), P0.5 (MILP cycling prevention), C3 (full technology-ranking matrix), P2.1 (duration-family capability curves), P3.1-P3.3 (discretisation convergence, correlation-domain checks, Ergun pressure drop/blower power), and P5 (economics sensitivity) built; P4 (FMU/Modelica verification) confirmed blocked by environment constraints, not attempted
+## Status: Phase 0, A, B (packed bed with full verification; molten salt and PCM with closed-form sub-models only), P0.3 (state-sufficiency test), C (MVP scope, archived), C2 (matched-duration fix, packed bed only), P0.4 (start-of-hour capability fix), P0.5 (MILP cycling prevention), C3 (full technology-ranking matrix), P2.1 (duration-family capability curves), P3.1-P3.3 (discretisation convergence, correlation-domain checks, Ergun pressure drop/blower power), P5 (economics sensitivity), and P6 (model-fidelity decision map) built; P4 (FMU/Modelica verification) confirmed blocked by environment constraints, not attempted
 
 This card documents what is actually built at this commit, not what the project
 intends to build. It will be rewritten section by section as each phase lands,
@@ -447,6 +447,42 @@ with no `omc` compiler reachable, there is nothing for it to consume. The
 roadmap's own P4.1 environment step cannot be completed here; nothing
 further was attempted.
 
+## P6: the model-fidelity decision map
+
+`scripts/run_model_fidelity_map_experiment.py` answers the more general
+question every prior paired comparison (C2, C3, P5) sidestepped by only
+ever running at this project's own case configs' one specific
+temperature-quality regime: under what conditions does the SOC-dependent
+correction materially change the decision, at all? Sweeps a dimensionless
+`theta_req = (T_required_out - T_return) / (T_hot - T_return)` (P6.1) x
+design duration tau (2h/6h/12h) x 3 load profiles = 45 grid points, 90
+solves, all optimal and independently verified. This project's own two
+packed-bed configs both sit at `theta_req = -0.25` (their own deliberate
+20 C return-temperature margin above process temperature) -- reproduced
+here as an explicit internal consistency check (`theta_req=-0.25, tau=6h,
+flat` matches Phase C2/C3's own published 54.99/55.20 MWh, +0.0200% cost
+exactly, even though this script builds curves independently).
+**Finding: the annual objective stays insensitive over most of the domain
+(33/45 grid points classified "constant model adequate"), but power/
+energy sizing collapses from a small bias to complete infeasibility --
+the SOC-dependent formulation sizes to exactly 0 MWh while the
+temperature-blind constant-limit formulation still sizes 46-61 MWh -- in
+12/45 points, once the temperature-quality requirement crosses a
+duration-dependent threshold** (between theta_req 0.5-0.75 at the
+shortest duration tested, 2h; between 0.75-0.9 at 6h and 12h, since
+longer durations draw at lower mass flow and degrade more gracefully,
+P2.1's own finding). Zero grid points fell in the intermediate
+"potentially useful" band -- a genuinely bimodal split, not a gradual
+one. This is the first result in this repository to actually demonstrate
+the packed-bed thermocline degradation effect the project's own opening
+hypothesis describes in its dramatic, technology-feasibility-changing
+form, rather than the small (<0.1%) cost-only effect every prior paired
+comparison found at this project's own case configs' own, much safer,
+temperature-quality regime. One matplotlib heatmap per load profile
+(`outputs/model_fidelity_map/figures/`), coloured by annual-cost bias with
+materially-design-changing cells labelled directly. See README's P6
+section for the full grid table and figures.
+
 ## What does not exist yet
 
 - **P2.2, the full swept capability envelope** (sweep feasible mass flow at
@@ -503,10 +539,13 @@ further was attempted.
   (6h) and one set of capex assumptions C3 tested; whether a different
   duration or a different PCM capex figure would make it competitive
   enough to actually exercise the SOC-dependent correction is not tested.
-- **The boundary-harmonisation table and the model-fidelity decision map**
-  (roadmap P6/Phase D). P5's economics sensitivity is done (above); P6's
-  own further step -- combining sensitivity results across technologies
-  into a single decision-relevance map -- is not.
+- **The boundary-harmonisation table** (Phase D). P6's own
+  model-fidelity decision map is done (above), for packed bed; a
+  cross-technology boundary-harmonisation table (molten salt, PCM) is a
+  further Phase D step, not attempted -- P6's own `theta_req` axis does
+  not transfer directly to molten salt (no thermocline) or PCM (a
+  different, three-regime degradation shape), so a comparable map for
+  either would need its own axis definition, not a reuse of this one.
 - **A reduced-order state beyond scalar SOC.** P0.3 found scalar SOC
   insufficient but did not build a replacement (e.g. thermocline position/
   front width, or a useful-energy-weighted SOC, as the roadmap itself

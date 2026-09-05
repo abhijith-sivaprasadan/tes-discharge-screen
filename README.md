@@ -1217,6 +1217,117 @@ Every number above traces to `outputs/economics_sensitivity/run_manifest.json`:
 all 31 points, both formulations, full KPIs, cost decomposition, and
 binding-regime classification for each.
 
+## P6: the model-fidelity decision map
+
+**Every paired comparison before this one -- C2, C3, P5 -- was run at this
+project's own actual case configs' one specific temperature-quality
+regime.** Roadmap P6 asks the more general, and more useful, question:
+*under what conditions does the detailed discharge representation
+materially change the system-level decision, at all?* This is the first
+experiment in this repository to actually leave that one regime and map
+the surrounding space.
+
+**The axis that matters is a dimensionless one.** Rather than sweep raw
+process temperature (not transferable between cases), P6.1 defines
+`theta_req = (T_required_out - T_return) / (T_hot - T_return)`: 0 means the
+process only needs the store barely above its own return temperature
+(nearly all stored heat is useful); 1 means the process needs almost the
+store's own fully-charged temperature (only the hottest sliver is useful,
+and outlet-temperature degradation should matter strongly). **This
+project's own two packed-bed case configs both sit at `theta_req = -0.25`**
+-- negative, because both deliberately hold the return temperature 20 C
+*above* the process temperature (the "usable floor" design choice
+documented since Phase A) -- which is exactly why
+[P3.1](#p31-spatial-and-temporal-discretisation-convergence) already found
+the quality gate can never bind for either config: they sit comfortably
+outside the regime where degradation matters at all. `theta_req = -0.25,
+tau = 6h, flat` is this repository's own already-published Phase C2/C3
+headline case; this script's own internal consistency check
+(`scripts/run_model_fidelity_map_experiment.py`, built independently,
+parameterised by `theta_req` rather than reading `process_temperature_c`
+off a case config directly) reproduces it exactly: `E_cap` 54.99/55.20
+MWh, +0.0200% cost, matching the published numbers to two decimal places.
+
+**The finding, in the roadmap's own suggested structure ("only say this if
+the corrected experiment supports it" -- it does): the annual objective is
+relatively insensitive over most of the domain tested, but power and
+energy sizing go from a small bias to complete infeasibility -- the
+SOC-dependent model refuses to build any storage at all -- once the
+temperature-quality requirement gets high enough, and how high depends on
+design duration.** Of the 45 grid points swept (`theta_req` in
+{-0.25, 0.25, 0.5, 0.75, 0.9} x tau in {2h, 6h, 12h} x 3 load profiles, 90
+solves, all `optimal` and independently verified), **33 fall in the
+"constant model adequate" region and 12 in "additional fidelity materially
+changes design"** -- none fell in the intermediate "potentially useful"
+band at all, a real bimodal split, not a gradual one.
+
+| theta_req | tau=2h | tau=6h | tau=12h |
+|---:|---|---|---|
+| -0.25 | adequate (bias 0.00%) | adequate (bias 0.02-0.03%) | adequate (bias 0.02-0.07%) |
+| 0.25 | adequate (bias 0.00%) | adequate (bias 0.01-0.03%) | adequate (bias 0.02-0.07%) |
+| 0.50 | adequate (bias 0.00%) | adequate (bias 0.01-0.03%) | adequate (bias 0.02-0.07%) |
+| 0.75 | **materially changes design** (E_cap: 45.9 -> 0 MWh, cost bias 3.95-7.80%) | adequate (bias 0.01-0.03%) | adequate (bias 0.02-0.07%) |
+| 0.90 | **materially changes design** (E_cap: 45.9 -> 0 MWh) | **materially changes design** (E_cap: 55.0 -> 0 MWh) | **materially changes design** (E_cap: 60.8 -> 0 MWh) |
+
+(Cost-bias ranges are across the three load profiles at that grid point;
+`E_cap` values shown are the constant-limit sizing collapsing to the
+SOC-dependent formulation's exactly-zero sizing, not a small percentage
+move.)
+
+**The mechanism, read directly off the underlying sizing, not inferred.**
+The constant-limit formulation's own sized `E_cap` is *completely
+insensitive* to `theta_req` (45.868 / 54.987 / 60.753 MWh at tau=2h/6h/12h,
+identical at every `theta_req` tested) -- the same already-documented Phase
+A property (`dispatch.py`'s constant-limit block never reads process
+temperature at all) showing up here as a genuine blind spot: a model that
+cannot see temperature cannot possibly notice that it has walked into a
+regime where a packed bed's own physics makes storage worthless. The
+SOC-dependent formulation, which *can* see it, sizes identically to the
+constant model at low `theta_req` and then drops to **exactly zero MWh**
+once the piecewise discharge curve's own effective full-charge SOC range
+shrinks enough that building any packed-bed storage stops paying for
+itself at all -- a categorical, not incremental, disagreement between the
+two models about whether this technology should even be considered.
+
+**Duration changes where the cliff is, not whether one exists.** The flip
+happens between `theta_req = 0.5` and `0.75` at the shortest duration
+tested (2h) but needs `theta_req` between `0.75` and `0.9` at 6h and 12h --
+longer design durations draw at a lower mass flow (P2.1's own finding),
+giving a less steeply-degrading discharge curve that stays viable to a
+higher temperature-quality requirement before collapsing. Short-duration,
+high-temperature-utilisation designs are the most exposed combination
+found in this map.
+
+**Restating the roadmap's own P6.3 template, since the data now actually
+supports it:** dynamic fidelity is far more important for equipment
+sizing and technology feasibility than for total annual cost in the
+adequate region -- but once a design crosses into the high-`theta_req`,
+short-duration corner, the disagreement stops being about cost bias at all
+and becomes a disagreement about whether the technology is viable in the
+first place, which no amount of the constant model's own cost-sensitivity
+analysis (P5) could have surfaced, since it never varies temperature in
+the first place.
+
+**One figure per load profile** (P6.1's own explicit instruction), each a
+`theta_req` x `tau` heatmap coloured by annual-cost bias, with the
+materially-design-changing cells labelled directly:
+
+![Model-fidelity decision map: flat](outputs/model_fidelity_map/figures/flat.png)
+![Model-fidelity decision map: two-shift](outputs/model_fidelity_map/figures/two_shift.png)
+![Model-fidelity decision map: seasonal](outputs/model_fidelity_map/figures/seasonal.png)
+
+**Scope and thresholds, stated plainly.** Packed bed only: `theta_req` is
+defined from the thermocline model's own `T_hot`/`T_return`, and molten
+salt has no thermocline to degrade in the first place (Phase C3's own
+finding), so this map's whole premise does not transfer to it directly.
+The 5%/5%/1% classification thresholds are the roadmap's own suggested
+screening values, explicitly labelled [assumption] in the run manifest,
+not universal truths -- per the roadmap's own instruction not to present
+them as anything more. Every number above traces to
+`outputs/model_fidelity_map/run_manifest.json`: all 45 grid points, both
+formulations' full KPIs, the bias/region classification, and the
+consistency-check result.
+
 ## Repository layout
 
 ```
@@ -1245,7 +1356,9 @@ scripts/          Run harnesses: run_case.py (Phase A), run_packed_bed_dynamics.
                   discretisation convergence check),
                   run_economics_sensitivity_experiment.py (P5's CAPEX and
                   secondary-parameter sensitivity sweeps, cost
-                  decomposition, and binding-constraint diagnosis)
+                  decomposition, and binding-constraint diagnosis),
+                  run_model_fidelity_map_experiment.py (P6's theta_req x
+                  tau decision map)
 tests/            Physics and contract tests, not syntax tests
 configs/          One YAML per case; no parameter lives in source
 outputs/          Committed run evidence: config + schedule + solver/verification manifest
@@ -1317,11 +1430,18 @@ SOC-dependent delta staying essentially flat throughout (+0.019% to
 decomposition and binding-constraint classification at all 31 points;
 gas price is the single most powerful lever found, capable of pricing
 storage out of the market entirely or tripling it and flipping the system
-to full electrification) -> D (harmonised comparison and sensitivity,
-optional enrichment; not started). Real ENTSO-E price data (the roadmap's
-own P7) is being pulled forward ahead of its default sequencing, at
-explicit user request; not yet wired in as of this commit (pending an
-ENTSOE_API_KEY).
+to full electrification) -> P6 (model-fidelity decision map; done -- 45
+grid points across theta_req x tau x 3 profiles, 90 solves, all verified;
+the annual objective stays insensitive over most of the domain, but power/
+energy sizing collapses from a small bias to complete infeasibility -- the
+SOC-dependent model refuses to build any storage at all -- once the
+temperature-quality requirement gets high enough, with the exact
+threshold depending on design duration; this project's own actual case
+configs sit safely outside that regime, which is itself a finding, not an
+evasion) -> D (harmonised comparison and sensitivity, optional
+enrichment; not started). Real ENTSO-E price data (the roadmap's own P7)
+is being pulled forward ahead of its default sequencing, at explicit user
+request; not yet wired in as of this commit (pending an ENTSOE_API_KEY).
 
 ## Development
 
@@ -1371,4 +1491,8 @@ python scripts/run_convergence_experiment.py
 # secondary parameters one-at-a-time, cost decomposition, binding-constraint
 # diagnosis; writes outputs/economics_sensitivity/):
 python scripts/run_economics_sensitivity_experiment.py
+
+# Run the P6 model-fidelity decision map (theta_req x tau x load profile;
+# writes outputs/model_fidelity_map/, including the per-profile heatmaps):
+python scripts/run_model_fidelity_map_experiment.py
 ```
