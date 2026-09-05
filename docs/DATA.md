@@ -116,9 +116,11 @@ proper), matching the project's own stated priority (a single technology
 fully verified beats three unfinished) and the spec's expectation that
 packed bed is where the SOC-dependent correction should matter most: a
 Python shadow twin, a Modelica model of the identical governing equations
-(uncompiled -- no OpenModelica toolchain reachable in this working
-environment, confirmed via a direct network check, not merely assumed;
-see README's P4 section), three analytic-limit checks, and a spatial/
+(no OpenModelica toolchain reachable in this working environment,
+confirmed via a direct network check, not merely assumed, so it was
+compiled and cross-checked against the shadow twin outside this
+environment instead; see docs/RESULTS.md's P4 section), three
+analytic-limit checks, and a spatial/
 temporal discretisation convergence study (P3.1). The packed-bed dynamic
 model is also adiabatic (no ambient heat loss term): a deliberate scope
 choice, not an oversight -- Phase A already accounts for standing loss at
@@ -137,9 +139,9 @@ own tests check the implementation against its own specified physics
 rather than against an independent analytic limit the way the packed
 bed's B4 checks do, and neither has a Modelica twin. This is a real,
 stated difference in verification depth between technologies, not
-resolved by simply having "a sub-model" for each one -- see README's
-Phase D boundary-harmonisation table, which surfaces this same gap
-directly.
+resolved by simply having "a sub-model" for each one -- see
+docs/RESULTS.md's Phase D boundary-harmonisation table, which surfaces
+this same gap directly.
 
 ## Round-trip charge/discharge efficiency
 

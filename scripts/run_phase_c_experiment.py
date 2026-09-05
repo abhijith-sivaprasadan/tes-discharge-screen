@@ -14,10 +14,10 @@ describe: one technology (packed bed), one process temperature (300 C), one
 load profile (flat), both formulations. It is not the full 18-run matrix
 (3 technologies x 2 temperatures x 3 profiles): only packed bed has a Phase B
 dynamic sub-model, so a technology-ranking comparison is not answerable yet.
-See the run manifest and the project README for what this result does and
+See the run manifest and docs/RESULTS.md for what this result does and
 does not show.
 
-**Archived (README/MODEL_CARD): its committed output is superseded by
+**Archived (docs/RESULTS.md/MODEL_CARD): its committed output is superseded by
 run_phase_c2_duration_matched_experiment.py, kept unmodified rather than
 re-run.** Its calls are still updated to match discharge_power_curve's
 current signature (P0.2) and storage.discharge_capability_reference's new

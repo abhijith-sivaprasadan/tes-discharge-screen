@@ -307,8 +307,8 @@ def test_discharge_capability_reference_changes_the_annual_result() -> None:
     # power than the constant-limit baseline; start_of_hour (the corrected
     # reference) needs less, undercutting Phase C's original "SOC-dependent
     # always needs more power" framing as itself partly an artifact of this
-    # bug, not a robust physical result (see README's P0.4 section for the
-    # full-horizon numbers).
+    # bug, not a robust physical result (see docs/RESULTS.md's P0.4 section
+    # for the full-horizon numbers).
     overrides = {"storage_capex_eur_per_mwh": 1.0, "storage_capex_eur_per_mw": 1.0}
     _config_a, _load_a, _price_a, result_constant = _solve_short(**overrides)
     _config_end, _load_end, _price_end, result_end_of_hour = _solve_short_soc_dependent(

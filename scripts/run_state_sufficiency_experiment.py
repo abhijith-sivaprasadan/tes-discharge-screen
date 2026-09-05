@@ -40,7 +40,7 @@ approximation -- not hidden, per the roadmap's explicit instruction not to
 bury a negative result here. Until this test exists project-wide, the
 existing single-trajectory relation is documented as a
 "trajectory-derived SOC capability curve," not a universal law; see
-README/MODEL_CARD.
+docs/RESULTS.md/MODEL_CARD.
 
 A fifth profile family the roadmap names -- "profiles taken from realistic
 charge/discharge histories" -- needs a charging dynamic model this project

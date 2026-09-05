@@ -266,7 +266,7 @@ def main() -> None:
     # Internal consistency check: this grid point's own parameters
     # (theta_req=-0.25 -> process_temperature_c=300, tau=6h, flat) should
     # reproduce Phase C2/C3's own already-published headline numbers
-    # (README's Phase C3 table: 54.99/55.20 MWh, +0.020% cost), even though
+    # (docs/RESULTS.md's Phase C3 table: 54.99/55.20 MWh, +0.020% cost), even though
     # this script builds its curve independently, parameterised by
     # theta_req rather than reading process_temperature_c off the case
     # config directly.

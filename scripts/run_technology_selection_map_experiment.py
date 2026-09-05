@@ -31,7 +31,7 @@ already-substantial solve count for a dimension C3 has already answered).
 
 This is explicitly a conditional map, not an absolute one, per the
 spec's own instruction: it is conditional on every boundary tabulated in
-README's Phase D boundary-harmonisation table (which cost figures are
+docs/RESULTS.md's Phase D boundary-harmonisation table (which cost figures are
 [assumption] vs literature-cited, what is and is not inside each
 technology's own storage capex, and -- flagged there directly -- that
 only packed bed has any computed parasitic-load estimate at all, not
@@ -294,8 +294,8 @@ def main() -> None:
         "roadmap_item": "Phase D.3 (technology-selection map, TES_SCREEN_SPEC.md section 7)",
         "conditional_on_note": (
             "This map is conditional on the boundaries tabulated in "
-            "README's Phase D boundary-harmonisation table, not an "
-            "absolute technology ranking -- per the spec's own explicit "
+            "docs/RESULTS.md's Phase D boundary-harmonisation table, not "
+            "an absolute technology ranking -- per the spec's own explicit "
             "instruction. In particular: cost figures mix literature-cited "
             "and [assumption] values with different confidence levels "
             "across technologies, and only packed bed has any computed "

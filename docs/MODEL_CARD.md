@@ -45,7 +45,7 @@ describes.
   five terminate optimal with every check passing; the cost ranking
   (packed bed cheapest, PCM most expensive) tracks the CAPEX ranking in
   docs/DATA.md, the expected sanity check for a purely economic model at this
-  stage. See README's Phase A results table for the numbers.
+  stage. See docs/RESULTS.md's Phase A results table for the numbers.
 - **A documented, checked limitation**: the 300 C and 400 C result for a given
   technology is numerically identical in Phase A, because `dispatch.py` never
   reads `delivery_temperature_c`, `medium`, or
@@ -120,7 +120,7 @@ describes.
   from here on as a **trajectory-derived SOC capability curve** (accurate
   along the one bed-state history it was built from), not a validated
   general `Pmax(SOC)` law; this does not invalidate Phase C/C2 below, which
-  both use exactly that one trajectory, consistently. See README's P0.3
+  both use exactly that one trajectory, consistently. See docs/RESULTS.md's P0.3
   section for the full physical explanation and numbers.
 - **Phase C, MVP scope (archived; superseded by C2 below).** The
   piecewise-linear discharge-curve construction (`src/tes_screen/discharge_curve.py`,
@@ -160,7 +160,7 @@ describes.
   shape-isolated cost delta is +0.000% to +0.038% across the sweep --
   indistinguishable from the constant-limit baseline to solver tolerance at
   the two shortest durations -- against Phase C's original (confounded,
-  mis-referenced, over-conservative) +0.22%. See README's Phase C2 section
+  mis-referenced, over-conservative) +0.22%. See docs/RESULTS.md's Phase C2 section
   for the full sweep table.
 - **P0.4, start-of-hour discharge capability.** `dispatch.py`'s piecewise
   discharge-capability constraint bound `p_dis[t]` using `level[t]`, the
@@ -187,7 +187,7 @@ describes.
   of durations near tau=8h failed to find a feasible solution within the
   configured time limit, not because they were infeasible), and IPM
   resolves it, confirmed to reproduce identical objective values on every
-  already-passing case. See README's P0.4 section for the full mechanism.
+  already-passing case. See docs/RESULTS.md's P0.4 section for the full mechanism.
 - **P0.5, MILP simultaneous-cycling prevention.** A pure LP with
   independent nonnegative `p_ch[t]`/`p_dis[t]` can exploit negative
   electricity prices by charging and discharging simultaneously in the same
@@ -214,7 +214,7 @@ describes.
   LP's own (a strict restriction of the LP's feasible region) -- confirmed
   measurably higher here, showing the LP's cheaper answer was exactly the
   pathology's value. The original LP mode (`"none"`) is unchanged and
-  remains every existing case's default. See README's P0.5 section for the
+  remains every existing case's default. See docs/RESULTS.md's P0.5 section for the
   full numbers.
 - **Molten-salt and PCM dynamic sub-models (`src/tes_screen/molten_salt_dynamics.py`,
   `src/tes_screen/pcm_dynamics.py`).** Closed-form, not time-stepped PDEs
@@ -282,7 +282,7 @@ describes.
   gate both process temperatures clear trivially), not a bug. One
   matplotlib figure per technology (`outputs/phase_c_full_matrix/figures/`)
   overlays each curve's analytic shape, its piecewise fit, and the
-  constant-limit reference. See README's Phase C3 section for the full
+  constant-limit reference. See docs/RESULTS.md's Phase C3 section for the full
   15-row and 6-row tables.
 
 ## Scaling law
@@ -348,7 +348,7 @@ mass flow/flux, and the piecewise fit's own safety margin against
 overestimating deliverable power tightens correspondingly (2h: 6.8e-05 MW
 max overestimate; 12h: 8.0e-07 MW), a real if minor pattern the per-duration
 curve data surfaces that C2's own segment-count robustness check did not
-previously tabulate. See README's P2.1 section for the full table.
+previously tabulate. See docs/RESULTS.md's P2.1 section for the full table.
 
 ## P3.1: spatial and temporal discretisation convergence
 
@@ -373,7 +373,7 @@ C/C2/C3/P2.1 result, all built at this same default resolution, is
 therefore confirmed to already be converged at the level that matters
 (checked against a finer-resolution run, this project's own "verified"
 sense, not "validated" against measured data), not merely assumed. See
-README's P3.1 section for the full table.
+docs/RESULTS.md's P3.1 section for the full table.
 
 ## P3.2: correlation-domain validity checks
 
@@ -433,7 +433,7 @@ carbon cost); lower process load factor (peakier profiles) counter-
 intuitively *increases* optimal storage size rather than decreasing it;
 and the electric heater's own capacity, not the backup boiler or unmet
 heat, is what binds in every single sensitivity point tested except the
-one where storage is priced out entirely. See README's P5 section for the
+one where storage is priced out entirely. See docs/RESULTS.md's P5 section for the
 full tables and the illustrative before/after cost decomposition.
 
 ## P4: FMU/Modelica verification -- done, run outside this environment
@@ -513,13 +513,13 @@ form, rather than the small (<0.1%) cost-only effect every prior paired
 comparison found at this project's own case configs' own, much safer,
 temperature-quality regime. One matplotlib heatmap per load profile
 (`outputs/model_fidelity_map/figures/`), coloured by annual-cost bias with
-materially-design-changing cells labelled directly. See README's P6
+materially-design-changing cells labelled directly. See docs/RESULTS.md's P6
 section for the full grid table and figures.
 
 ## Phase D: harmonised comparison and sensitivity
 
 `TES_SCREEN_SPEC.md` section 7's three deliverables. **D.1, boundary
-harmonisation table (README.md)**: done -- lifetime, discount rate, CAPEX
+harmonisation table (docs/RESULTS.md)**: done -- lifetime, discount rate, CAPEX
 figures and citation tier, what is/is not inside each technology's own
 power/BOP capex, round-trip efficiency, standing loss, for all three
 technologies. Building it surfaces a real inconsistency rather than
@@ -607,7 +607,7 @@ h_v's precise magnitude even though the raw curve shape is not.
   parameter itself.
 - PCM at 400 C: no common nitrate-salt PCM composition was found in this
   session's research with a melting point usefully close to 400 C, so that
-  combination is left undone rather than forced (docs/DATA.md, README).
+  combination is left undone rather than forced (docs/DATA.md, docs/RESULTS.md).
 - **A dedicated PCM economics sweep.** Phase D.3's duration sweep (2h-12h)
   already showed PCM's own "priced out entirely" result is duration-
   dependent, not universal (it builds nonzero capacity at 2h/4h under the
