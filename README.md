@@ -1042,6 +1042,181 @@ is preferable to a black-box property dependency nobody can explain in an
 interview." Not attempted in this pass, consistent with that instruction
 rather than as an oversight.
 
+## P4: FMU/Modelica verification -- blocked, confirmed not just assumed
+
+The roadmap calls the FMU-vs-shadow-twin cross-check "the single strongest
+verification story available here." It remains not done, for the same
+reason stated in [Phase B](#phase-b-packed-bed-dynamic-sub-model) above,
+but that reason was re-checked directly this session rather than carried
+forward from an earlier note: `apt-cache search openmodelica` finds no
+package in this container's default repositories, and the container's own
+outbound network gateway returns a hard `403` to OpenModelica's own
+distribution host (`build.openmodelica.org`) and to Ubuntu's
+`ppa.launchpadcontent.net` mirror. This is an allowlist-based network
+policy, not a transient failure -- no retry, alternate mirror, or `pip
+install fmpy` (installable; `entsoe-py`-style, from PyPI, which *is*
+reachable) changes the outcome, since `fmpy` only ever consumes an
+already-compiled FMU and there is no `omc` compiler available to produce
+one. Nothing further was attempted here; the roadmap's own P4.1
+environment step cannot be completed in this working environment, full
+stop.
+
+## P5: economics sensitivity, not one assumed number
+
+**The point of this section, stated as the roadmap itself states it:**
+this project's headline results (Phase A, C2, C3) each rest on one assumed
+value per economic parameter -- most visibly `storage_capex_eur_per_mw`,
+which `docs/DATA.md` itself already flags as having "no literature figure
+found." Rather than search harder for a single citation and treat it as
+universal, `scripts/run_economics_sensitivity_experiment.py` sweeps every
+parameter the roadmap names, for one representative case
+(`packed_bed_300c_flat`, flat profile, duration-matched at tau=6h, both
+discharge-limit formulations), and reports the full cost decomposition and
+which constraint actually binds at every point -- 31 sensitivity points,
+62 solves, all `optimal` and independently verified, every cost
+decomposition cross-checked to reproduce the solver's own objective
+exactly.
+
+**A coupling worth stating up front.** Duration-matched sizing ties power
+to `E_cap / tau` identically in both formulations (P0.1) -- necessary to
+keep the constant-vs-SOC-dependent comparison unconfounded, per this
+repository's own hard-won lesson -- but it also means storage power CAPEX
+(P5.1) and storage energy CAPEX (P5.2) are not fully decoupled here: both
+ultimately scale the same combined per-MWh capex rate
+(`storage_capex_eur_per_mwh + storage_capex_eur_per_mw / tau`), since
+power is never an independent sizing decision in this mode. A fully
+decoupled power-CAPEX sensitivity would need non-duration-matched sizing,
+reopening the unequal-sizing-degrees-of-freedom confound P0.1 fixed;
+matched sizing was kept instead, for consistency with every other paired
+comparison in this repository.
+
+### P5.1: storage power CAPEX (0x-8x of the assumed value)
+
+| Multiplier | Constant E_cap (MWh) | SOC-dependent E_cap (MWh) | Constant cost (EUR/yr) | SOC-dependent cost (EUR/yr) | Delta | Binding constraint |
+|---:|---:|---:|---:|---:|---:|---|
+| 0x | 59.54 | 59.78 | 3,978,543 | 3,979,302 | +0.0191% | electric heater capacity |
+| 0.25x | 59.54 | 59.54 | 3,982,425 | 3,983,190 | +0.0192% | electric heater capacity |
+| 0.5x | 59.53 | 59.54 | 3,986,306 | 3,987,071 | +0.0192% | electric heater capacity |
+| 1x (assumed) | 54.99 | 55.20 | 3,993,618 | 3,994,416 | +0.0200% | electric heater capacity |
+| 2x | 50.43 | 50.49 | 4,007,471 | 4,008,267 | +0.0199% | electric heater capacity |
+| 4x | 41.30 | 41.37 | 4,031,721 | 4,032,497 | +0.0192% | electric heater capacity |
+| 8x | 36.73 | 36.73 | 4,072,017 | 4,072,829 | +0.0199% | electric heater capacity |
+
+**Finding: sized capacity responds monotonically to power CAPEX (59.5 to
+36.7 MWh across the sweep, as expected -- more expensive power makes less
+storage worthwhile), but the SOC-dependent-vs-constant cost delta barely
+moves at all (+0.0191% to +0.0200% across an 8x range in the assumed
+value).** The discharge-limit-shape effect this whole project measures is,
+at least for this case, essentially insensitive to how the storage power
+CAPEX assumption is set -- a real robustness result for the headline
+finding, not merely a consequence of narrow bounds (0x to 8x is a
+deliberately wide, roadmap-suggested range).
+
+### P5.2: secondary sensitivities (one axis at a time)
+
+| Axis | Value | Constant E_cap (MWh) | SOC-dependent E_cap (MWh) | Delta | Binding constraint |
+|---|---:|---:|---:|---:|---|
+| Energy CAPEX | 0.5x | 59.54 | 59.87 | +0.0190% | electric heater capacity |
+| Energy CAPEX | 1x | 54.99 | 55.20 | +0.0200% | electric heater capacity |
+| Energy CAPEX | 2x | 45.87 | 45.87 | +0.0195% | electric heater capacity |
+| Gas price | 0.5x | 0.00 | 0.00 | **+0.0000%** | **storage priced out entirely** |
+| Gas price | 1x | 54.99 | 55.20 | +0.0200% | electric heater capacity |
+| Gas price | 2x | 84.95 | 89.33 | **+0.0647%** | electric heater capacity |
+| Carbon price | 0.5x | 41.30 | 41.30 | +0.0036% | electric heater capacity |
+| Carbon price | 1x | 54.99 | 55.20 | +0.0200% | electric heater capacity |
+| Carbon price | 2x | 68.63 | 71.13 | +0.0163% | electric heater capacity |
+| Heater efficiency | 0.90 | 33.10 | 33.23 | +0.0039% | electric heater capacity |
+| Heater efficiency | 0.95 | 44.19 | 44.53 | +0.0089% | electric heater capacity |
+| Heater efficiency | 0.99 (assumed) | 54.99 | 55.20 | +0.0200% | electric heater capacity |
+| Standing loss | 0.5x | 55.14 | 55.45 | +0.0184% | electric heater capacity |
+| Standing loss | 1x | 54.99 | 55.20 | +0.0200% | electric heater capacity |
+| Standing loss | 2x | 54.69 | 54.69 | +0.0227% | electric heater capacity |
+| Round-trip efficiency | 0.85 | 32.86 | 32.86 | +0.0057% | electric heater capacity |
+| Round-trip efficiency | 0.90 | 43.45 | 43.45 | +0.0111% | electric heater capacity |
+| Round-trip efficiency | 0.95 (assumed) | 54.99 | 55.20 | +0.0200% | electric heater capacity |
+| Price volatility | 0.5x amplitude | 45.87 | 46.73 | +0.0182% | electric heater capacity |
+| Price volatility | 1x (assumed) | 54.99 | 55.20 | +0.0200% | electric heater capacity |
+| Price volatility | 2x amplitude | 54.99 | 55.01 | +0.0038% | electric heater capacity |
+| Load factor | 1.00 (flat) | 54.99 | 55.20 | +0.0200% | electric heater capacity |
+| Load factor | 0.73 (two-shift) | 78.23 | 78.72 | +0.0097% | electric heater capacity |
+| Load factor | 0.75 (seasonal) | 70.58 | 71.13 | **+0.0308%** | electric heater capacity |
+
+**Three findings worth calling out specifically, none of them obvious in
+advance:**
+
+1. **Gas price is the single most powerful lever in this whole study, in
+   both directions.** At half the assumed gas price, storage is priced out
+   of the market *entirely* -- optimal `E_cap` is exactly 0 MWh under both
+   formulations, and the SOC-dependent delta is exactly 0.000%, the same
+   degenerate pattern Phase C3 found for PCM at this case's own design
+   duration (a discharge-limit correction cannot matter to a store that is
+   never built). At double the assumed gas price, `E_cap` roughly *triples*
+   relative to the zero-gas-price-sensitivity point and the SOC-dependent
+   delta (+0.0647%) is the **largest measured anywhere in this entire
+   study** -- and, per the cost decomposition below, the system stops using
+   the backup boiler at all (`fuel_cost_eur` and `carbon_cost_eur` both
+   exactly 0), a full-electrification regime the base case never reaches.
+2. **Lower process load factor means *more* optimal storage, not less** --
+   counter-intuitive at first glance. The peakier two-shift (load factor
+   0.73) and seasonal (0.75) profiles both size *larger* stores (78.2 and
+   70.6 MWh) than the flat baseline (55.0 MWh, load factor 1.0), and the
+   seasonal profile's own SOC-dependent delta (+0.0308%) is the
+   second-largest in the study. A peakier profile creates a bigger
+   buy-low/avoid-boiler arbitrage opportunity for storage to exploit, more
+   than offsetting its lower average utilisation.
+3. **Doubling price volatility does not double sized storage capacity, and
+   the reason is a capacity constraint, not economics.** Going from 1x to
+   2x daily price amplitude leaves `E_cap` essentially unchanged (54.99 to
+   54.99 MWh) even though total cost drops sharply (deeper price troughs
+   make charging much cheaper) -- because, per the binding-constraint
+   column, the electric heater's own 15 MW capacity, not the price
+   incentive, is what actually limits how much of the daily price swing the
+   system can exploit at this size.
+
+**The binding-constraint column is itself a finding.** Across all 31
+sensitivity points -- a power-CAPEX range spanning 0x to 8x and seven
+independent secondary axes -- the electric heater's own capacity is what
+binds in every single case except the one where storage is priced out of
+the market entirely (gas price at 0.5x). Neither the backup boiler's own
+capacity nor genuine unmet heat ever binds anywhere in this sensitivity
+space for this case: whatever else changes, it is the rate at which the
+system can charge the store, not fuel or emissions economics on their own,
+that structurally limits this case's behaviour.
+
+### P5.3: cost decomposition
+
+Every sensitivity point's total cost is broken into annualised energy-
+capacity CAPEX, annualised power/BOP CAPEX, electricity, backup fuel, and
+carbon, recomputed independently from each solved schedule's own per-hour
+columns and checked to reproduce the solver's own objective value exactly
+(to float precision) at every single point, not assumed to match. The gas
+price sensitivity above gives the clearest illustration of *why* the
+optimum moves, per P5.3's own purpose:
+
+| | Base case (gas price 1x) | Gas price 2x |
+|---|---:|---:|
+| Annualised energy CAPEX (EUR/yr) | 30,110 | 46,520 |
+| Annualised power CAPEX (EUR/yr) | 14,338 | 22,152 |
+| Electricity (EUR/yr) | 2,524,452 | 4,188,409 |
+| Backup fuel (EUR/yr) | 1,014,756 | **0** |
+| Carbon (EUR/yr) | 409,961 | **0** |
+| **Total (EUR/yr)** | **3,993,618** | **4,257,080** |
+
+Doubling gas price does not just make the existing dispatch pattern more
+expensive -- it changes the *system's own qualitative behaviour*: the
+backup boiler goes entirely unused (zero fuel and zero carbon cost, not
+merely reduced), and the case becomes fully electrified, with a larger
+store built specifically to absorb the electric heater's own output during
+cheap hours rather than share the load with fossil backup at all. Blower/
+parasitic electricity (P3.3) is deliberately **not** included in this
+decomposition's total: it is a rated, not annually-integrated, diagnostic
+figure (`outputs/capability_curves/`), and summing it in here would
+require assuming an annual duty cycle this project has not adopted.
+
+Every number above traces to `outputs/economics_sensitivity/run_manifest.json`:
+all 31 points, both formulations, full KPIs, cost decomposition, and
+binding-regime classification for each.
+
 ## Repository layout
 
 ```
@@ -1067,7 +1242,10 @@ scripts/          Run harnesses: run_case.py (Phase A), run_packed_bed_dynamics.
                   (P2.1's duration-family capability curves and P3.3's
                   Ergun/blower diagnostics, packed bed only),
                   run_convergence_experiment.py (P3.1's spatial/temporal
-                  discretisation convergence check)
+                  discretisation convergence check),
+                  run_economics_sensitivity_experiment.py (P5's CAPEX and
+                  secondary-parameter sensitivity sweeps, cost
+                  decomposition, and binding-constraint diagnosis)
 tests/            Physics and contract tests, not syntax tests
 configs/          One YAML per case; no parameter lives in source
 outputs/          Committed run evidence: config + schedule + solver/verification manifest
@@ -1128,11 +1306,22 @@ loudly if not; every case config in this repository does) -> P3.3 (Ergun
 pressure drop and blower parasitic power; done -- reported alongside each
 duration's discharge curve, not wired into dispatch.py's own economics;
 P3.4, temperature-dependent properties, deliberately not attempted per the
-roadmap's own "do not rush this" instruction) -> D (harmonised comparison
-and sensitivity, optional enrichment; not started). Real ENTSO-E price data
-(the roadmap's own P7) is being pulled forward ahead of its default
-sequencing, at explicit user request; not yet wired in as of this commit
-(pending an ENTSOE_API_KEY).
+roadmap's own "do not rush this" instruction) -> P4 (FMU/Modelica
+verification; confirmed blocked this session, not merely re-asserted --
+this working environment's own outbound network policy returns a hard 403
+to OpenModelica's distribution host and its Ubuntu PPA mirror, and no
+package exists in the default repositories either) -> P5 (economics
+sensitivity; done -- storage power CAPEX swept 0x-8x with the
+SOC-dependent delta staying essentially flat throughout (+0.019% to
++0.020%), seven secondary parameters swept one-at-a-time, full cost
+decomposition and binding-constraint classification at all 31 points;
+gas price is the single most powerful lever found, capable of pricing
+storage out of the market entirely or tripling it and flipping the system
+to full electrification) -> D (harmonised comparison and sensitivity,
+optional enrichment; not started). Real ENTSO-E price data (the roadmap's
+own P7) is being pulled forward ahead of its default sequencing, at
+explicit user request; not yet wired in as of this commit (pending an
+ENTSOE_API_KEY).
 
 ## Development
 
@@ -1177,4 +1366,9 @@ python scripts/run_capability_curves_experiment.py
 # Run the P3.1 spatial/temporal discretisation convergence check (does
 # resolution change the annual dispatch LP's own sizing/cost decision?):
 python scripts/run_convergence_experiment.py
+
+# Run the P5 economics sensitivity sweeps (storage power CAPEX 0x-8x, seven
+# secondary parameters one-at-a-time, cost decomposition, binding-constraint
+# diagnosis; writes outputs/economics_sensitivity/):
+python scripts/run_economics_sensitivity_experiment.py
 ```

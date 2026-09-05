@@ -1,0 +1,1743 @@
+{
+  "case": "packed_bed_300c_flat",
+  "coupling_note": "duration_matched sizing ties power to E_cap/tau identically in both formulations (P0.1), so P5.1 (power CAPEX) and P5.2's energy_capex axis are not fully decoupled here: both scale the same combined per-MWh capex rate. See this script's own module docstring for why this was kept rather than reopening the unequal-sizing-degrees-of-freedom confound P0.1 fixed.",
+  "design_duration_hours": 6.0,
+  "generated_at": "2026-09-05T01:39:16.694417+00:00",
+  "power_capex_sweep": [
+    {
+      "constant_limit": {
+        "binding_regime": "electric_heater_capacity_binding",
+        "cost_decomposition": {
+          "annualised_energy_capex_eur": 32603.019194324883,
+          "annualised_power_capex_eur": 0.0,
+          "carbon_cost_eur": 403245.37122963445,
+          "electricity_cost_eur": 2544562.739978403,
+          "fuel_cost_eur": 998132.1070040459,
+          "penalty_cost_eur": 0.0,
+          "sum_eur": 3978543.2374064084
+        },
+        "kpis": {
+          "carbon_cost_eur": 403245.37122963445,
+          "e_cap_mwh": 59.53942945655946,
+          "electricity_cost_eur": 2544562.739978403,
+          "emissions_tco2": 5040.567140370432,
+          "fuel_cost_eur": 998132.1070040459,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 9.92323824275991,
+          "total_cost_eur": 3978543.2374065784,
+          "unmet_heat_mwh": 0.0
+        }
+      },
+      "delta_soc_dependent_minus_constant": {
+        "e_cap_mwh": 0.2370309296119757,
+        "power_rating_mw": 0.039505154935330467,
+        "total_cost_eur": 758.7519282121211,
+        "total_cost_pct": 0.019071099217378748
+      },
+      "multiplier": 0.0,
+      "soc_dependent": {
+        "binding_regime": "electric_heater_capacity_binding",
+        "cost_decomposition": {
+          "annualised_energy_capex_eur": 32732.814256493326,
+          "annualised_power_capex_eur": 0.0,
+          "carbon_cost_eur": 406088.887369247,
+          "electricity_cost_eur": 2535309.774418778,
+          "fuel_cost_eur": 1005170.5132902153,
+          "penalty_cost_eur": 0.0,
+          "sum_eur": 3979301.9893347337
+        },
+        "kpis": {
+          "carbon_cost_eur": 406088.887369247,
+          "e_cap_mwh": 59.776460386171436,
+          "electricity_cost_eur": 2535309.774418778,
+          "emissions_tco2": 5076.111092115588,
+          "fuel_cost_eur": 1005170.5132902153,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 9.96274339769524,
+          "total_cost_eur": 3979301.9893347905,
+          "unmet_heat_mwh": 0.0
+        }
+      },
+      "storage_capex_eur_per_mw": 0.0
+    },
+    {
+      "constant_limit": {
+        "binding_regime": "electric_heater_capacity_binding",
+        "cost_decomposition": {
+          "annualised_energy_capex_eur": 32603.019194324883,
+          "annualised_power_capex_eur": 3881.3118088481997,
+          "carbon_cost_eur": 403245.37122963445,
+          "electricity_cost_eur": 2544562.739978403,
+          "fuel_cost_eur": 998132.1070040459,
+          "penalty_cost_eur": 0.0,
+          "sum_eur": 3982424.5492152567
+        },
+        "kpis": {
+          "carbon_cost_eur": 403245.37122963445,
+          "e_cap_mwh": 59.53942945655946,
+          "electricity_cost_eur": 2544562.739978403,
+          "emissions_tco2": 5040.567140370432,
+          "fuel_cost_eur": 998132.1070040459,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 9.92323824275991,
+          "total_cost_eur": 3982424.5492154267,
+          "unmet_heat_mwh": 0.0
+        }
+      },
+      "delta_soc_dependent_minus_constant": {
+        "e_cap_mwh": 0.0,
+        "power_rating_mw": 0.0,
+        "total_cost_eur": 764.9703405839391,
+        "total_cost_pct": 0.019208658723607084
+      },
+      "multiplier": 0.25,
+      "soc_dependent": {
+        "binding_regime": "electric_heater_capacity_binding",
+        "cost_decomposition": {
+          "annualised_energy_capex_eur": 32603.019194324883,
+          "annualised_power_capex_eur": 3881.3118088481997,
+          "carbon_cost_eur": 406411.1218215153,
+          "electricity_cost_eur": 2534325.943410683,
+          "fuel_cost_eur": 1005968.1233205826,
+          "penalty_cost_eur": 0.0,
+          "sum_eur": 3983189.5195559543
+        },
+        "kpis": {
+          "carbon_cost_eur": 406411.1218215153,
+          "e_cap_mwh": 59.53942945655946,
+          "electricity_cost_eur": 2534325.943410683,
+          "emissions_tco2": 5080.139022768942,
+          "fuel_cost_eur": 1005968.1233205826,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 9.92323824275991,
+          "total_cost_eur": 3983189.5195560106,
+          "unmet_heat_mwh": 0.0
+        }
+      },
+      "storage_capex_eur_per_mw": 5000.0
+    },
+    {
+      "constant_limit": {
+        "binding_regime": "electric_heater_capacity_binding",
+        "cost_decomposition": {
+          "annualised_energy_capex_eur": 32600.526297217824,
+          "annualised_power_capex_eur": 7762.030070766148,
+          "carbon_cost_eur": 403252.0041588522,
+          "electricity_cost_eur": 2544542.7482074965,
+          "fuel_cost_eur": 998148.5251456739,
+          "penalty_cost_eur": 0.0,
+          "sum_eur": 3986305.833880007
+        },
+        "kpis": {
+          "carbon_cost_eur": 403252.0041588522,
+          "e_cap_mwh": 59.53487694347583,
+          "electricity_cost_eur": 2544542.7482074965,
+          "emissions_tco2": 5040.650051985653,
+          "fuel_cost_eur": 998148.5251456739,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 9.922479490579304,
+          "total_cost_eur": 3986305.8338802014,
+          "unmet_heat_mwh": 0.0
+        }
+      },
+      "delta_soc_dependent_minus_constant": {
+        "e_cap_mwh": 0.004552513083631027,
+        "power_rating_mw": 0.0007587521806051711,
+        "total_cost_eur": 764.9974846569821,
+        "total_cost_pct": 0.019190637059383543
+      },
+      "multiplier": 0.5,
+      "soc_dependent": {
+        "binding_regime": "electric_heater_capacity_binding",
+        "cost_decomposition": {
+          "annualised_energy_capex_eur": 32603.019194324883,
+          "annualised_power_capex_eur": 7762.623617696399,
+          "carbon_cost_eur": 406411.1218215153,
+          "electricity_cost_eur": 2534325.943410683,
+          "fuel_cost_eur": 1005968.1233205826,
+          "penalty_cost_eur": 0.0,
+          "sum_eur": 3987070.831364802
+        },
+        "kpis": {
+          "carbon_cost_eur": 406411.1218215153,
+          "e_cap_mwh": 59.53942945655946,
+          "electricity_cost_eur": 2534325.943410683,
+          "emissions_tco2": 5080.139022768942,
+          "fuel_cost_eur": 1005968.1233205826,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 9.92323824275991,
+          "total_cost_eur": 3987070.8313648584,
+          "unmet_heat_mwh": 0.0
+        }
+      },
+      "storage_capex_eur_per_mw": 10000.0
+    },
+    {
+      "constant_limit": {
+        "binding_regime": "electric_heater_capacity_binding",
+        "cost_decomposition": {
+          "annualised_energy_capex_eur": 30110.122087270785,
+          "annualised_power_capex_eur": 14338.15337489085,
+          "carbon_cost_eur": 409961.4583755109,
+          "electricity_cost_eur": 2524452.2591885687,
+          "fuel_cost_eur": 1014756.0850878982,
+          "penalty_cost_eur": 0.0,
+          "sum_eur": 3993618.0781141394
+        },
+        "kpis": {
+          "carbon_cost_eur": 409961.4583755109,
+          "e_cap_mwh": 54.98691637293239,
+          "electricity_cost_eur": 2524452.2591885687,
+          "emissions_tco2": 5124.518229693886,
+          "fuel_cost_eur": 1014756.0850878982,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 9.1644860621554,
+          "total_cost_eur": 3993618.078114234,
+          "unmet_heat_mwh": 0.0
+        }
+      },
+      "delta_soc_dependent_minus_constant": {
+        "e_cap_mwh": 0.2174249120289602,
+        "power_rating_mw": 0.03623748533815885,
+        "total_cost_eur": 798.2434286302887,
+        "total_cost_pct": 0.019987976141354388
+      },
+      "multiplier": 1.0,
+      "soc_dependent": {
+        "binding_regime": "electric_heater_capacity_binding",
+        "cost_decomposition": {
+          "annualised_energy_capex_eur": 30229.181148550113,
+          "annualised_power_capex_eur": 14394.848165976242,
+          "carbon_cost_eur": 412691.70006000606,
+          "electricity_cost_eur": 2515586.4831088833,
+          "fuel_cost_eur": 1021514.1090594208,
+          "penalty_cost_eur": 0.0,
+          "sum_eur": 3994416.3215428367
+        },
+        "kpis": {
+          "carbon_cost_eur": 412691.70006000606,
+          "e_cap_mwh": 55.20434128496135,
+          "electricity_cost_eur": 2515586.4831088833,
+          "emissions_tco2": 5158.6462507500755,
+          "fuel_cost_eur": 1021514.1090594208,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 9.200723547493558,
+          "total_cost_eur": 3994416.321542864,
+          "unmet_heat_mwh": 0.0
+        }
+      },
+      "storage_capex_eur_per_mw": 20000.0
+    },
+    {
+      "constant_limit": {
+        "binding_regime": "electric_heater_capacity_binding",
+        "cost_decomposition": {
+          "annualised_energy_capex_eur": 27614.729587717135,
+          "annualised_power_capex_eur": 26299.742464492512,
+          "carbon_cost_eur": 416692.01836051996,
+          "electricity_cost_eur": 2505448.9663186977,
+          "fuel_cost_eur": 1031415.88703099,
+          "penalty_cost_eur": 0.0,
+          "sum_eur": 4007471.343762417
+        },
+        "kpis": {
+          "carbon_cost_eur": 416692.01836051996,
+          "e_cap_mwh": 50.42984621915154,
+          "electricity_cost_eur": 2505448.9663186977,
+          "emissions_tco2": 5208.650229506499,
+          "fuel_cost_eur": 1031415.88703099,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 8.404974369858591,
+          "total_cost_eur": 4007471.3437625747,
+          "unmet_heat_mwh": 0.0
+        }
+      },
+      "delta_soc_dependent_minus_constant": {
+        "e_cap_mwh": 0.05991534640649121,
+        "power_rating_mw": 0.009985891067747943,
+        "total_cost_eur": 795.877282846719,
+        "total_cost_pct": 0.01985983715355723
+      },
+      "multiplier": 2.0,
+      "soc_dependent": {
+        "binding_regime": "electric_heater_capacity_binding",
+        "cost_decomposition": {
+          "annualised_energy_capex_eur": 27647.538454156656,
+          "annualised_power_capex_eur": 26330.98900395872,
+          "carbon_cost_eur": 419368.73458588286,
+          "electricity_cost_eur": 2496878.53675911,
+          "fuel_cost_eur": 1038041.4222422844,
+          "penalty_cost_eur": 0.0,
+          "sum_eur": 4008267.2210453926
+        },
+        "kpis": {
+          "carbon_cost_eur": 419368.73458588286,
+          "e_cap_mwh": 50.489761565558034,
+          "electricity_cost_eur": 2496878.53675911,
+          "emissions_tco2": 5242.109182323536,
+          "fuel_cost_eur": 1038041.4222422844,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 8.414960260926339,
+          "total_cost_eur": 4008267.2210454214,
+          "unmet_heat_mwh": 0.0
+        }
+      },
+      "storage_capex_eur_per_mw": 40000.0
+    },
+    {
+      "constant_limit": {
+        "binding_regime": "electric_heater_capacity_binding",
+        "cost_decomposition": {
+          "annualised_energy_capex_eur": 22616.44841704922,
+          "annualised_power_capex_eur": 43078.94936580804,
+          "carbon_cost_eur": 433234.55870935443,
+          "electricity_cost_eur": 2460428.215556905,
+          "fuel_cost_eur": 1072362.7690825604,
+          "penalty_cost_eur": 0.0,
+          "sum_eur": 4031720.941131677
+        },
+        "kpis": {
+          "carbon_cost_eur": 433234.55870935443,
+          "e_cap_mwh": 41.302016450035154,
+          "electricity_cost_eur": 2460428.215556905,
+          "emissions_tco2": 5415.43198386693,
+          "fuel_cost_eur": 1072362.7690825604,
+          "max_heat_balance_residual_mw": 1.7763568394002505e-15,
+          "power_rating_mw": 6.883669408339192,
+          "total_cost_eur": 4031720.9411318395,
+          "unmet_heat_mwh": 0.0
+        }
+      },
+      "delta_soc_dependent_minus_constant": {
+        "e_cap_mwh": 0.0700836551376014,
+        "power_rating_mw": 0.011680609189600233,
+        "total_cost_eur": 775.9612973257899,
+        "total_cost_pct": 0.019246403921694827
+      },
+      "multiplier": 4.0,
+      "soc_dependent": {
+        "binding_regime": "electric_heater_capacity_binding",
+        "cost_decomposition": {
+          "annualised_energy_capex_eur": 22654.82531744137,
+          "annualised_power_capex_eur": 43152.04822369784,
+          "carbon_cost_eur": 436044.9368910752,
+          "electricity_cost_eur": 2451325.9412764413,
+          "fuel_cost_eur": 1079319.1507204834,
+          "penalty_cost_eur": 0.0,
+          "sum_eur": 4032496.9024291392
+        },
+        "kpis": {
+          "carbon_cost_eur": 436044.9368910752,
+          "e_cap_mwh": 41.372100105172755,
+          "electricity_cost_eur": 2451325.9412764413,
+          "emissions_tco2": 5450.561711138441,
+          "fuel_cost_eur": 1079319.1507204834,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 6.895350017528792,
+          "total_cost_eur": 4032496.9024291653,
+          "unmet_heat_mwh": 0.0
+        }
+      },
+      "storage_capex_eur_per_mw": 80000.0
+    },
+    {
+      "constant_limit": {
+        "binding_regime": "electric_heater_capacity_binding",
+        "cost_decomposition": {
+          "annualised_energy_capex_eur": 20111.049343577033,
+          "annualised_power_capex_eur": 76613.52130886489,
+          "carbon_cost_eur": 448243.3024077163,
+          "electricity_cost_eur": 2417535.9691604855,
+          "fuel_cost_eur": 1109513.124771575,
+          "penalty_cost_eur": 0.0,
+          "sum_eur": 4072016.966992219
+        },
+        "kpis": {
+          "carbon_cost_eur": 448243.3024077163,
+          "e_cap_mwh": 36.72667235363649,
+          "electricity_cost_eur": 2417535.9691604855,
+          "emissions_tco2": 5603.041280096452,
+          "fuel_cost_eur": 1109513.124771575,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 6.121112058939414,
+          "total_cost_eur": 4072016.966992434,
+          "unmet_heat_mwh": 0.0
+        }
+      },
+      "delta_soc_dependent_minus_constant": {
+        "e_cap_mwh": 0.0,
+        "power_rating_mw": 0.0,
+        "total_cost_eur": 811.9267852334306,
+        "total_cost_pct": 0.019939179817148812
+      },
+      "multiplier": 8.0,
+      "soc_dependent": {
+        "binding_regime": "electric_heater_capacity_binding",
+        "cost_decomposition": {
+          "annualised_energy_capex_eur": 20111.049343577033,
+          "annualised_power_capex_eur": 76613.52130886489,
+          "carbon_cost_eur": 451920.34547100595,
+          "electricity_cost_eur": 2405569.261141848,
+          "fuel_cost_eur": 1118614.7165123909,
+          "penalty_cost_eur": 0.0,
+          "sum_eur": 4072828.8937776866
+        },
+        "kpis": {
+          "carbon_cost_eur": 451920.34547100595,
+          "e_cap_mwh": 36.72667235363649,
+          "electricity_cost_eur": 2405569.261141848,
+          "emissions_tco2": 5649.004318387573,
+          "fuel_cost_eur": 1118614.7165123909,
+          "max_heat_balance_residual_mw": 8.881784197001252e-16,
+          "power_rating_mw": 6.121112058939414,
+          "total_cost_eur": 4072828.8937776675,
+          "unmet_heat_mwh": 0.0
+        }
+      },
+      "storage_capex_eur_per_mw": 160000.0
+    }
+  ],
+  "roadmap_item": "P5 (economics sensitivity, not one assumed number)",
+  "secondary_sweep": {
+    "carbon_price": [
+      {
+        "axis_value": 0.5,
+        "constant_limit": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 22616.44841704922,
+            "annualised_power_capex_eur": 10769.73734145201,
+            "carbon_cost_eur": 336118.0108270739,
+            "electricity_cost_eur": 1689839.8338034877,
+            "fuel_cost_eur": 1663950.5486488806,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 3723294.5790379434
+          },
+          "kpis": {
+            "carbon_cost_eur": 336118.0108270739,
+            "e_cap_mwh": 41.302016450035154,
+            "electricity_cost_eur": 1689839.8338034877,
+            "emissions_tco2": 8402.950270676847,
+            "fuel_cost_eur": 1663950.5486488806,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 6.883669408339192,
+            "total_cost_eur": 3723294.5790377334,
+            "unmet_heat_mwh": 0.0
+          }
+        },
+        "delta_soc_dependent_minus_constant": {
+          "e_cap_mwh": 0.0,
+          "power_rating_mw": 0.0,
+          "total_cost_eur": 135.5156273455359,
+          "total_cost_pct": 0.00363966977279996
+        },
+        "soc_dependent": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 22616.44841704922,
+            "annualised_power_capex_eur": 10769.73734145201,
+            "carbon_cost_eur": 336169.46448895975,
+            "electricity_cost_eur": 1689669.1746703505,
+            "fuel_cost_eur": 1664205.2697473257,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 3723430.094665137
+          },
+          "kpis": {
+            "carbon_cost_eur": 336169.46448895975,
+            "e_cap_mwh": 41.302016450035154,
+            "electricity_cost_eur": 1689669.1746703505,
+            "emissions_tco2": 8404.236612223995,
+            "fuel_cost_eur": 1664205.2697473257,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 6.883669408339192,
+            "total_cost_eur": 3723430.094665079,
+            "unmet_heat_mwh": 0.0
+          }
+        }
+      },
+      {
+        "axis_value": 1.0,
+        "constant_limit": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 30110.122087270785,
+            "annualised_power_capex_eur": 14338.15337489085,
+            "carbon_cost_eur": 409961.4583755109,
+            "electricity_cost_eur": 2524452.2591885687,
+            "fuel_cost_eur": 1014756.0850878982,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 3993618.0781141394
+          },
+          "kpis": {
+            "carbon_cost_eur": 409961.4583755109,
+            "e_cap_mwh": 54.98691637293239,
+            "electricity_cost_eur": 2524452.2591885687,
+            "emissions_tco2": 5124.518229693886,
+            "fuel_cost_eur": 1014756.0850878982,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 9.1644860621554,
+            "total_cost_eur": 3993618.078114234,
+            "unmet_heat_mwh": 0.0
+          }
+        },
+        "delta_soc_dependent_minus_constant": {
+          "e_cap_mwh": 0.2174249120289602,
+          "power_rating_mw": 0.03623748533815885,
+          "total_cost_eur": 798.2434286302887,
+          "total_cost_pct": 0.019987976141354388
+        },
+        "soc_dependent": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 30229.181148550113,
+            "annualised_power_capex_eur": 14394.848165976242,
+            "carbon_cost_eur": 412691.70006000606,
+            "electricity_cost_eur": 2515586.4831088833,
+            "fuel_cost_eur": 1021514.1090594208,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 3994416.3215428367
+          },
+          "kpis": {
+            "carbon_cost_eur": 412691.70006000606,
+            "e_cap_mwh": 55.20434128496135,
+            "electricity_cost_eur": 2515586.4831088833,
+            "emissions_tco2": 5158.6462507500755,
+            "fuel_cost_eur": 1021514.1090594208,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 9.200723547493558,
+            "total_cost_eur": 3994416.321542864,
+            "unmet_heat_mwh": 0.0
+          }
+        }
+      },
+      {
+        "axis_value": 2.0,
+        "constant_limit": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 37581.33721000902,
+            "annualised_power_capex_eur": 17895.874861909055,
+            "carbon_cost_eur": 202343.9923114891,
+            "electricity_cost_eur": 3731763.0382854156,
+            "fuel_cost_eur": 250425.73305877362,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 4240009.975727596
+          },
+          "kpis": {
+            "carbon_cost_eur": 202343.9923114891,
+            "e_cap_mwh": 68.6308026370758,
+            "electricity_cost_eur": 3731763.0382854156,
+            "emissions_tco2": 1264.6499519468068,
+            "fuel_cost_eur": 250425.73305877362,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 11.438467106179301,
+            "total_cost_eur": 4240009.9757276345,
+            "unmet_heat_mwh": 0.0
+          }
+        },
+        "delta_soc_dependent_minus_constant": {
+          "e_cap_mwh": 2.5004778818954634,
+          "power_rating_mw": 0.4167463136492433,
+          "total_cost_eur": 691.1512422822416,
+          "total_cost_pct": 0.01630069849455088
+        },
+        "soc_dependent": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 38950.566460650436,
+            "annualised_power_capex_eur": 18547.88879078592,
+            "carbon_cost_eur": 202795.93258208505,
+            "electricity_cost_eur": 3729421.6740595554,
+            "fuel_cost_eur": 250985.06507683793,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 4240701.126969915
+          },
+          "kpis": {
+            "carbon_cost_eur": 202795.93258208505,
+            "e_cap_mwh": 71.13128051897127,
+            "electricity_cost_eur": 3729421.6740595554,
+            "emissions_tco2": 1267.4745786380315,
+            "fuel_cost_eur": 250985.06507683793,
+            "max_heat_balance_residual_mw": 1.7763568394002505e-15,
+            "power_rating_mw": 11.855213419828544,
+            "total_cost_eur": 4240701.126969917,
+            "unmet_heat_mwh": 0.0
+          }
+        }
+      }
+    ],
+    "charge_discharge_efficiency": [
+      {
+        "axis_value": 0.85,
+        "constant_limit": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 17996.338453950448,
+            "annualised_power_capex_eur": 8569.684978071644,
+            "carbon_cost_eur": 538556.5019710484,
+            "electricity_cost_eur": 2226575.3493041387,
+            "fuel_cost_eur": 1333060.6484431894,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 4124758.5231503984
+          },
+          "kpis": {
+            "carbon_cost_eur": 538556.5019710484,
+            "e_cap_mwh": 32.864800571655735,
+            "electricity_cost_eur": 2226575.3493041387,
+            "emissions_tco2": 6731.956274638105,
+            "fuel_cost_eur": 1333060.6484431894,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 5.4774667619426225,
+            "total_cost_eur": 4124758.5231505637,
+            "unmet_heat_mwh": 0.0
+          }
+        },
+        "delta_soc_dependent_minus_constant": {
+          "e_cap_mwh": 0.0,
+          "power_rating_mw": 0.0,
+          "total_cost_eur": 236.32908047176898,
+          "total_cost_pct": 0.005729525235122289
+        },
+        "soc_dependent": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 17996.338453950448,
+            "annualised_power_capex_eur": 8569.684978071644,
+            "carbon_cost_eur": 540154.4771945275,
+            "electricity_cost_eur": 2221258.318944682,
+            "fuel_cost_eur": 1337016.0326597213,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 4124994.8522309526
+          },
+          "kpis": {
+            "carbon_cost_eur": 540154.4771945275,
+            "e_cap_mwh": 32.864800571655735,
+            "electricity_cost_eur": 2221258.318944682,
+            "emissions_tco2": 6751.930964931594,
+            "fuel_cost_eur": 1337016.0326597213,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 5.4774667619426225,
+            "total_cost_eur": 4124994.8522310355,
+            "unmet_heat_mwh": 0.0
+          }
+        }
+      },
+      {
+        "axis_value": 0.9,
+        "constant_limit": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 23794.900292627564,
+            "annualised_power_capex_eur": 11330.90490125122,
+            "carbon_cost_eur": 476147.2757303723,
+            "electricity_cost_eur": 2380401.1138479095,
+            "fuel_cost_eur": 1178582.3656692384,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 4070256.560441399
+          },
+          "kpis": {
+            "carbon_cost_eur": 476147.2757303723,
+            "e_cap_mwh": 43.45409788444906,
+            "electricity_cost_eur": 2380401.1138479095,
+            "emissions_tco2": 5951.840946629655,
+            "fuel_cost_eur": 1178582.3656692384,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 7.242349647408177,
+            "total_cost_eur": 4070256.560441655,
+            "unmet_heat_mwh": 0.0
+          }
+        },
+        "delta_soc_dependent_minus_constant": {
+          "e_cap_mwh": 0.0007871266809047484,
+          "power_rating_mw": 0.00013118778015108745,
+          "total_cost_eur": 451.16776920389384,
+          "total_cost_pct": 0.01108450444104041
+        },
+        "soc_dependent": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 23795.33131298702,
+            "annualised_power_capex_eur": 11331.110149041437,
+            "carbon_cost_eur": 478337.5907205856,
+            "electricity_cost_eur": 2373239.7586010233,
+            "fuel_cost_eur": 1184003.937427192,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 4070707.728210829
+          },
+          "kpis": {
+            "carbon_cost_eur": 478337.5907205856,
+            "e_cap_mwh": 43.45488501112997,
+            "electricity_cost_eur": 2373239.7586010233,
+            "emissions_tco2": 5979.21988400732,
+            "fuel_cost_eur": 1184003.937427192,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 7.242480835188328,
+            "total_cost_eur": 4070707.728210859,
+            "unmet_heat_mwh": 0.0
+          }
+        }
+      },
+      {
+        "axis_value": 0.95,
+        "constant_limit": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 30110.122087270785,
+            "annualised_power_capex_eur": 14338.15337489085,
+            "carbon_cost_eur": 409961.4583755109,
+            "electricity_cost_eur": 2524452.2591885687,
+            "fuel_cost_eur": 1014756.0850878982,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 3993618.0781141394
+          },
+          "kpis": {
+            "carbon_cost_eur": 409961.4583755109,
+            "e_cap_mwh": 54.98691637293239,
+            "electricity_cost_eur": 2524452.2591885687,
+            "emissions_tco2": 5124.518229693886,
+            "fuel_cost_eur": 1014756.0850878982,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 9.1644860621554,
+            "total_cost_eur": 3993618.078114234,
+            "unmet_heat_mwh": 0.0
+          }
+        },
+        "delta_soc_dependent_minus_constant": {
+          "e_cap_mwh": 0.2174249120289602,
+          "power_rating_mw": 0.03623748533815885,
+          "total_cost_eur": 798.2434286302887,
+          "total_cost_pct": 0.019987976141354388
+        },
+        "soc_dependent": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 30229.181148550113,
+            "annualised_power_capex_eur": 14394.848165976242,
+            "carbon_cost_eur": 412691.70006000606,
+            "electricity_cost_eur": 2515586.4831088833,
+            "fuel_cost_eur": 1021514.1090594208,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 3994416.3215428367
+          },
+          "kpis": {
+            "carbon_cost_eur": 412691.70006000606,
+            "e_cap_mwh": 55.20434128496135,
+            "electricity_cost_eur": 2515586.4831088833,
+            "emissions_tco2": 5158.6462507500755,
+            "fuel_cost_eur": 1021514.1090594208,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 9.200723547493558,
+            "total_cost_eur": 3994416.321542864,
+            "unmet_heat_mwh": 0.0
+          }
+        }
+      }
+    ],
+    "electric_heater_efficiency": [
+      {
+        "axis_value": 0.9,
+        "constant_limit": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 18125.55406024895,
+            "annualised_power_capex_eur": 8631.216219166166,
+            "carbon_cost_eur": 629807.7806799905,
+            "electricity_cost_eur": 2038986.8326324038,
+            "fuel_cost_eur": 1558930.1501979968,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 4254481.533789806
+          },
+          "kpis": {
+            "carbon_cost_eur": 629807.7806799905,
+            "e_cap_mwh": 33.10077330258721,
+            "electricity_cost_eur": 2038986.8326324038,
+            "emissions_tco2": 7872.597258499883,
+            "fuel_cost_eur": 1558930.1501979968,
+            "max_heat_balance_residual_mw": 8.465450562766819e-16,
+            "power_rating_mw": 5.516795550431201,
+            "total_cost_eur": 4254481.533790182,
+            "unmet_heat_mwh": 0.0
+          }
+        },
+        "delta_soc_dependent_minus_constant": {
+          "e_cap_mwh": 0.13061621385546118,
+          "power_rating_mw": 0.021769368975910197,
+          "total_cost_eur": 163.86279547028244,
+          "total_cost_pct": 0.0038515338277729525
+        },
+        "soc_dependent": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 18197.07780453553,
+            "annualised_power_capex_eur": 8665.275145016918,
+            "carbon_cost_eur": 630076.2850512408,
+            "electricity_cost_eur": 2038111.9936064533,
+            "fuel_cost_eur": 1559594.7649783192,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 4254645.396585566
+          },
+          "kpis": {
+            "carbon_cost_eur": 630076.2850512408,
+            "e_cap_mwh": 33.23138951644267,
+            "electricity_cost_eur": 2038111.9936064533,
+            "emissions_tco2": 7875.9535631405115,
+            "fuel_cost_eur": 1559594.7649783192,
+            "max_heat_balance_residual_mw": 1.7763568394002505e-15,
+            "power_rating_mw": 5.538564919407111,
+            "total_cost_eur": 4254645.396585653,
+            "unmet_heat_mwh": 0.0
+          }
+        }
+      },
+      {
+        "axis_value": 0.95,
+        "constant_limit": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 24198.47438098924,
+            "annualised_power_capex_eur": 11523.083038566305,
+            "carbon_cost_eur": 512018.24807725963,
+            "electricity_cost_eur": 2299376.180170809,
+            "fuel_cost_eur": 1267371.9011813358,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 4114487.88684896
+          },
+          "kpis": {
+            "carbon_cost_eur": 512018.24807725963,
+            "e_cap_mwh": 44.19110235698846,
+            "electricity_cost_eur": 2299376.180170809,
+            "emissions_tco2": 6400.228100965745,
+            "fuel_cost_eur": 1267371.9011813358,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 7.3651837261647435,
+            "total_cost_eur": 4114487.8868492804,
+            "unmet_heat_mwh": 0.0
+          }
+        },
+        "delta_soc_dependent_minus_constant": {
+          "e_cap_mwh": 0.34374818511673055,
+          "power_rating_mw": 0.05729136418612146,
+          "total_cost_eur": 364.16415188042447,
+          "total_cost_pct": 0.008850777105077047
+        },
+        "soc_dependent": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 24386.70642788099,
+            "annualised_power_capex_eur": 11612.717346609996,
+            "carbon_cost_eur": 513191.40255419834,
+            "electricity_cost_eur": 2295385.4757758966,
+            "fuel_cost_eur": 1270275.7488965306,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 4114852.0510011166
+          },
+          "kpis": {
+            "carbon_cost_eur": 513191.40255419834,
+            "e_cap_mwh": 44.53485054210519,
+            "electricity_cost_eur": 2295385.4757758966,
+            "emissions_tco2": 6414.892531927479,
+            "fuel_cost_eur": 1270275.7488965306,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 7.422475090350865,
+            "total_cost_eur": 4114852.051001161,
+            "unmet_heat_mwh": 0.0
+          }
+        }
+      },
+      {
+        "axis_value": 0.99,
+        "constant_limit": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 30110.122087270785,
+            "annualised_power_capex_eur": 14338.15337489085,
+            "carbon_cost_eur": 409961.4583755109,
+            "electricity_cost_eur": 2524452.2591885687,
+            "fuel_cost_eur": 1014756.0850878982,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 3993618.0781141394
+          },
+          "kpis": {
+            "carbon_cost_eur": 409961.4583755109,
+            "e_cap_mwh": 54.98691637293239,
+            "electricity_cost_eur": 2524452.2591885687,
+            "emissions_tco2": 5124.518229693886,
+            "fuel_cost_eur": 1014756.0850878982,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 9.1644860621554,
+            "total_cost_eur": 3993618.078114234,
+            "unmet_heat_mwh": 0.0
+          }
+        },
+        "delta_soc_dependent_minus_constant": {
+          "e_cap_mwh": 0.2174249120289602,
+          "power_rating_mw": 0.03623748533815885,
+          "total_cost_eur": 798.2434286302887,
+          "total_cost_pct": 0.019987976141354388
+        },
+        "soc_dependent": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 30229.181148550113,
+            "annualised_power_capex_eur": 14394.848165976242,
+            "carbon_cost_eur": 412691.70006000606,
+            "electricity_cost_eur": 2515586.4831088833,
+            "fuel_cost_eur": 1021514.1090594208,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 3994416.3215428367
+          },
+          "kpis": {
+            "carbon_cost_eur": 412691.70006000606,
+            "e_cap_mwh": 55.20434128496135,
+            "electricity_cost_eur": 2515586.4831088833,
+            "emissions_tco2": 5158.6462507500755,
+            "fuel_cost_eur": 1021514.1090594208,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 9.200723547493558,
+            "total_cost_eur": 3994416.321542864,
+            "unmet_heat_mwh": 0.0
+          }
+        }
+      }
+    ],
+    "energy_capex": [
+      {
+        "axis_value": 0.5,
+        "constant_limit": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 16301.509597162441,
+            "annualised_power_capex_eur": 15525.247235392799,
+            "carbon_cost_eur": 403245.37122963445,
+            "electricity_cost_eur": 2544562.739978403,
+            "fuel_cost_eur": 998132.1070040459,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 3977766.975044639
+          },
+          "kpis": {
+            "carbon_cost_eur": 403245.37122963445,
+            "e_cap_mwh": 59.53942945655946,
+            "electricity_cost_eur": 2544562.739978403,
+            "emissions_tco2": 5040.567140370432,
+            "fuel_cost_eur": 998132.1070040459,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 9.92323824275991,
+            "total_cost_eur": 3977766.975044809,
+            "unmet_heat_mwh": 0.0
+          }
+        },
+        "delta_soc_dependent_minus_constant": {
+          "e_cap_mwh": 0.3342610657869969,
+          "power_rating_mw": 0.05571017763116615,
+          "total_cost_eur": 755.3053355501033,
+          "total_cost_pct": 0.01898817452828782
+        },
+        "soc_dependent": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 16393.028108871727,
+            "annualised_power_capex_eur": 15612.407722734977,
+            "carbon_cost_eur": 405956.70926371426,
+            "electricity_cost_eur": 2535716.7955233343,
+            "fuel_cost_eur": 1004843.339761669,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 3978522.2803803245
+          },
+          "kpis": {
+            "carbon_cost_eur": 405956.70926371426,
+            "e_cap_mwh": 59.87369052234646,
+            "electricity_cost_eur": 2535716.7955233343,
+            "emissions_tco2": 5074.458865796429,
+            "fuel_cost_eur": 1004843.339761669,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 9.978948420391076,
+            "total_cost_eur": 3978522.280380359,
+            "unmet_heat_mwh": 0.0
+          }
+        }
+      },
+      {
+        "axis_value": 1.0,
+        "constant_limit": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 30110.122087270785,
+            "annualised_power_capex_eur": 14338.15337489085,
+            "carbon_cost_eur": 409961.4583755109,
+            "electricity_cost_eur": 2524452.2591885687,
+            "fuel_cost_eur": 1014756.0850878982,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 3993618.0781141394
+          },
+          "kpis": {
+            "carbon_cost_eur": 409961.4583755109,
+            "e_cap_mwh": 54.98691637293239,
+            "electricity_cost_eur": 2524452.2591885687,
+            "emissions_tco2": 5124.518229693886,
+            "fuel_cost_eur": 1014756.0850878982,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 9.1644860621554,
+            "total_cost_eur": 3993618.078114234,
+            "unmet_heat_mwh": 0.0
+          }
+        },
+        "delta_soc_dependent_minus_constant": {
+          "e_cap_mwh": 0.2174249120289602,
+          "power_rating_mw": 0.03623748533815885,
+          "total_cost_eur": 798.2434286302887,
+          "total_cost_pct": 0.019987976141354388
+        },
+        "soc_dependent": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 30229.181148550113,
+            "annualised_power_capex_eur": 14394.848165976242,
+            "carbon_cost_eur": 412691.70006000606,
+            "electricity_cost_eur": 2515586.4831088833,
+            "fuel_cost_eur": 1021514.1090594208,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 3994416.3215428367
+          },
+          "kpis": {
+            "carbon_cost_eur": 412691.70006000606,
+            "e_cap_mwh": 55.20434128496135,
+            "electricity_cost_eur": 2515586.4831088833,
+            "emissions_tco2": 5158.6462507500755,
+            "fuel_cost_eur": 1021514.1090594208,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 9.200723547493558,
+            "total_cost_eur": 3994416.321542864,
+            "unmet_heat_mwh": 0.0
+          }
+        }
+      },
+      {
+        "axis_value": 2.0,
+        "constant_limit": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 50233.67839554708,
+            "annualised_power_capex_eur": 11960.399617987401,
+            "carbon_cost_eur": 423767.1428297054,
+            "electricity_cost_eur": 2486383.3359411648,
+            "fuel_cost_eur": 1048928.571360657,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 4021273.128145062
+          },
+          "kpis": {
+            "carbon_cost_eur": 423767.1428297054,
+            "e_cap_mwh": 45.86821443358512,
+            "electricity_cost_eur": 2486383.3359411648,
+            "emissions_tco2": 5297.089285371318,
+            "fuel_cost_eur": 1048928.571360657,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 7.644702405597521,
+            "total_cost_eur": 4021273.128145198,
+            "unmet_heat_mwh": 0.0
+          }
+        },
+        "delta_soc_dependent_minus_constant": {
+          "e_cap_mwh": 0.0007844404011621009,
+          "power_rating_mw": 0.0001307400668606462,
+          "total_cost_eur": 784.7836931119673,
+          "total_cost_pct": 0.01951580178971695
+        },
+        "soc_dependent": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 50234.53749432211,
+            "annualised_power_capex_eur": 11960.604165314788,
+            "carbon_cost_eur": 426443.08849668107,
+            "electricity_cost_eur": 2477867.4824327547,
+            "fuel_cost_eur": 1055552.1992492108,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 4022057.9118382838
+          },
+          "kpis": {
+            "carbon_cost_eur": 426443.08849668107,
+            "e_cap_mwh": 45.868998873986286,
+            "electricity_cost_eur": 2477867.4824327547,
+            "emissions_tco2": 5330.538606208514,
+            "fuel_cost_eur": 1055552.1992492108,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 7.644833145664381,
+            "total_cost_eur": 4022057.91183831,
+            "unmet_heat_mwh": 0.0
+          }
+        }
+      }
+    ],
+    "gas_price": [
+      {
+        "axis_value": 0.5,
+        "constant_limit": {
+          "binding_regime": "storage_priced_out_zero_capacity",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": -0.0,
+            "annualised_power_capex_eur": -0.0,
+            "carbon_cost_eur": 1157540.7999999998,
+            "electricity_cost_eur": 479090.5400396542,
+            "fuel_cost_eur": 1432600.0,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 3069231.3400396537
+          },
+          "kpis": {
+            "carbon_cost_eur": 1157540.7999999998,
+            "e_cap_mwh": -0.0,
+            "electricity_cost_eur": 479090.5400396542,
+            "emissions_tco2": 14469.259999999998,
+            "fuel_cost_eur": 1432600.0,
+            "max_heat_balance_residual_mw": 0.0,
+            "power_rating_mw": -0.0,
+            "total_cost_eur": 3069231.3400400546,
+            "unmet_heat_mwh": 0.0
+          }
+        },
+        "delta_soc_dependent_minus_constant": {
+          "e_cap_mwh": 0.0,
+          "power_rating_mw": 0.0,
+          "total_cost_eur": 0.0,
+          "total_cost_pct": 0.0
+        },
+        "soc_dependent": {
+          "binding_regime": "storage_priced_out_zero_capacity",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": -0.0,
+            "annualised_power_capex_eur": -0.0,
+            "carbon_cost_eur": 1157540.7999999998,
+            "electricity_cost_eur": 479090.5400396542,
+            "fuel_cost_eur": 1432600.0,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 3069231.3400396537
+          },
+          "kpis": {
+            "carbon_cost_eur": 1157540.7999999998,
+            "e_cap_mwh": -0.0,
+            "electricity_cost_eur": 479090.5400396542,
+            "emissions_tco2": 14469.259999999998,
+            "fuel_cost_eur": 1432600.0,
+            "max_heat_balance_residual_mw": 0.0,
+            "power_rating_mw": -0.0,
+            "total_cost_eur": 3069231.3400400546,
+            "unmet_heat_mwh": 0.0
+          }
+        }
+      },
+      {
+        "axis_value": 1.0,
+        "constant_limit": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 30110.122087270785,
+            "annualised_power_capex_eur": 14338.15337489085,
+            "carbon_cost_eur": 409961.4583755109,
+            "electricity_cost_eur": 2524452.2591885687,
+            "fuel_cost_eur": 1014756.0850878982,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 3993618.0781141394
+          },
+          "kpis": {
+            "carbon_cost_eur": 409961.4583755109,
+            "e_cap_mwh": 54.98691637293239,
+            "electricity_cost_eur": 2524452.2591885687,
+            "emissions_tco2": 5124.518229693886,
+            "fuel_cost_eur": 1014756.0850878982,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 9.1644860621554,
+            "total_cost_eur": 3993618.078114234,
+            "unmet_heat_mwh": 0.0
+          }
+        },
+        "delta_soc_dependent_minus_constant": {
+          "e_cap_mwh": 0.2174249120289602,
+          "power_rating_mw": 0.03623748533815885,
+          "total_cost_eur": 798.2434286302887,
+          "total_cost_pct": 0.019987976141354388
+        },
+        "soc_dependent": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 30229.181148550113,
+            "annualised_power_capex_eur": 14394.848165976242,
+            "carbon_cost_eur": 412691.70006000606,
+            "electricity_cost_eur": 2515586.4831088833,
+            "fuel_cost_eur": 1021514.1090594208,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 3994416.3215428367
+          },
+          "kpis": {
+            "carbon_cost_eur": 412691.70006000606,
+            "e_cap_mwh": 55.20434128496135,
+            "electricity_cost_eur": 2515586.4831088833,
+            "emissions_tco2": 5158.6462507500755,
+            "fuel_cost_eur": 1021514.1090594208,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 9.200723547493558,
+            "total_cost_eur": 3994416.321542864,
+            "unmet_heat_mwh": 0.0
+          }
+        }
+      },
+      {
+        "axis_value": 2.0,
+        "constant_limit": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 46519.54900275321,
+            "annualised_power_capex_eur": 22152.16619178724,
+            "carbon_cost_eur": 0.0,
+            "electricity_cost_eur": 4188408.602352508,
+            "fuel_cost_eur": 0.0,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 4257080.317547048
+          },
+          "kpis": {
+            "carbon_cost_eur": 0.0,
+            "e_cap_mwh": 84.95370903203063,
+            "electricity_cost_eur": 4188408.602352508,
+            "emissions_tco2": 0.0,
+            "fuel_cost_eur": 0.0,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 14.158951505338438,
+            "total_cost_eur": 4257080.317547049,
+            "unmet_heat_mwh": 0.0
+          }
+        },
+        "delta_soc_dependent_minus_constant": {
+          "e_cap_mwh": 4.376874543931052,
+          "power_rating_mw": 0.7294790906551754,
+          "total_cost_eur": 2753.8500584419817,
+          "total_cost_pct": 0.06468870336063483
+        },
+        "soc_dependent": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 48916.26872394319,
+            "annualised_power_capex_eur": 23293.461297115806,
+            "carbon_cost_eur": 0.0,
+            "electricity_cost_eur": 4187624.437584427,
+            "fuel_cost_eur": 0.0,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 4259834.167605486
+          },
+          "kpis": {
+            "carbon_cost_eur": 0.0,
+            "e_cap_mwh": 89.33058357596168,
+            "electricity_cost_eur": 4187624.437584427,
+            "emissions_tco2": 0.0,
+            "fuel_cost_eur": 0.0,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 14.888430595993613,
+            "total_cost_eur": 4259834.167605491,
+            "unmet_heat_mwh": 0.0
+          }
+        }
+      }
+    ],
+    "price_volatility_daily_amplitude_multiplier": [
+      {
+        "axis_value": 0.5,
+        "constant_limit": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 25116.83919777354,
+            "annualised_power_capex_eur": 11960.399617987401,
+            "carbon_cost_eur": 530366.799700222,
+            "electricity_cost_eur": 2493098.7107757702,
+            "fuel_cost_eur": 1312789.1081688663,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 4373331.85746062
+          },
+          "kpis": {
+            "carbon_cost_eur": 530366.799700222,
+            "e_cap_mwh": 45.86821443358512,
+            "electricity_cost_eur": 2493098.7107757702,
+            "emissions_tco2": 6629.584996252774,
+            "fuel_cost_eur": 1312789.1081688663,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 7.644702405597521,
+            "total_cost_eur": 4373331.857460783,
+            "unmet_heat_mwh": 0.0
+          }
+        },
+        "delta_soc_dependent_minus_constant": {
+          "e_cap_mwh": 0.8571891250511285,
+          "power_rating_mw": 0.1428648541751878,
+          "total_cost_eur": 797.8502784073353,
+          "total_cost_pct": 0.01824353386414582
+        },
+        "soc_dependent": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 25586.224842753545,
+            "annualised_power_capex_eur": 12183.9165917874,
+            "carbon_cost_eur": 529684.2004073263,
+            "electricity_cost_eur": 2495575.859938536,
+            "fuel_cost_eur": 1311099.5059587287,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 4374129.7077391315
+          },
+          "kpis": {
+            "carbon_cost_eur": 529684.2004073263,
+            "e_cap_mwh": 46.72540355863625,
+            "electricity_cost_eur": 2495575.859938536,
+            "emissions_tco2": 6621.0525050915785,
+            "fuel_cost_eur": 1311099.5059587287,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 7.787567259772708,
+            "total_cost_eur": 4374129.70773919,
+            "unmet_heat_mwh": 0.0
+          }
+        }
+      },
+      {
+        "axis_value": 1.0,
+        "constant_limit": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 30110.122087270785,
+            "annualised_power_capex_eur": 14338.15337489085,
+            "carbon_cost_eur": 409961.4583755109,
+            "electricity_cost_eur": 2524452.2591885687,
+            "fuel_cost_eur": 1014756.0850878982,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 3993618.0781141394
+          },
+          "kpis": {
+            "carbon_cost_eur": 409961.4583755109,
+            "e_cap_mwh": 54.98691637293239,
+            "electricity_cost_eur": 2524452.2591885687,
+            "emissions_tco2": 5124.518229693886,
+            "fuel_cost_eur": 1014756.0850878982,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 9.1644860621554,
+            "total_cost_eur": 3993618.078114234,
+            "unmet_heat_mwh": 0.0
+          }
+        },
+        "delta_soc_dependent_minus_constant": {
+          "e_cap_mwh": 0.2174249120289602,
+          "power_rating_mw": 0.03623748533815885,
+          "total_cost_eur": 798.2434286302887,
+          "total_cost_pct": 0.019987976141354388
+        },
+        "soc_dependent": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 30229.181148550113,
+            "annualised_power_capex_eur": 14394.848165976242,
+            "carbon_cost_eur": 412691.70006000606,
+            "electricity_cost_eur": 2515586.4831088833,
+            "fuel_cost_eur": 1021514.1090594208,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 3994416.3215428367
+          },
+          "kpis": {
+            "carbon_cost_eur": 412691.70006000606,
+            "e_cap_mwh": 55.20434128496135,
+            "electricity_cost_eur": 2515586.4831088833,
+            "emissions_tco2": 5158.6462507500755,
+            "fuel_cost_eur": 1021514.1090594208,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 9.200723547493558,
+            "total_cost_eur": 3994416.321542864,
+            "unmet_heat_mwh": 0.0
+          }
+        }
+      },
+      {
+        "axis_value": 2.0,
+        "constant_limit": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 30110.122087270785,
+            "annualised_power_capex_eur": 14338.15337489085,
+            "carbon_cost_eur": 406814.2139695356,
+            "electricity_cost_eur": 1629714.064165065,
+            "fuel_cost_eur": 1006965.8761622168,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 3087942.4297589795
+          },
+          "kpis": {
+            "carbon_cost_eur": 406814.2139695356,
+            "e_cap_mwh": 54.98691637293239,
+            "electricity_cost_eur": 1629714.064165065,
+            "emissions_tco2": 5085.177674619194,
+            "fuel_cost_eur": 1006965.8761622168,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 9.1644860621554,
+            "total_cost_eur": 3087942.429759042,
+            "unmet_heat_mwh": 0.0
+          }
+        },
+        "delta_soc_dependent_minus_constant": {
+          "e_cap_mwh": 0.019364521567908355,
+          "power_rating_mw": 0.003227420261318059,
+          "total_cost_eur": 116.73156963242218,
+          "total_cost_pct": 0.0037802378861555063
+        },
+        "soc_dependent": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 30120.725848074842,
+            "annualised_power_capex_eur": 14343.202784797544,
+            "carbon_cost_eur": 407065.72558027966,
+            "electricity_cost_eur": 1628941.077461413,
+            "fuel_cost_eur": 1007588.4296541576,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 3088059.1613287227
+          },
+          "kpis": {
+            "carbon_cost_eur": 407065.72558027966,
+            "e_cap_mwh": 55.0062808945003,
+            "electricity_cost_eur": 1628941.077461413,
+            "emissions_tco2": 5088.321569753496,
+            "fuel_cost_eur": 1007588.4296541576,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 9.167713482416717,
+            "total_cost_eur": 3088059.1613286743,
+            "unmet_heat_mwh": 0.0
+          }
+        }
+      }
+    ],
+    "process_load_factor": [
+      {
+        "axis_value": 1.0,
+        "constant_limit": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 30110.122087270785,
+            "annualised_power_capex_eur": 14338.15337489085,
+            "carbon_cost_eur": 409961.4583755109,
+            "electricity_cost_eur": 2524452.2591885687,
+            "fuel_cost_eur": 1014756.0850878982,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 3993618.0781141394
+          },
+          "kpis": {
+            "carbon_cost_eur": 409961.4583755109,
+            "e_cap_mwh": 54.98691637293239,
+            "electricity_cost_eur": 2524452.2591885687,
+            "emissions_tco2": 5124.518229693886,
+            "fuel_cost_eur": 1014756.0850878982,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 9.1644860621554,
+            "total_cost_eur": 3993618.078114234,
+            "unmet_heat_mwh": 0.0
+          }
+        },
+        "delta_soc_dependent_minus_constant": {
+          "e_cap_mwh": 0.2174249120289602,
+          "power_rating_mw": 0.03623748533815885,
+          "total_cost_eur": 798.2434286302887,
+          "total_cost_pct": 0.019987976141354388
+        },
+        "profile_shape": "flat",
+        "soc_dependent": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 30229.181148550113,
+            "annualised_power_capex_eur": 14394.848165976242,
+            "carbon_cost_eur": 412691.70006000606,
+            "electricity_cost_eur": 2515586.4831088833,
+            "fuel_cost_eur": 1021514.1090594208,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 3994416.3215428367
+          },
+          "kpis": {
+            "carbon_cost_eur": 412691.70006000606,
+            "e_cap_mwh": 55.20434128496135,
+            "electricity_cost_eur": 2515586.4831088833,
+            "emissions_tco2": 5158.6462507500755,
+            "fuel_cost_eur": 1021514.1090594208,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 9.200723547493558,
+            "total_cost_eur": 3994416.321542864,
+            "unmet_heat_mwh": 0.0
+          }
+        }
+      },
+      {
+        "axis_value": 0.7333333333333333,
+        "constant_limit": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 42835.71842977698,
+            "annualised_power_capex_eur": 20397.961157036658,
+            "carbon_cost_eur": 173255.4622836875,
+            "electricity_cost_eur": 2135533.2214383883,
+            "fuel_cost_eur": 428850.1541675433,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 2800872.517476433
+          },
+          "kpis": {
+            "carbon_cost_eur": 173255.4622836875,
+            "e_cap_mwh": 78.22632071187732,
+            "electricity_cost_eur": 2135533.2214383883,
+            "emissions_tco2": 2165.6932785460936,
+            "fuel_cost_eur": 428850.1541675433,
+            "max_heat_balance_residual_mw": 1.7763568394002505e-15,
+            "power_rating_mw": 13.03772011864622,
+            "total_cost_eur": 2800872.517476454,
+            "unmet_heat_mwh": 0.0
+          }
+        },
+        "delta_soc_dependent_minus_constant": {
+          "e_cap_mwh": 0.48880338910997523,
+          "power_rating_mw": 0.0814672315183298,
+          "total_cost_eur": 271.2410646658391,
+          "total_cost_pct": 0.009684163166063102
+        },
+        "profile_shape": "two_shift",
+        "soc_dependent": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 43103.380824644744,
+            "annualised_power_capex_eur": 20525.41944030702,
+            "carbon_cost_eur": 172756.62323653942,
+            "electricity_cost_eur": 2137142.93098879,
+            "fuel_cost_eur": 427615.4040508401,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 2801143.758541121
+          },
+          "kpis": {
+            "carbon_cost_eur": 172756.62323653942,
+            "e_cap_mwh": 78.7151241009873,
+            "electricity_cost_eur": 2137142.93098879,
+            "emissions_tco2": 2159.4577904567427,
+            "fuel_cost_eur": 427615.4040508401,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 13.11918735016455,
+            "total_cost_eur": 2801143.7585411198,
+            "unmet_heat_mwh": 0.0
+          }
+        }
+      },
+      {
+        "axis_value": 0.7498345464057632,
+        "constant_limit": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 38648.01859622013,
+            "annualised_power_capex_eur": 18403.818379152443,
+            "carbon_cost_eur": 185812.91039537836,
+            "electricity_cost_eur": 2171920.8977902248,
+            "fuel_cost_eur": 459932.9465232139,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 2874718.591684189
+          },
+          "kpis": {
+            "carbon_cost_eur": 185812.91039537836,
+            "e_cap_mwh": 70.57876950383753,
+            "electricity_cost_eur": 2171920.8977902248,
+            "emissions_tco2": 2322.66137994223,
+            "fuel_cost_eur": 459932.9465232139,
+            "max_heat_balance_residual_mw": 1.7763568394002505e-15,
+            "power_rating_mw": 11.76312825063959,
+            "total_cost_eur": 2874718.591684194,
+            "unmet_heat_mwh": 0.0
+          }
+        },
+        "delta_soc_dependent_minus_constant": {
+          "e_cap_mwh": 0.5533508656337744,
+          "power_rating_mw": 0.09222514427229633,
+          "total_cost_eur": 884.8996367142536,
+          "total_cost_pct": 0.030782130789220062
+        },
+        "profile_shape": "seasonal",
+        "soc_dependent": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 38951.02635188928,
+            "annualised_power_capex_eur": 18548.10778661395,
+            "carbon_cost_eur": 186919.11026099906,
+            "electricity_cost_eur": 2168514.181918929,
+            "fuel_cost_eur": 462671.0650024729,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 2875603.4913209043
+          },
+          "kpis": {
+            "carbon_cost_eur": 186919.11026099906,
+            "e_cap_mwh": 71.13212036947131,
+            "electricity_cost_eur": 2168514.181918929,
+            "emissions_tco2": 2336.4888782624885,
+            "fuel_cost_eur": 462671.0650024729,
+            "max_heat_balance_residual_mw": 1.7763568394002505e-15,
+            "power_rating_mw": 11.855353394911885,
+            "total_cost_eur": 2875603.491320908,
+            "unmet_heat_mwh": 0.0
+          }
+        }
+      }
+    ],
+    "standing_loss_fraction_per_hour": [
+      {
+        "axis_value": 0.5,
+        "constant_limit": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 30192.966120546076,
+            "annualised_power_capex_eur": 14377.602914545752,
+            "carbon_cost_eur": 405177.90050705394,
+            "electricity_cost_eur": 2537217.9141098675,
+            "fuel_cost_eur": 1002915.5953144899,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 3989881.978966503
+          },
+          "kpis": {
+            "carbon_cost_eur": 405177.90050705394,
+            "e_cap_mwh": 55.1382056276389,
+            "electricity_cost_eur": 2537217.9141098675,
+            "emissions_tco2": 5064.723756338174,
+            "fuel_cost_eur": 1002915.5953144899,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 9.189700937939817,
+            "total_cost_eur": 3989881.9789667954,
+            "unmet_heat_mwh": 0.0
+          }
+        },
+        "delta_soc_dependent_minus_constant": {
+          "e_cap_mwh": 0.31082740758713356,
+          "power_rating_mw": 0.05180456793118893,
+          "total_cost_eur": 734.8236153055914,
+          "total_cost_pct": 0.018417176728016363
+        },
+        "soc_dependent": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 30363.171176727872,
+            "annualised_power_capex_eur": 14458.652941298988,
+            "carbon_cost_eur": 408088.14484391274,
+            "electricity_cost_eur": 2527587.663214411,
+            "fuel_cost_eur": 1010119.1704057247,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 3990616.8025820754
+          },
+          "kpis": {
+            "carbon_cost_eur": 408088.14484391274,
+            "e_cap_mwh": 55.44903303522603,
+            "electricity_cost_eur": 2527587.663214411,
+            "emissions_tco2": 5101.101810548909,
+            "fuel_cost_eur": 1010119.1704057247,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 9.241505505871006,
+            "total_cost_eur": 3990616.802582101,
+            "unmet_heat_mwh": 0.0
+          }
+        }
+      },
+      {
+        "axis_value": 1.0,
+        "constant_limit": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 30110.122087270785,
+            "annualised_power_capex_eur": 14338.15337489085,
+            "carbon_cost_eur": 409961.4583755109,
+            "electricity_cost_eur": 2524452.2591885687,
+            "fuel_cost_eur": 1014756.0850878982,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 3993618.0781141394
+          },
+          "kpis": {
+            "carbon_cost_eur": 409961.4583755109,
+            "e_cap_mwh": 54.98691637293239,
+            "electricity_cost_eur": 2524452.2591885687,
+            "emissions_tco2": 5124.518229693886,
+            "fuel_cost_eur": 1014756.0850878982,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 9.1644860621554,
+            "total_cost_eur": 3993618.078114234,
+            "unmet_heat_mwh": 0.0
+          }
+        },
+        "delta_soc_dependent_minus_constant": {
+          "e_cap_mwh": 0.2174249120289602,
+          "power_rating_mw": 0.03623748533815885,
+          "total_cost_eur": 798.2434286302887,
+          "total_cost_pct": 0.019987976141354388
+        },
+        "soc_dependent": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 30229.181148550113,
+            "annualised_power_capex_eur": 14394.848165976242,
+            "carbon_cost_eur": 412691.70006000606,
+            "electricity_cost_eur": 2515586.4831088833,
+            "fuel_cost_eur": 1021514.1090594208,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 3994416.3215428367
+          },
+          "kpis": {
+            "carbon_cost_eur": 412691.70006000606,
+            "e_cap_mwh": 55.20434128496135,
+            "electricity_cost_eur": 2515586.4831088833,
+            "emissions_tco2": 5158.6462507500755,
+            "fuel_cost_eur": 1021514.1090594208,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 9.200723547493558,
+            "total_cost_eur": 3994416.321542864,
+            "unmet_heat_mwh": 0.0
+          }
+        }
+      },
+      {
+        "axis_value": 2.0,
+        "constant_limit": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 29945.26008259982,
+            "annualised_power_capex_eur": 14259.647658380867,
+            "carbon_cost_eur": 418565.1090143057,
+            "electricity_cost_eur": 2502020.9252921557,
+            "fuel_cost_eur": 1036052.25003541,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 4000843.1920828526
+          },
+          "kpis": {
+            "carbon_cost_eur": 418565.1090143057,
+            "e_cap_mwh": 54.68584641255024,
+            "electricity_cost_eur": 2502020.9252921557,
+            "emissions_tco2": 5232.06386267882,
+            "fuel_cost_eur": 1036052.25003541,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 9.11430773542504,
+            "total_cost_eur": 4000843.192082809,
+            "unmet_heat_mwh": 0.0
+          }
+        },
+        "delta_soc_dependent_minus_constant": {
+          "e_cap_mwh": 0.00011931422284305881,
+          "power_rating_mw": 1.988570380717647e-05,
+          "total_cost_eur": 907.6114786635153,
+          "total_cost_pct": 0.022685504907054847
+        },
+        "soc_dependent": {
+          "binding_regime": "electric_heater_capacity_binding",
+          "cost_decomposition": {
+            "annualised_energy_capex_eur": 29945.32541752044,
+            "annualised_power_capex_eur": 14259.67877024783,
+            "carbon_cost_eur": 422434.98131750774,
+            "electricity_cost_eur": 2489479.6761811464,
+            "fuel_cost_eur": 1045631.1418750193,
+            "penalty_cost_eur": 0.0,
+            "sum_eur": 4001750.8035614416
+          },
+          "kpis": {
+            "carbon_cost_eur": 422434.98131750774,
+            "e_cap_mwh": 54.685965726773084,
+            "electricity_cost_eur": 2489479.6761811464,
+            "emissions_tco2": 5280.437266468846,
+            "fuel_cost_eur": 1045631.1418750193,
+            "max_heat_balance_residual_mw": 8.881784197001252e-16,
+            "power_rating_mw": 9.114327621128847,
+            "total_cost_eur": 4001750.8035614723,
+            "unmet_heat_mwh": 0.0
+          }
+        }
+      }
+    ]
+  },
+  "zero_capacity_threshold_mwh": 0.05
+}

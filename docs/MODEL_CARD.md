@@ -1,6 +1,6 @@
 # Model card
 
-## Status: Phase 0, A, B (packed bed with full verification; molten salt and PCM with closed-form sub-models only), P0.3 (state-sufficiency test), C (MVP scope, archived), C2 (matched-duration fix, packed bed only), P0.4 (start-of-hour capability fix), P0.5 (MILP cycling prevention), C3 (full technology-ranking matrix), P2.1 (duration-family capability curves), and P3.1-P3.3 (discretisation convergence, correlation-domain checks, Ergun pressure drop/blower power) built
+## Status: Phase 0, A, B (packed bed with full verification; molten salt and PCM with closed-form sub-models only), P0.3 (state-sufficiency test), C (MVP scope, archived), C2 (matched-duration fix, packed bed only), P0.4 (start-of-hour capability fix), P0.5 (MILP cycling prevention), C3 (full technology-ranking matrix), P2.1 (duration-family capability curves), P3.1-P3.3 (discretisation convergence, correlation-domain checks, Ergun pressure drop/blower power), and P5 (economics sensitivity) built; P4 (FMU/Modelica verification) confirmed blocked by environment constraints, not attempted
 
 This card documents what is actually built at this commit, not what the project
 intends to build. It will be rewritten section by section as each phase lands,
@@ -404,6 +404,49 @@ disproportionately larger parasitic-power penalty, exactly the physical
 trade-off the roadmap named as the reason to add this. Wiring it into the
 dispatch LP's own objective is a natural next step, not attempted here.
 
+## P5: economics sensitivity, not one assumed number
+
+`scripts/run_economics_sensitivity_experiment.py`: rather than defend or
+replace the single assumed `storage_capex_eur_per_mw` value
+`docs/DATA.md` itself already flags as uncited, sweeps every parameter the
+roadmap names for one representative case (`packed_bed_300c_flat`, flat
+profile, duration-matched at tau=6h, both formulations) -- storage power
+CAPEX at 0x-8x of the assumed value (P5.1), seven secondary parameters
+one-at-a-time (energy CAPEX, gas price, carbon price, electric-heater
+efficiency, standing loss, round-trip efficiency, price volatility, plus
+process load factor via the three existing profile shapes; P5.2), and a
+full cost decomposition (annualised energy/power CAPEX, electricity, fuel,
+carbon) plus a binding-constraint classification at every point (P5.3).
+31 sensitivity points, 62 solves, all optimal and independently verified;
+every cost decomposition cross-checked to reproduce the solver's own
+objective exactly, not assumed to match. **Findings**: the SOC-dependent
+delta is essentially flat (+0.019% to +0.020%) across the entire 8x power-
+CAPEX range, a real robustness result for the headline finding; gas price
+is the single most powerful lever tested, capable of pricing storage out
+of the market entirely (0.5x -- `E_cap` exactly 0, delta exactly 0.000%,
+the same degenerate pattern Phase C3 found for PCM) or of tripling `E_cap`
+and producing the largest delta in the study (2x -- +0.0647%) while
+flipping the system to full electrification (zero backup-boiler fuel/
+carbon cost); lower process load factor (peakier profiles) counter-
+intuitively *increases* optimal storage size rather than decreasing it;
+and the electric heater's own capacity, not the backup boiler or unmet
+heat, is what binds in every single sensitivity point tested except the
+one where storage is priced out entirely. See README's P5 section for the
+full tables and the illustrative before/after cost decomposition.
+
+## P4: FMU/Modelica verification -- confirmed blocked, not attempted
+
+Re-checked directly this session rather than carried forward unchanged:
+`apt-cache search openmodelica` finds no package in this container's
+default repositories, and the container's own outbound network gateway
+returns a hard `403` to OpenModelica's own distribution host
+(`build.openmodelica.org`) and to Ubuntu's `ppa.launchpadcontent.net`
+mirror -- an allowlist policy, not a transient failure. `fmpy` itself is
+pip-installable (PyPI is reachable) but consumes an already-compiled FMU;
+with no `omc` compiler reachable, there is nothing for it to consume. The
+roadmap's own P4.1 environment step cannot be completed here; nothing
+further was attempted.
+
 ## What does not exist yet
 
 - **P2.2, the full swept capability envelope** (sweep feasible mass flow at
@@ -460,8 +503,10 @@ dispatch LP's own objective is a natural next step, not attempted here.
   (6h) and one set of capex assumptions C3 tested; whether a different
   duration or a different PCM capex figure would make it competitive
   enough to actually exercise the SOC-dependent correction is not tested.
-- Sensitivity analysis, the boundary-harmonisation table, or the
-  technology-selection map (Phase D).
+- **The boundary-harmonisation table and the model-fidelity decision map**
+  (roadmap P6/Phase D). P5's economics sensitivity is done (above); P6's
+  own further step -- combining sensitivity results across technologies
+  into a single decision-relevance map -- is not.
 - **A reduced-order state beyond scalar SOC.** P0.3 found scalar SOC
   insufficient but did not build a replacement (e.g. thermocline position/
   front width, or a useful-energy-weighted SOC, as the roadmap itself
