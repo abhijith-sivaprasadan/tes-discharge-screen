@@ -65,8 +65,20 @@ INLET_TEMPERATURE_C = 320.0  # package.mo's inletTemperature (T_return)
 INITIAL_BED_TEMPERATURE_C = 400.0  # package.mo's initialBedTemperature
 FIXED_H_V_W_PER_M3K = 5800.0  # package.mo's volumetricHeatTransferCoefficient
 STOP_TIME_HOURS = 8.0
-OUTPUT_INTERVAL_S = 60.0
-TWIN_N_STEPS = 2000  # dt=14.4s at 8h, far finer than the FMU's own 60s output grid
+# For a Co-Simulation FMU, fmpy's `output_interval` *is* the communication
+# step size handed to the FMU's own doStep() -- there is no separate finer
+# internal integration happening underneath in this code path. This model
+# is numerically stiff (fluid thermal capacity ~4600x below the rock's:
+# fluidCapacityPerVolume=245 vs solidCapacityPerVolume=1.14e6 J/(m3.K)),
+# and a first attempt at 60s blew up (`fmi2GetReal failed`, `a=inf`) well
+# before the 8h window finished. The FMU's own modelDescription.xml
+# publishes `DefaultExperiment stepSize="0.002"` -- 30,000x smaller than
+# that first attempt -- as its author-recommended stable step; this default
+# is a pragmatic middle ground, not that exact value (which would take
+# millions of doStep calls), meant to be tuned down further via
+# --output-interval-s if it still diverges.
+OUTPUT_INTERVAL_S = 0.05
+TWIN_DT_S = 14.4  # dt at the original 8h/2000-step design point, held fixed as stop-time changes
 
 
 def _breakthrough_time_s(time_s: np.ndarray, outlet_temperature_c: np.ndarray) -> float:
@@ -99,13 +111,41 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("fmu", type=Path, help="Path to the compiled PackedBedThermocline.fmu")
     parser.add_argument("--output-root", type=Path, default=Path("outputs"))
+    parser.add_argument(
+        "--stop-time-hours",
+        type=float,
+        default=STOP_TIME_HOURS,
+        help="Discharge duration to simulate. Use a short window (e.g. 0.5) to "
+        "quickly check that a given --output-interval-s is numerically stable "
+        "before committing to the full run.",
+    )
+    parser.add_argument(
+        "--output-interval-s",
+        type=float,
+        default=OUTPUT_INTERVAL_S,
+        help="Communication step size handed to the FMU's doStep() -- for this "
+        "Co-Simulation FMU there is no separate finer internal step, so this "
+        "IS the integration step. Shrink it if fmpy raises "
+        "'fmi2GetReal failed'/'division leads to inf or nan'.",
+    )
+    parser.add_argument(
+        "--csv-max-rows",
+        type=int,
+        default=3000,
+        help="Decimate the written comparison_trace.csv/plot to at most this many "
+        "rows (metrics below are still computed on the full-resolution trace); "
+        "a small --output-interval-s over a multi-hour window can otherwise "
+        "produce a CSV with hundreds of thousands of rows.",
+    )
     args = parser.parse_args()
 
     if not args.fmu.is_file():
         raise FileNotFoundError(f"FMU not found: {args.fmu}")
 
-    stop_time_s = STOP_TIME_HOURS * 3600.0
-    fmu_frame = simulate_fmu(args.fmu, stop_time_s=stop_time_s, output_interval=OUTPUT_INTERVAL_S)
+    stop_time_s = args.stop_time_hours * 3600.0
+    fmu_frame = simulate_fmu(
+        args.fmu, stop_time_s=stop_time_s, output_interval=args.output_interval_s
+    )
     fmu_frame = fmu_frame.rename(
         columns={"time": "time_s", "outletTemperature": "outlet_temperature_c"}
     )
@@ -117,7 +157,7 @@ def main() -> None:
         inlet_temperature_c=INLET_TEMPERATURE_C,
         duration_s=stop_time_s,
         heat_transfer_coefficient_override_w_per_m3k=FIXED_H_V_W_PER_M3K,
-        n_steps=TWIN_N_STEPS,
+        n_steps=max(1, round(stop_time_s / TWIN_DT_S)),
     )
     twin_trace = twin_result.trace
 
@@ -149,12 +189,16 @@ def main() -> None:
     output_dir = args.output_root / "fmu_cross_check"
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # Metrics above are computed on the full-resolution trace; only the
+    # written CSV/plot are decimated, so a small --output-interval-s over a
+    # multi-hour window doesn't produce an unwieldy file.
+    stride = max(1, len(fmu_time) // args.csv_max_rows)
     comparison = pd.DataFrame(
         {
-            "time_s": fmu_time,
-            "fmu_outlet_temperature_c": fmu_outlet,
-            "twin_outlet_temperature_c": twin_outlet_on_fmu_grid,
-            "deviation_c": deviation_c,
+            "time_s": fmu_time[::stride],
+            "fmu_outlet_temperature_c": fmu_outlet[::stride],
+            "twin_outlet_temperature_c": twin_outlet_on_fmu_grid[::stride],
+            "deviation_c": deviation_c[::stride],
         }
     )
     comparison.to_csv(output_dir / "comparison_trace.csv", index=False)
@@ -166,17 +210,22 @@ def main() -> None:
         import matplotlib.pyplot as plt
 
         fig, (ax_temp, ax_dev) = plt.subplots(2, 1, figsize=(8, 6), sharex=True)
-        ax_temp.plot(fmu_time / 3600, fmu_outlet, label="FMU (OpenModelica)", linewidth=2)
         ax_temp.plot(
-            fmu_time / 3600,
-            twin_outlet_on_fmu_grid,
+            comparison["time_s"] / 3600,
+            comparison["fmu_outlet_temperature_c"],
+            label="FMU (OpenModelica)",
+            linewidth=2,
+        )
+        ax_temp.plot(
+            comparison["time_s"] / 3600,
+            comparison["twin_outlet_temperature_c"],
             label="Python shadow twin",
             linestyle="--",
         )
         ax_temp.set_ylabel("Outlet temperature (C)")
         ax_temp.legend()
         ax_temp.set_title("FMU vs. shadow-twin packed-bed discharge (P4.2 cross-check)")
-        ax_dev.plot(fmu_time / 3600, deviation_c, color="tab:red")
+        ax_dev.plot(comparison["time_s"] / 3600, comparison["deviation_c"], color="tab:red")
         ax_dev.axhline(0.0, color="black", linewidth=0.5)
         ax_dev.set_xlabel("Time (h)")
         ax_dev.set_ylabel("FMU - twin (C)")
@@ -195,9 +244,9 @@ def main() -> None:
             "inlet_temperature_c": INLET_TEMPERATURE_C,
             "initial_bed_temperature_c": INITIAL_BED_TEMPERATURE_C,
             "fixed_h_v_w_per_m3k": FIXED_H_V_W_PER_M3K,
-            "stop_time_hours": STOP_TIME_HOURS,
-            "output_interval_s": OUTPUT_INTERVAL_S,
-            "twin_n_steps": TWIN_N_STEPS,
+            "stop_time_hours": args.stop_time_hours,
+            "output_interval_s": args.output_interval_s,
+            "twin_n_steps": max(1, round(stop_time_s / TWIN_DT_S)),
         },
         "max_absolute_outlet_temperature_deviation_c": max_abs_deviation_c,
         "rmse_outlet_temperature_c": rmse_c,
