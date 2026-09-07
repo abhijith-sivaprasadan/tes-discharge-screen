@@ -6,9 +6,6 @@
 # discharging across its phase change near the process temperature. Not used
 # for the 400 C air case: no common nitrate-salt PCM melts that high with
 # useful latent heat (docs/DATA.md).
-#
-# NOTE: this configuration is written but has not been solved yet in this
-# session; only packed_bed_300c_flat.yaml has an actual recorded run so far.
 
 case_name: pcm_300c_flat
 
@@ -51,7 +48,11 @@ economics:
   currency: EUR
   discount_rate: 0.06
   storage_lifetime_years: 25.0
-  storage_capex_eur_per_mwh: 80000.0   # mid of 50-120 $/kWh-th; docs/DATA.md, Hirschey et al.
+  storage_capex_eur_per_mwh: 80000.0   # top of the ORIGINAL, now-corrected-away citation range;
+    # kept unchanged so existing Phase C3/D.3 results stay reproducible against
+    # what they were actually run with -- see docs/DATA.md's PCM CAPEX row and
+    # scripts/run_pcm_capex_sensitivity_experiment.py for the correction and
+    # its (ranking-preserving) impact.
   storage_capex_eur_per_mw: 40000.0    # [assumption] PCM heat-exchanger network; see docs/DATA.md
   carbon_price_eur_per_tco2: 80.0
 

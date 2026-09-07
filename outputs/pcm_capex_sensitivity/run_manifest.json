@@ -1,0 +1,121 @@
+{
+  "cheapest_reference_technology": "packed_bed",
+  "corrected_literature_range_eur_per_mwh": [
+    15000.0,
+    21000.0
+  ],
+  "generated_at": "2026-09-07T09:39:46.502874+00:00",
+  "headline_duration_hours": 6.0,
+  "note": "Answers whether Phase C3/D.3's 'PCM priced out entirely' finding survives a corrected PCM storage-CAPEX citation (docs/DATA.md's PCM row); does not change any already-committed config or result.",
+  "original_committed_config_value_eur_per_mwh": 80000.0,
+  "points": [
+    {
+      "is_original_committed_config_value": false,
+      "is_within_corrected_literature_range": false,
+      "pcm_beats_cheapest_reference_technology": false,
+      "pcm_constant_e_cap_mwh": 45.93013433940038,
+      "pcm_constant_total_cost_eur": 4016806.374778844,
+      "pcm_soc_dependent_e_cap_mwh": -0.0,
+      "pcm_soc_dependent_total_cost_eur": 4178028.841601672,
+      "storage_capex_eur_per_mwh": 10000.0
+    },
+    {
+      "is_original_committed_config_value": false,
+      "is_within_corrected_literature_range": true,
+      "pcm_beats_cheapest_reference_technology": false,
+      "pcm_constant_e_cap_mwh": 41.35158044571238,
+      "pcm_constant_total_cost_eur": 4034051.6158658457,
+      "pcm_soc_dependent_e_cap_mwh": -0.0,
+      "pcm_soc_dependent_total_cost_eur": 4178028.841601672,
+      "storage_capex_eur_per_mwh": 15000.0
+    },
+    {
+      "is_original_committed_config_value": false,
+      "is_within_corrected_literature_range": true,
+      "pcm_beats_cheapest_reference_technology": false,
+      "pcm_constant_e_cap_mwh": 41.35158044571238,
+      "pcm_constant_total_cost_eur": 4043756.0111593227,
+      "pcm_soc_dependent_e_cap_mwh": -0.0,
+      "pcm_soc_dependent_total_cost_eur": 4178028.841601672,
+      "storage_capex_eur_per_mwh": 18000.0
+    },
+    {
+      "is_original_committed_config_value": false,
+      "is_within_corrected_literature_range": true,
+      "pcm_beats_cheapest_reference_technology": false,
+      "pcm_constant_e_cap_mwh": 36.76981931923584,
+      "pcm_constant_total_cost_eur": 4052952.7847318198,
+      "pcm_soc_dependent_e_cap_mwh": -0.0,
+      "pcm_soc_dependent_total_cost_eur": 4178028.841601672,
+      "storage_capex_eur_per_mwh": 21000.0
+    },
+    {
+      "is_original_committed_config_value": false,
+      "is_within_corrected_literature_range": false,
+      "pcm_beats_cheapest_reference_technology": false,
+      "pcm_constant_e_cap_mwh": 36.76981931923584,
+      "pcm_constant_total_cost_eur": 4064458.313910228,
+      "pcm_soc_dependent_e_cap_mwh": -0.0,
+      "pcm_soc_dependent_total_cost_eur": 4178028.841601672,
+      "storage_capex_eur_per_mwh": 25000.0
+    },
+    {
+      "is_original_committed_config_value": false,
+      "is_within_corrected_literature_range": false,
+      "pcm_beats_cheapest_reference_technology": false,
+      "pcm_constant_e_cap_mwh": 32.18484871333518,
+      "pcm_constant_total_cost_eur": 4078590.211464112,
+      "pcm_soc_dependent_e_cap_mwh": -0.0,
+      "pcm_soc_dependent_total_cost_eur": 4178028.841601672,
+      "storage_capex_eur_per_mwh": 30000.0
+    },
+    {
+      "is_original_committed_config_value": false,
+      "is_within_corrected_literature_range": false,
+      "pcm_beats_cheapest_reference_technology": false,
+      "pcm_constant_e_cap_mwh": 29.099999999999998,
+      "pcm_constant_total_cost_eur": 4103606.0815079533,
+      "pcm_soc_dependent_e_cap_mwh": -0.0,
+      "pcm_soc_dependent_total_cost_eur": 4178028.841601672,
+      "storage_capex_eur_per_mwh": 40000.0
+    },
+    {
+      "is_original_committed_config_value": false,
+      "is_within_corrected_literature_range": false,
+      "pcm_beats_cheapest_reference_technology": false,
+      "pcm_constant_e_cap_mwh": 29.099999999999998,
+      "pcm_constant_total_cost_eur": 4126370.0565077253,
+      "pcm_soc_dependent_e_cap_mwh": -0.0,
+      "pcm_soc_dependent_total_cost_eur": 4178028.841601672,
+      "storage_capex_eur_per_mwh": 50000.0
+    },
+    {
+      "is_original_committed_config_value": false,
+      "is_within_corrected_literature_range": false,
+      "pcm_beats_cheapest_reference_technology": false,
+      "pcm_constant_e_cap_mwh": 29.099999999999998,
+      "pcm_constant_total_cost_eur": 4149134.0315074967,
+      "pcm_soc_dependent_e_cap_mwh": -0.0,
+      "pcm_soc_dependent_total_cost_eur": 4178028.841601672,
+      "storage_capex_eur_per_mwh": 60000.0
+    },
+    {
+      "is_original_committed_config_value": true,
+      "is_within_corrected_literature_range": false,
+      "pcm_beats_cheapest_reference_technology": false,
+      "pcm_constant_e_cap_mwh": -0.0,
+      "pcm_constant_total_cost_eur": 4178028.841601672,
+      "pcm_soc_dependent_e_cap_mwh": -0.0,
+      "pcm_soc_dependent_total_cost_eur": 4178028.841601672,
+      "storage_capex_eur_per_mwh": 80000.0
+    }
+  ],
+  "process_temperature_c": 300.0,
+  "profile_shape": "flat",
+  "ranking_flip_capex_eur_per_mwh": null,
+  "reference_costs_eur_from_phase_c3": {
+    "molten_salt": 4075713.2585656545,
+    "packed_bed": 4004309.699509225
+  },
+  "reference_source": "outputs/phase_c_full_matrix/run_manifest.json"
+}

@@ -716,6 +716,45 @@ per-case table), `ranking_table.csv` (the 6-row ranking-flip table),
 `run_manifest.json` (every case's full KPIs, solver status, and
 verification result), and `figures/`.
 
+### C3.1: does the ranking survive a corrected PCM CAPEX citation?
+
+A follow-up primary-source audit of docs/DATA.md (this session) found that
+PCM's `storage_capex_eur_per_mwh` (80,000 EUR/MWh-th, the value C3 and D.3
+above were actually run against) traced back to a citation for the wrong
+material class entirely -- a review of *low-temperature* (0-65 C) PCMs for
+*building* HVAC, not the high-temperature nitrate-salt PCM this project
+screens (melting ~306 C). A corrected, properly-targeted search found
+high-temperature encapsulated-PCM (EPCM) system costs clustering around
+15-21 $/kWh-th (docs/DATA.md's PCM CAPEX row has the full citation trail)
+-- well below the value every PCM result above was generated with. That
+raises a direct question C3 alone cannot answer: is "PCM priced out
+entirely" a real finding, or an artifact of the wrong citation?
+
+`scripts/run_pcm_capex_sensitivity_experiment.py` answers it without
+touching any already-committed config or result. It re-solves PCM only
+(constant and SOC-dependent legs, matched-duration sizing, tau=6h, C3's own
+300 C flat-load headline case) at ten `storage_capex_eur_per_mwh` values
+from 10,000 up to the original 80,000 EUR/MWh-th, and compares each against
+packed bed's and molten salt's own already-committed total costs -- read
+directly from `outputs/phase_c_full_matrix/run_manifest.json`, not
+re-solved, since neither reference technology's cost depends on PCM's own
+capex at all.
+
+**The ranking survives.** PCM does not beat packed bed's 4,004,310 EUR
+reference cost anywhere in the swept range -- not even at 10,000 EUR/MWh-th,
+below the floor of the corrected literature range (15,000-21,000
+EUR/MWh-th). At the corrected range's own floor, PCM totals 4,034,052 EUR:
+closer than the original citation made it look (4,178,029 EUR at 80,000
+EUR/MWh-th, where the LP's own optimal PCM energy capacity collapses to
+~0 MWh), but still not competitive. The LP's own chosen PCM energy capacity
+shrinks monotonically as capex rises (45.93 MWh at 10,000 EUR/MWh-th down to
+29.10 MWh at 60,000, then ~0 at 80,000) -- the wrong citation inflated the
+*margin* by which PCM lost, and inflated it by roughly 6x in cost-gap terms
+(~174,000 EUR gap at 80,000 EUR/MWh-th vs. ~30,000 EUR at the corrected
+range's own floor), but did not change which technology wins. Full sweep,
+both discharge-limit legs, and every KPI: `outputs/pcm_capex_sensitivity/
+run_manifest.json`.
+
 ## P0.4: start-of-hour vs. end-of-hour discharge capability
 
 **The bug.** `dispatch.py`'s piecewise discharge-capability constraint,

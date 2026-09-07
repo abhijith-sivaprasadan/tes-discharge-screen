@@ -307,6 +307,20 @@ describes.
   overlays each curve's analytic shape, its piecewise fit, and the
   constant-limit reference. See docs/RESULTS.md's Phase C3 section for the full
   15-row and 6-row tables.
+- **C3.1, PCM CAPEX correction sensitivity
+  (`scripts/run_pcm_capex_sensitivity_experiment.py`,
+  `outputs/pcm_capex_sensitivity/`).** A follow-up primary-source audit
+  (docs/DATA.md) found PCM's `storage_capex_eur_per_mwh` (80,000 EUR/MWh-th,
+  the value C3 above ran against) was cited against the wrong paper -- a
+  low-temperature building-PCM review, not the high-temperature nitrate-salt
+  PCM this project screens. A corrected search found EPCM costs clustering
+  15,000-21,000 EUR/MWh-th, well below the committed value. This script
+  re-solves PCM only across ten capex values from 10,000 to 80,000
+  EUR/MWh-th and checks each against packed bed's already-committed
+  reference cost (read, not re-solved). **The ranking survives**: PCM does
+  not beat packed bed anywhere in the swept range, not even below the
+  corrected literature floor -- the wrong citation inflated the cost gap by
+  roughly 6x, but did not change which technology wins.
 
 ## Scaling law
 
