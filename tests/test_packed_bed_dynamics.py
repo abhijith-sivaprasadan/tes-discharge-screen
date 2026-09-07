@@ -365,6 +365,115 @@ def test_simulate_discharge_accepts_a_nonuniform_initial_temperature_field() -> 
     assert np.isclose(result.trace["bed_stored_energy_j"].iloc[0], expected_energy, rtol=1e-9)
 
 
+def test_final_temperature_fields_match_the_trace_own_final_energy() -> None:
+    # final_fluid_temperature_c/final_solid_temperature_c must be the
+    # actual PDE-produced state at the end of the run, not the initial
+    # field echoed back or some other placeholder: their own stored energy
+    # (via bed_stored_energy_j) must match the trace's own last recorded
+    # bed_stored_energy_j exactly.
+    config = default_packed_bed_config()
+    result = simulate_discharge(
+        config,
+        mass_flow_kg_per_s=2.5,
+        initial_bed_temperature_c=400.0,
+        inlet_temperature_c=320.0,
+        duration_s=3 * 3600,
+        n_steps=300,
+    )
+    assert result.final_fluid_temperature_c.shape == (config.n_nodes,)
+    assert result.final_solid_temperature_c.shape == (config.n_nodes,)
+    final_energy = bed_stored_energy_j(
+        config, result.final_fluid_temperature_c, result.final_solid_temperature_c, 320.0
+    )
+    assert np.isclose(final_energy, result.trace["bed_stored_energy_j"].iloc[-1], rtol=1e-9)
+    # A partial discharge must leave the fluid and solid phases NOT
+    # equilibrated with each other in general (h_v is finite): a real,
+    # PDE-produced state, distinct from state_sufficiency.py's own
+    # hand-constructed fields, which apply one field to both phases.
+    assert not np.allclose(
+        result.final_fluid_temperature_c, result.final_solid_temperature_c, atol=1e-6
+    )
+
+
+def test_final_temperature_field_can_seed_a_subsequent_call() -> None:
+    # The whole point of exposing these fields: chaining calls to build a
+    # realistic multi-step charge/discharge history, rather than only ever
+    # starting from a uniform or hand-constructed field.
+    config = default_packed_bed_config()
+    first = simulate_discharge(
+        config,
+        mass_flow_kg_per_s=2.5,
+        initial_bed_temperature_c=400.0,
+        inlet_temperature_c=320.0,
+        duration_s=3 * 3600,
+        n_steps=300,
+    )
+    second = simulate_discharge(
+        config,
+        mass_flow_kg_per_s=2.5,
+        initial_bed_temperature_c=first.final_fluid_temperature_c,
+        inlet_temperature_c=320.0,
+        duration_s=3 * 3600,
+        n_steps=300,
+    )
+    assert np.isclose(
+        second.trace["outlet_temperature_c"].iloc[0], first.final_fluid_temperature_c[-1]
+    )
+    # Continuing the discharge must not increase stored energy.
+    assert (
+        second.trace["bed_stored_energy_j"].iloc[-1]
+        <= first.trace["bed_stored_energy_j"].iloc[-1] + 1e-3
+    )
+
+
+def test_initial_solid_temperature_c_overrides_the_default_equilibrated_assumption() -> None:
+    # Default (initial_solid_temperature_c=None) equilibrates solid to the
+    # fluid field; giving a genuinely different solid field must actually
+    # change the very first step's behaviour, not be silently ignored.
+    config = default_packed_bed_config()
+    equilibrated = simulate_discharge(
+        config,
+        mass_flow_kg_per_s=2.0,
+        initial_bed_temperature_c=400.0,
+        inlet_temperature_c=320.0,
+        duration_s=600.0,
+        n_steps=10,
+    )
+    non_equilibrated = simulate_discharge(
+        config,
+        mass_flow_kg_per_s=2.0,
+        initial_bed_temperature_c=400.0,
+        initial_solid_temperature_c=380.0,
+        inlet_temperature_c=320.0,
+        duration_s=600.0,
+        n_steps=10,
+    )
+    assert not np.isclose(
+        equilibrated.trace["bed_stored_energy_j"].iloc[0],
+        non_equilibrated.trace["bed_stored_energy_j"].iloc[0],
+    )
+    expected_initial_energy = bed_stored_energy_j(
+        config, np.full(config.n_nodes, 400.0), np.full(config.n_nodes, 380.0), 320.0
+    )
+    assert np.isclose(
+        non_equilibrated.trace["bed_stored_energy_j"].iloc[0], expected_initial_energy, rtol=1e-9
+    )
+
+
+def test_initial_solid_temperature_c_rejects_a_wrongly_shaped_field() -> None:
+    config = default_packed_bed_config()
+    with pytest.raises(ValueError, match="initial_solid_temperature_c"):
+        simulate_discharge(
+            config,
+            mass_flow_kg_per_s=2.0,
+            initial_bed_temperature_c=400.0,
+            initial_solid_temperature_c=np.full(config.n_nodes + 1, 380.0),
+            inlet_temperature_c=320.0,
+            duration_s=600.0,
+            n_steps=10,
+        )
+
+
 def test_simulate_discharge_rejects_a_wrongly_shaped_initial_temperature_field() -> None:
     config = default_packed_bed_config()
     field = np.full(config.n_nodes + 1, 350.0)

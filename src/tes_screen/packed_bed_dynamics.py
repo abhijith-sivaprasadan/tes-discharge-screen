@@ -375,11 +375,23 @@ def blower_specific_power_mw_per_mw(
 
 @dataclass(frozen=True)
 class DischargeResult:
+    """`trace` carries only scalar/aggregate columns (outlet temperature,
+    stored energy, ...) at every recorded timestep; `final_fluid_
+    temperature_c`/`final_solid_temperature_c` are the full length-n_nodes
+    spatial fields at the *end* of this call only (not equilibrated with
+    each other in general, since h_v is finite), added so a subsequent call
+    can start from a real, PDE-produced non-uniform state -- charging or
+    discharging again from wherever this call actually left the bed --
+    rather than only from a hand-constructed field
+    (`state_sufficiency.py`'s own uniform/step/smeared constructors)."""
+
     trace: pd.DataFrame
     config: PackedBedDynamicsConfig
     mass_flow_kg_per_s: float
     inlet_temperature_c: float
     initial_bed_temperature_c: float | np.ndarray
+    final_fluid_temperature_c: np.ndarray
+    final_solid_temperature_c: np.ndarray
 
 
 def bed_stored_energy_j(
@@ -425,23 +437,34 @@ def simulate_discharge(
     inlet_temperature_c: float,
     duration_s: float,
     *,
+    initial_solid_temperature_c: float | np.ndarray | None = None,
     heat_transfer_coefficient_override_w_per_m3k: float | None = None,
     n_steps: int = 500,
 ) -> DischargeResult:
     """Discharge a bed at a constant mass flow; the shadow twin.
 
     Cold fluid at `inlet_temperature_c` enters node 0 and flows toward node
-    N-1, whose fluid temperature is the delivered outlet temperature. Both
-    phases start at `initial_bed_temperature_c`: a single number for a
+    N-1, whose fluid temperature is the delivered outlet temperature. The
+    fluid phase starts at `initial_bed_temperature_c`: a single number for a
     uniform, fully-charged bed (every normal call site in this repository),
     or a length-`config.n_nodes` array for a non-uniform initial temperature
-    field (P0.3's state-sufficiency experiment, `state_sufficiency.py`) --
-    fluid and solid phases start equilibrated to the same field either way,
-    generalising the uniform case rather than replacing it. No ambient heat
-    loss term: this is an adiabatic bed model, matching Phase A's separate
-    accounting of standing loss at the annual scale and keeping the
-    energy-conservation analytic check (test_packed_bed_dynamics.py) exact
-    rather than approximate.
+    field (P0.3's state-sufficiency experiment, `state_sufficiency.py`; the
+    charge/discharge cycling experiment,
+    `run_charge_discharge_cycling_experiment.py`). The solid phase starts
+    equilibrated to that same field by default (`initial_solid_temperature_c
+    = None`, every call site above) -- generalising the original uniform
+    case rather than replacing it -- unless `initial_solid_temperature_c` is
+    given separately, which a *chained* call needs: `DischargeResult.
+    final_fluid_temperature_c` and `final_solid_temperature_c` are the real,
+    generally-non-equilibrated PDE state a previous partial discharge or
+    charge left the bed in (h_v is finite), and re-equilibrating them at the
+    start of the next segment, rather than carrying the true state forward,
+    would silently discard exactly the history-dependence a realistic
+    multi-segment cycle is meant to capture. No ambient heat loss term: this
+    is an adiabatic bed model, matching Phase A's separate accounting of
+    standing loss at the annual scale and keeping the energy-conservation
+    analytic check (test_packed_bed_dynamics.py) exact rather than
+    approximate.
 
     Time-stepped with backward Euler (implicit), not forward Euler: air's
     volumetric heat capacity is orders of magnitude below rock's, which makes
@@ -505,7 +528,17 @@ def simulate_discharge(
             f"initial_bed_temperature_c array must have shape ({n},) to match "
             f"config.n_nodes, got {t_f.shape}"
         )
-    t_s = t_f.copy()
+    if initial_solid_temperature_c is None:
+        t_s = t_f.copy()
+    else:
+        t_s = np.array(initial_solid_temperature_c, dtype=float)
+        if t_s.shape == ():
+            t_s = np.full(n, float(t_s))
+        elif t_s.shape != (n,):
+            raise ValueError(
+                f"initial_solid_temperature_c array must have shape ({n},) to match "
+                f"config.n_nodes, got {t_s.shape}"
+            )
 
     rows: list[dict[str, float]] = []
     initial_energy_j = bed_stored_energy_j(config, t_f, t_s, inlet_temperature_c)
@@ -551,6 +584,8 @@ def simulate_discharge(
         mass_flow_kg_per_s=mass_flow_kg_per_s,
         inlet_temperature_c=inlet_temperature_c,
         initial_bed_temperature_c=initial_bed_temperature_c,
+        final_fluid_temperature_c=t_f.copy(),
+        final_solid_temperature_c=t_s.copy(),
     )
 
 

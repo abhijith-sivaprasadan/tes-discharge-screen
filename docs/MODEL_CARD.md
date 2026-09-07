@@ -536,6 +536,22 @@ temperature-quality regime. One matplotlib heatmap per load profile
 materially-design-changing cells labelled directly. See docs/RESULTS.md's P6
 section for the full grid table and figures.
 
+**P6.3, heat-exchanger-quality sensitivity
+(`scripts/run_delta_t_min_sensitivity_experiment.py`)**: done -- every
+result above, including P6's own map, assumes a perfect heat exchanger
+(`delta_t_min_hot_side_c=0`, no explicit HX model anywhere in this
+project). This sweeps `delta_t_min_hot_side_c` in {0,5,10,20,30} C, at
+fixed process temperature (P6's own `theta_req` grid), and finds the
+"correction starts to matter" `theta_req` boundary drops from 0.9 (at the
+project's own zero-approach assumption) to 0.75 at a modest 5-10 C, to
+0.5 at a realistic 30 C -- where the SOC-dependent formulation builds
+exactly zero capacity, the same categorical cliff P6 found, produced here
+by degrading heat-exchanger quality alone with the process requirement
+unchanged. A first version of this script held the wrong quantity fixed
+(T_required_out instead of process temperature) and found no effect at
+all, by construction -- caught before being reported. See
+docs/RESULTS.md's P6.3 section for the full table and figure.
+
 ## Phase D: harmonised comparison and sensitivity
 
 `TES_SCREEN_SPEC.md` section 7's three deliverables. **D.1, boundary

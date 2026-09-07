@@ -164,15 +164,20 @@ temperatures that an earlier version of this module conflated into one:
 clear), and `T_return` (the HTF temperature entering the bed,
 `simulate_discharge`'s own `inlet_temperature_c`, an explicit simulation
 input in every call site, never derived from `T_process`).
-`delta_t_min_hot_side_c = 0.0` throughout this repository's scripts and
-tests is **[assumption]**: no explicit heat-exchanger model exists yet
+`delta_t_min_hot_side_c = 0.0` throughout every *other* result in this
+repository is **[assumption]**: no explicit heat-exchanger model exists yet
 (the roadmap's own "for later sophistication" note), and the annual
 dispatch LP's `storage.eta_charge`/`eta_discharge` above already represent
 HX approach losses in a harmonised way; a second, separate nonzero approach
 penalty here, on top of that one, would double-count it in the same way a
 second ambient-loss term inside the Phase B sub-model would double-count
 `storage.standing_loss_fraction_per_hour` (see "Phase B scope" above).
-Revisit once an explicit heat-exchanger model exists.
+`scripts/run_delta_t_min_sensitivity_experiment.py` (docs/RESULTS.md's
+P6.3) sweeps this same parameter from 0 up to 30 C -- still not a
+heat-exchanger design model, but no longer an unexamined assumption
+either: the "correction starts to matter" threshold moves substantially
+(theta_req 0.9 down to 0.5) across that range. Revisit once an explicit
+heat-exchanger model exists.
 
 ## Synthetic load profiles
 

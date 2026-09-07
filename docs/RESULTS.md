@@ -1383,6 +1383,75 @@ them as anything more. Every number above traces to
 formulations' full KPIs, the bias/region classification, and the
 consistency-check result.
 
+### P6.3: heat-exchanger-quality sensitivity
+
+**Every result above, including P6's own decision map, holds
+`delta_t_min_hot_side_c = 0`: a zero minimum hot-side approach
+temperature, a perfect, infinitely-effective heat exchanger.** There is no
+explicit heat-exchanger model anywhere in this project (`docs/DATA.md`
+states this plainly), which matters specifically because this project's
+whole question -- whether stored heat clears the temperature the process
+needs as the store discharges -- is a temperature-quality question a real,
+imperfect heat exchanger only makes harder, never easier.
+`scripts/run_delta_t_min_sensitivity_experiment.py` does not add a
+heat-exchanger design model; it asks a narrower, answerable question: with
+the *process* delivery-temperature requirement held fixed (P6's own
+`theta_req` grid, unchanged), how far does the `theta_req` threshold at
+which the SOC-dependent correction starts to matter move as the assumed
+minimum approach temperature grows from a perfect 0 C to a genuinely poor
+30 C? `T_required_out = process_temperature_c + delta_t_min_hot_side_c` --
+the quantity the discharge curve's own quality gate actually reads -- rises
+as the heat exchanger worsens, holding the process requirement itself
+fixed; a first, discarded version of this script instead held
+`T_required_out` fixed and backed out `process_temperature_c` from it,
+which turned out to make `delta_t_min`'s effect disappear by construction
+(bit-identical results at every `delta_t_min`) -- caught and fixed before
+being reported here, not after.
+
+Grid: `theta_req` in {-0.25, 0.25, 0.5, 0.75, 0.9} (P6's own grid) x
+`delta_t_min_hot_side_c` in {0, 5, 10, 20, 30} C, at this project's own
+headline design duration (tau=6h) and load profile (flat). 4 of the 25
+grid points push `T_required_out` to or past `T_hot` itself (400 C) --
+reported as infeasible (no heat exchanger of any quality could serve that
+process from this bed at all), not solved around.
+
+**The boundary moves a lot, and moves in the expected direction.** The
+lowest `theta_req` in this grid where the correction stops being
+`constant_model_adequate`, by `delta_t_min`:
+
+| delta_t_min_hot_side_c | Boundary theta_req |
+|---:|:---|
+| 0 C (P6's own assumption) | 0.90 |
+| 5 C | 0.75 |
+| 10 C | 0.75 |
+| 20 C | None (both 0.75 and 0.9 are infeasible at this delta_t_min; every *feasible* point stays adequate) |
+| 30 C | **0.50** |
+
+At the project's own zero-approach-temperature assumption, only the most
+extreme corner of this grid (`theta_req=0.9`, a process needing almost the
+store's own fully-charged temperature) shows the correction mattering at
+all. At a still-modest 5-10 C approach temperature, that boundary already
+drops to `theta_req=0.75`. At 30 C -- a real, unremarkable heat-exchanger
+approach temperature, not an extreme one -- the boundary falls to
+`theta_req=0.5`, and that grid point does not show a small bias: the
+SOC-dependent formulation builds **exactly zero storage capacity**
+(`power_sizing_bias_pct=-100%`, `energy_capacity_bias_pct=-100%`) where the
+constant-limit formulation still builds some, a categorical feasibility
+flip with the same structure as P6's own cliff, produced here purely by
+degrading the assumed heat-exchanger quality, with the process requirement
+itself never changed. **The zero-approach-temperature assumption this
+project uses everywhere else is not a free simplification: it sits on the
+optimistic edge of a boundary that moves substantially, in the
+design-relevant direction, once a real heat exchanger is assumed instead
+of a perfect one.**
+
+![Heat-exchanger-quality sensitivity](outputs/delta_t_min_sensitivity/figures/delta_t_min_sensitivity.png)
+
+Every number traces to `outputs/delta_t_min_sensitivity/run_manifest.json`,
+including the internal consistency check (`theta_req=-0.25`,
+`delta_t_min=0`, reproducing this project's own C2/C3 headline case exactly,
+as P6's own consistency check also does).
+
 ## Phase D: harmonised comparison and sensitivity
 
 `TES_SCREEN_SPEC.md` section 7's own three deliverables, only attempted
