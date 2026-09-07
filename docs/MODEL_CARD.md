@@ -122,6 +122,29 @@ describes.
   general `Pmax(SOC)` law; this does not invalidate Phase C/C2 below, which
   both use exactly that one trajectory, consistently. See docs/RESULTS.md's P0.3
   section for the full physical explanation and numbers.
+- **P0.3.1, does the reduced state survive realistic cycling?**
+  `scripts/run_charge_discharge_cycling_experiment.py`
+  (`outputs/charge_discharge_cycling/`) answers the fifth profile family
+  P0.3 itself named and left undone ("profiles from realistic
+  charge/discharge histories"): a "charge" is the same governing equations
+  with hot fluid imposed as the boundary condition, entering the bed's
+  opposite end (reversing the spatial field before the call, reversing the
+  result back after) -- not a separate model. `DischargeResult.
+  final_fluid_temperature_c`/`final_solid_temperature_c` (new; the real,
+  non-equilibrated PDE state at the end of a call) let successive segments
+  chain from where the previous one actually left the bed, via a new
+  `initial_solid_temperature_c` parameter on `simulate_discharge`. Five
+  multi-segment histories (two pure-discharge controls, three real cycles),
+  probed with P0.3's own identical short-horizon methodology. **Finding:
+  methodology control 0.022% deviation (confirms the comparison itself is
+  sound); realistic cycling 4.28% max deviation, under P0.3's own 5%
+  threshold** -- far below the hand-constructed profiles' ~220% scatter,
+  and one-directional (every cycled state under-delivers relative to the
+  reference curve, not scattered around zero), a real, physically
+  interpretable bias, not noise. Does not overturn P0.3's own finding
+  (adversarial/hand-constructed states can still break scalar SOC badly);
+  answers the complementary, operationally relevant question instead. See
+  docs/RESULTS.md's P0.3.1 section for the full table.
 - **Phase C, MVP scope (archived; superseded by C2 below).** The
   piecewise-linear discharge-curve construction (`src/tes_screen/discharge_curve.py`,
   C1) and the SOC-dependent dispatch LP (`dispatch.py`'s `soc_dependent`
@@ -665,10 +688,9 @@ h_v's precise magnitude even though the raw curve shape is not.
   insufficient but did not build a replacement (e.g. thermocline position/
   front width, or a useful-energy-weighted SOC, as the roadmap itself
   suggests); the annual dispatch LP still uses the scalar-SOC piecewise
-  curve, now with that limitation documented rather than resolved.
-- **The fifth state-sufficiency profile family** (states drawn from
-  realistic charge/discharge histories): needs a charging dynamic model,
-  which this project does not have (Phase B is discharge-only).
+  curve, now with that limitation documented (P0.3) and, for realistic
+  cycling depths specifically, quantified as staying within this
+  project's own screening tolerance (P0.3.1) rather than resolved.
 
 ## Intended eventual scope, once later phases land
 

@@ -1,0 +1,186 @@
+{
+  "case": "packed_bed_300c_flat reference bed (default_packed_bed_config)",
+  "checkpoints_s": [
+    0.0,
+    300.0,
+    600.0,
+    1200.0,
+    1800.0
+  ],
+  "delta_t_min_hot_side_c": 0.0,
+  "generated_at": "2026-09-07T09:28:28.568406+00:00",
+  "hot_temperature_c": 400.0,
+  "mass_flow_kg_per_s": 3.0,
+  "max_control_deviation_pct": 0.02195478361440007,
+  "max_relative_deviation_pct_excluding_controls_and_t0": 4.280956333653324,
+  "methodology_control_note": "monotonic_2.0h and monotonic_3.5h have no charging leg: they reproduce the reference trajectory's own state by construction, so their own deviation should be ~0%. This is a check on the comparison methodology itself, not a finding about cycling.",
+  "methodology_control_passed": true,
+  "process_temperature_c": 300.0,
+  "recipe_summaries": [
+    {
+      "achieved_soc": 0.588084544477021,
+      "legs": [
+        {
+          "direction": "discharge",
+          "duration_hours": 2.0,
+          "soc_after_leg": 0.588084544477021
+        }
+      ],
+      "recipe": "monotonic_2.0h"
+    },
+    {
+      "achieved_soc": 0.28677360448128214,
+      "legs": [
+        {
+          "direction": "discharge",
+          "duration_hours": 3.5,
+          "soc_after_leg": 0.28677360448128214
+        }
+      ],
+      "recipe": "monotonic_3.5h"
+    },
+    {
+      "achieved_soc": 0.3466893487439922,
+      "legs": [
+        {
+          "direction": "discharge",
+          "duration_hours": 3.0,
+          "soc_after_leg": 0.3838944938708791
+        },
+        {
+          "direction": "charge",
+          "duration_hours": 0.5,
+          "soc_after_leg": 0.48681810379118184
+        },
+        {
+          "direction": "discharge",
+          "duration_hours": 0.7,
+          "soc_after_leg": 0.3466893487439922
+        }
+      ],
+      "recipe": "shallow_cycle"
+    },
+    {
+      "achieved_soc": 0.28547519603643157,
+      "legs": [
+        {
+          "direction": "discharge",
+          "duration_hours": 5.0,
+          "soc_after_leg": 0.07424072558022832
+        },
+        {
+          "direction": "charge",
+          "duration_hours": 2.0,
+          "soc_after_leg": 0.4854826501833695
+        },
+        {
+          "direction": "discharge",
+          "duration_hours": 1.0,
+          "soc_after_leg": 0.28547519603643157
+        }
+      ],
+      "recipe": "deep_cycle"
+    },
+    {
+      "achieved_soc": 0.482941600008591,
+      "legs": [
+        {
+          "direction": "discharge",
+          "duration_hours": 2.5,
+          "soc_after_leg": 0.48534663803144806
+        },
+        {
+          "direction": "charge",
+          "duration_hours": 1.0,
+          "soc_after_leg": 0.6880854653493191
+        },
+        {
+          "direction": "discharge",
+          "duration_hours": 0.8,
+          "soc_after_leg": 0.5238649703672721
+        },
+        {
+          "direction": "charge",
+          "duration_hours": 0.4,
+          "soc_after_leg": 0.6051048473368222
+        },
+        {
+          "direction": "discharge",
+          "duration_hours": 0.6,
+          "soc_after_leg": 0.482941600008591
+        }
+      ],
+      "recipe": "double_cycle"
+    }
+  ],
+  "recipes": {
+    "deep_cycle": [
+      [
+        "discharge",
+        5.0
+      ],
+      [
+        "charge",
+        2.0
+      ],
+      [
+        "discharge",
+        1.0
+      ]
+    ],
+    "double_cycle": [
+      [
+        "discharge",
+        2.5
+      ],
+      [
+        "charge",
+        1.0
+      ],
+      [
+        "discharge",
+        0.8
+      ],
+      [
+        "charge",
+        0.4
+      ],
+      [
+        "discharge",
+        0.6
+      ]
+    ],
+    "monotonic_2.0h": [
+      [
+        "discharge",
+        2.0
+      ]
+    ],
+    "monotonic_3.5h": [
+      [
+        "discharge",
+        3.5
+      ]
+    ],
+    "shallow_cycle": [
+      [
+        "discharge",
+        3.0
+      ],
+      [
+        "charge",
+        0.5
+      ],
+      [
+        "discharge",
+        0.7
+      ]
+    ]
+  },
+  "research_question": "P0.3 found scalar SOC insufficient for hand-constructed fields. Does the single discharge-only trajectory's own Pmax(SOC) curve -- the one this project's dispatch LP actually uses -- still predict near-term deliverable power correctly for a bed reaching that same SOC via a realistic charge/discharge history, rather than by hand construction?",
+  "return_temperature_c": 320.0,
+  "scalar_soc_survives_realistic_cycling": true,
+  "scatter_threshold_note": "[assumption]; reused from P0.3's own threshold, not a literature figure.",
+  "scatter_threshold_pct": 5.0,
+  "short_horizon_s": 1800.0
+}

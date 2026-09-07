@@ -43,9 +43,12 @@ existing single-trajectory relation is documented as a
 docs/RESULTS.md/MODEL_CARD.
 
 A fifth profile family the roadmap names -- "profiles taken from realistic
-charge/discharge histories" -- needs a charging dynamic model this project
-does not have (Phase B is discharge-only), so it is left undone rather
-than approximated; see `state_sufficiency.py`'s own module docstring.
+charge/discharge histories" -- is answered separately, not by this script:
+`run_charge_discharge_cycling_experiment.py` builds such states by running
+`simulate_discharge` forward and backward rather than by hand
+construction, since a realistic history reaches whatever SOC it reaches,
+not a chosen target `energy_fraction`; see that script's own module
+docstring and `state_sufficiency.py`'s.
 """
 
 from __future__ import annotations
@@ -202,8 +205,10 @@ def main() -> None:
         "profile_family": ["uniform", "step_hot_at_inlet", "step_hot_at_outlet", "smeared"],
         "profile_family_note": (
             "A fifth family the roadmap names (profiles from realistic charge/"
-            "discharge histories) needs a charging dynamic model this project "
-            "does not have; left undone rather than approximated."
+            "discharge histories) is answered separately: see "
+            "run_charge_discharge_cycling_experiment.py, which reaches such "
+            "states by running simulate_discharge forward and backward rather "
+            "than by hand construction."
         ),
         "checkpoints_s": CHECKPOINTS_S,
         "t0_checkpoint_caveat": (

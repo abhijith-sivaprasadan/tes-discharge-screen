@@ -268,10 +268,73 @@ since it was never tested against non-uniform states at all.
 **Per the roadmap's own instruction not to hide a negative result here**:
 this is reported as a real, structural limitation of the scalar-SOC
 reduction for this bed model, not rounded down or explained away. A fifth
-profile family the roadmap names (states drawn from realistic
-charge/discharge histories) needs a charging dynamic model this project
-does not have and is left undone rather than approximated; see
-`state_sufficiency.py`'s own module docstring.
+profile family the roadmap names -- states drawn from realistic
+charge/discharge histories, rather than hand-constructed -- is answered
+below, not left undone: it turns out not to need a separate charging
+*model*, only a different boundary condition on the same one.
+
+### P0.3.1: does the reduced state survive realistic cycling?
+
+**The four profiles above are hand-constructed and, in one case
+(`step_hot_at_inlet`), not even reachable by any real operating history --
+a deliberately adversarial test of scalar SOC, not a claim about what
+actually happens under normal cycling.** `simulate_discharge` solves
+Schumann's equations for a fluid stream entering node 0; nothing in the
+governing equations assumes that stream is colder than the bed, so a
+"charge" is the same solver with hot fluid imposed as the boundary
+condition, entering from the bed's *opposite* end (the standard thermocline
+convention, preserving the thermocline's own orientation rather than
+eroding it straight back) -- implemented by reversing the spatial field
+before the call and reversing the result back after, not by adding a new
+physics model.
+`scripts/run_charge_discharge_cycling_experiment.py` builds five
+multi-segment charge/discharge histories from a fully-charged bed (two
+pure single discharges as a methodology control; three real cycles --
+shallow, deep, and a double reversal), chaining each segment from the
+*true* non-equilibrated fluid/solid state the previous one left behind
+(`DischargeResult.final_fluid_temperature_c`/`final_solid_temperature_c`,
+added for this), and compares the resulting state's own near-term
+deliverable power (P0.3's identical short-probe methodology: 1800s, five
+checkpoints) against what the single monotonic discharge-only trajectory
+-- the one this project's own discharge curve is actually fit from --
+predicts at that same achieved state of charge.
+
+**Methodology control: 0.022% max deviation** (the two pure-discharge
+recipes, which reproduce the reference trajectory's own state by
+construction) -- confirms the comparison itself is sound before trusting
+what it says about real cycling.
+
+**Realistic cycling: 4.28% max deviation, under P0.3's own 5% threshold.**
+Far below the hand-constructed profiles' ~220% scatter, and consistent in
+direction: every cycled state delivers *less* power than the reference
+curve predicts at the same SOC (deviation -0.25% to -4.28% across the
+three cycles, growing over the probe window in every case), not scattered
+around zero -- a real, physically interpretable bias (partial recharge
+from the opposite end blends the thermocline somewhat rather than
+reproducing a single clean pass through it), not noise. The double
+reversal (`double_cycle`) shows a larger deviation than the single deep
+recharge (`deep_cycle`, -3.07% vs. one reversal) despite reaching a similar
+depth, suggesting repeated reversals compound the disturbance more than
+one large one does -- worth a wider recipe sweep in future work, not
+concluded from three data points here.
+
+**The honest reading, stated plainly.** P0.3's own hand-constructed test
+is not overturned -- an adversarial or externally-manipulated state can
+still make scalar SOC badly wrong, and that limitation stands. What this
+adds is the complementary, operationally relevant question: under
+*realistic* cycling depths, reached by the same solver's own physics
+running forward and backward rather than by construction, the
+discharge-only curve this project's dispatch LP actually uses stays within
+roughly the same tolerance P0.3 itself set as "adequate for screening."
+This is the credible answer to "you proved SOC isn't sufficient, so why
+does the LP still use an SOC-only function": because the LP's own
+duration-matched, single-pass discharge scenarios never cycle partially in
+a way this test did not also cover, and where partial cycling was tested
+directly, the resulting error stayed under this project's own stated
+tolerance -- not because the general insufficiency P0.3 found stopped being
+true. Every number traces to
+`outputs/charge_discharge_cycling/run_manifest.json` and
+`cycled_state_vs_reference_curve.csv`.
 
 ## Phase C (original MVP run): archived, diagnostic only
 

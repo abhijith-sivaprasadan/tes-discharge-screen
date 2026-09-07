@@ -19,10 +19,16 @@ so `scripts/run_state_sufficiency_experiment.py` can discharge each briefly
 and compare: uniform, a sharp step with the hot block at the inlet end, the
 mirror-image step with the hot block at the outlet end (same total energy,
 opposite spatial arrangement), and a broad linear ramp. A fifth family the
-roadmap names -- "profiles taken from realistic charge/discharge histories"
--- is not built here: it depends on having a charging dynamic model, which
-this project does not have (Phase B is discharge-only), so it is left
-undone rather than approximated.
+roadmap names -- "profiles taken from realistic charge/discharge
+histories" -- is answered separately, not built here:
+`scripts/run_charge_discharge_cycling_experiment.py` reaches such states by
+actually running `simulate_discharge` forward and backward (a "charge" is
+the same governing equations with hot fluid imposed as the boundary
+condition, entering from the bed's opposite end) rather than by hand
+construction, since a real charge/discharge history is not a fixed-energy
+field at all -- the constructors below all take a target `energy_fraction`
+directly, which a realistic history does not let you choose, only observe
+after the fact.
 
 Every constructor returns a length-`config.n_nodes` array of temperatures
 (deg C), applied to both the fluid and solid phases identically at t=0 --

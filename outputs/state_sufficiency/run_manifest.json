@@ -25,7 +25,7 @@
     "step_hot_at_outlet",
     "smeared"
   ],
-  "profile_family_note": "A fifth family the roadmap names (profiles from realistic charge/discharge histories) needs a charging dynamic model this project does not have; left undone rather than approximated.",
+  "profile_family_note": "A fifth family the roadmap names (profiles from realistic charge/discharge histories) is answered separately: see run_charge_discharge_cycling_experiment.py, which reaches such states by running simulate_discharge forward and backward rather than by hand construction.",
   "research_question": "Is total stored energy (scalar SOC) a sufficient state for predicting near-term deliverable power, or does the spatial arrangement of that energy along the bed also matter?",
   "return_temperature_c": 320.0,
   "scalar_soc_adequate_for_screening": false,
