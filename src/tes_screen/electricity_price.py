@@ -4,8 +4,25 @@ Ported from PyNEXUS's `data/entsoe.py`. That module is itself built and
 unit-tested but has never been run against a live ENTSO-E credential in
 PyNEXUS; its own docstring records that deferral explicitly and falls back to
 synthetic prices until `ENTSOE_API_KEY` is actually available to test
-against. This module follows the identical pattern for the identical reason:
-no `ENTSOE_API_KEY` is configured in this working environment either.
+against. This module followed the identical pattern for the identical reason
+for most of this project's life: no `ENTSOE_API_KEY` was configured in this
+working environment either.
+
+**Status update (2026-09-07): a real credential was tested against this
+module and the code path itself worked as designed** -- `EntsoePandasClient`
+constructed correctly and issued a well-formed HTTPS request (query params,
+security token, and date range all correct on inspection of the failed
+request's own URL). The call did not reach ENTSO-E's servers: this
+particular working environment's own outbound network egress policy blocks
+`web-api.tp.entsoe.eu` specifically (its proxy returns 403 on the CONNECT,
+confirmed via `/__agentproxy/status`'s `recentRelayFailures`), independent
+of this project's code or the credential's validity. Not retried further nor
+routed around, per that proxy's own policy. This is therefore now a network
+*policy* gap in one specific sandboxed session, not a missing-credential or
+missing-implementation gap -- re-run this module's own real-fetch path (or
+`scripts/fetch_entsoe_headline_prices.py`) from an environment whose egress
+policy allows `web-api.tp.entsoe.eu` (or with the fetch run outside this
+sandbox and the resulting CSV handed back in) to actually get real prices.
 
 `supply.electricity_price_source` in a case config selects which path is
 used: "entso_e" attempts the real fetch and raises if no key is configured
