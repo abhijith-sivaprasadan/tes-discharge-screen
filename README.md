@@ -260,4 +260,4 @@ python scripts/run_fmu_cross_check_experiment.py path/to/PackedBedThermocline.fm
 <!-- ci-workflow-coverage -->
 ## Continuous integration
 
-See [CI coverage and limitations](CI.md) for the automated checks. The status badge tracks the published CI review branch.
+See [CI coverage and limitations](CI.md) for the automated checks. The status badge tracks the default branch.
