@@ -43,6 +43,10 @@ jobs:
         run: uv sync --all-extras --frozen
       - name: Tests
         run: uv run python -m pytest -q
+      - name: Fresh synthetic dispatch replay and independent checks
+        run: |
+          uv run python scripts/run_case.py configs/packed_bed_300c_flat.yaml --output-root .ci-results
+          uv run python -c "import glob,json; files=glob.glob('.ci-results/*/run_manifest.json'); assert len(files)==1,files; d=json.load(open(files[0])); assert d['verification_passed'] and d['load_profile_synthetic'] and d['electricity_price_synthetic']; assert len(d['verification_checks'])>=1; print('Confirmed fresh synthetic solve and independent checks:',len(d['verification_checks']))"
       - name: Ruff
         run: |
           uv run ruff format --check .
