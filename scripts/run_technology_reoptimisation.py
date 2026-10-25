@@ -142,13 +142,18 @@ def main() -> None:
         load = build_load_profile(args.profile, config.process.annual_peak_load_mw, horizon)
         price = synthetic_daily_price_profile(horizon)
         curve, blower = curves[technology]
-        result = solve_dispatch(
-            config,
-            load,
-            price,
-            discharge_curve=curve,
-            blower_specific_power_mw_per_mw=blower,
-        )
+        try:
+            result = solve_dispatch(
+                config,
+                load,
+                price,
+                discharge_curve=curve,
+                blower_specific_power_mw_per_mw=blower,
+            )
+        except RuntimeError:
+            results.append({**case, "status": "NO_LOADABLE_SOLUTION"})
+            print(f"{args.profile} {case} => NO_LOADABLE_SOLUTION", flush=True)
+            continue
         checks = verify_schedule(result.schedule, config, result.solver["objective_eur"])
         if result.solver["status"] != "ok" or result.solver["termination"] != "optimal":
             raise RuntimeError(f"Non-optimal: {case}")
