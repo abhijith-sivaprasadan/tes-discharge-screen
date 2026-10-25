@@ -80,6 +80,15 @@ def analyse(records: list[dict], profile: str) -> dict:
     comparisons = []
     # The other technology is held exactly at its original unperturbed solve.
     for row in records:
+        if row.get("status") != "OPTIMAL_VERIFIED":
+            comparisons.append({
+                "technology_perturbed": row["technology"],
+                "axis": row["axis"],
+                "factor": row["factor"],
+                "status": "WITHHELD_NO_LOADABLE_SOLUTION",
+                "ranking_flipped_from_original_controls": None,
+            })
+            continue
         opponent = next(t for t in TECHNOLOGIES if t != row["technology"])
         winner = min(
             ((row["technology"], row["total_cost_eur"]),
