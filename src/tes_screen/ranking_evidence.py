@@ -37,9 +37,7 @@ def _equal(left: float, right: float, label: str, *, abs_tol: float = 1e-5) -> N
         raise ValueError(f"Evidence mismatch: {label}: {left} != {right}")
 
 
-def audit_ranking_evidence(
-    manifest: dict, deltas_csv: str, rankings_csv: str
-) -> dict:
+def audit_ranking_evidence(manifest: dict, deltas_csv: str, rankings_csv: str) -> dict:
     """Check every paired solver result, published delta and stated ranking.
 
     A fixed-output *additive surcharge* margin is calculated for the cheapest
@@ -94,7 +92,11 @@ def audit_ranking_evidence(
 
     found = set()
     for row in deltas:
-        key = (row["technology"], _number(row["temperature_c"], "CSV temperature"), row["profile_shape"])
+        key = (
+            row["technology"],
+            _number(row["temperature_c"], "CSV temperature"),
+            row["profile_shape"],
+        )
         if key not in by_key or key in found:
             raise ValueError("Missing, unexpected or duplicate delta row")
         found.add(key)
@@ -126,7 +128,10 @@ def audit_ranking_evidence(
         order_soc = sorted(technologies, key=lambda value: (value[2], value[0]))
         winners = (order_constant[0][0], order_soc[0][0])
         flipped = winners[0] != winners[1]
-        if winners != (row["cheapest_technology_constant"], row["cheapest_technology_soc_dependent"]):
+        if winners != (
+            row["cheapest_technology_constant"],
+            row["cheapest_technology_soc_dependent"],
+        ):
             raise ValueError("Published cheapest technology disagrees with archived costs")
         if flipped != (row["ranking_flipped"].strip().lower() == "true"):
             raise ValueError("Published ranking-flip flag disagrees with archived costs")
@@ -161,6 +166,8 @@ def audit_ranking_evidence(
         "paired_cases_verified": len(by_key),
         "ranking_groups_verified": len(groups),
         "ranking_flips": sum(flips),
-        "margins": sorted(output, key=lambda row: (row["temperature_c"], row["profile_shape"], row["formulation"])),
+        "margins": sorted(
+            output, key=lambda row: (row["temperature_c"], row["profile_shape"], row["formulation"])
+        ),
         "interpretation": "Fixed solved-output additive surcharge screening ONLY; no re-optimisation or CAPEX validation.",
     }
