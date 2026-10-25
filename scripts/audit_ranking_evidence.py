@@ -11,9 +11,7 @@ from tes_screen.ranking_evidence import audit_ranking_evidence
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--root", type=Path, default=Path(__file__).resolve().parents[1]
-    )
+    parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     root = args.root / "outputs" / "phase_c_full_matrix"
