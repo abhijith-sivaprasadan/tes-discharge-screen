@@ -24,7 +24,7 @@ jobs:
           python-version: '3.12'
       - run: python -m pip install uv==0.12.7
       - run: uv sync --all-extras --frozen
-      - run: uv run pytest -q tests/test_technology_reoptimisation.py
+      - run: uv run python -m pytest -q tests/test_technology_reoptimisation.py
       - name: Re-solve registered matrix
         run: uv run python -m scripts.run_technology_reoptimisation --profile ${{ matrix.profile }} --output runs/reopt-${{ matrix.profile }}.json
       - uses: actions/upload-artifact@v4
