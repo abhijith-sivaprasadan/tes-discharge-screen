@@ -34,8 +34,8 @@ def test_physical_perturbation_does_not_change_economics():
 
 def test_flip_check_uses_full_resolved_objectives_without_interpolation():
     rows = [
-        {"technology": "packed_bed", "axis": "control", "factor": 1.0, "total_cost_eur": 100},
-        {"technology": "molten_salt", "axis": "control", "factor": 1.0, "total_cost_eur": 110},
+        {"technology": "packed_bed", "status": "OPTIMAL_VERIFIED", "axis": "control", "factor": 1.0, "total_cost_eur": 100},
+        {"technology": "molten_salt", "status": "OPTIMAL_VERIFIED", "axis": "control", "factor": 1.0, "total_cost_eur": 110},
         {"technology": "packed_bed", "axis": "storage_capex", "factor": 2.0, "total_cost_eur": 120},
     ]
     result = analyse(rows, "flat")
