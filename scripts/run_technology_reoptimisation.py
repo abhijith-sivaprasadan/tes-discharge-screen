@@ -162,7 +162,7 @@ def main() -> None:
         "solved_records": results,
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(report, indent=2, allow_nan=False) + "\\n")
+    args.output.write_text(json.dumps(report, indent=2, allow_nan=False) + "\n")
     print(json.dumps(report["analysis"], indent=2))
 
 
