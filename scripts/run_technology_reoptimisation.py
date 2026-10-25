@@ -73,7 +73,11 @@ def modify_config(config, axis: str, factor: float):
 
 
 def analyse(records: list[dict], profile: str) -> dict:
-    controls = {r["technology"]: r for r in records if r["axis"] == "control" and r.get("status") == "OPTIMAL_VERIFIED"}
+    controls = {
+        r["technology"]: r
+        for r in records
+        if r["axis"] == "control" and r.get("status") == "OPTIMAL_VERIFIED"
+    }
     if set(controls) != set(TECHNOLOGIES):
         raise ValueError("Incomplete controls")
     original_winner = min(controls, key=lambda k: controls[k]["total_cost_eur"])
@@ -81,30 +85,36 @@ def analyse(records: list[dict], profile: str) -> dict:
     # The other technology is held exactly at its original unperturbed solve.
     for row in records:
         if row.get("status") != "OPTIMAL_VERIFIED":
-            comparisons.append({
-                "technology_perturbed": row["technology"],
-                "axis": row["axis"],
-                "factor": row["factor"],
-                "status": "WITHHELD_NO_LOADABLE_SOLUTION",
-                "ranking_flipped_from_original_controls": None,
-            })
+            comparisons.append(
+                {
+                    "technology_perturbed": row["technology"],
+                    "axis": row["axis"],
+                    "factor": row["factor"],
+                    "status": "WITHHELD_NO_LOADABLE_SOLUTION",
+                    "ranking_flipped_from_original_controls": None,
+                }
+            )
             continue
         opponent = next(t for t in TECHNOLOGIES if t != row["technology"])
         winner = min(
-            ((row["technology"], row["total_cost_eur"]),
-             (opponent, controls[opponent]["total_cost_eur"])),
+            (
+                (row["technology"], row["total_cost_eur"]),
+                (opponent, controls[opponent]["total_cost_eur"]),
+            ),
             key=lambda x: x[1],
         )[0]
-        comparisons.append({
-            "technology_perturbed": row["technology"],
-            "axis": row["axis"],
-            "factor": row["factor"],
-            "chosen_technology_after_full_resolve": winner,
-            "ranking_flipped_from_original_controls": winner != original_winner,
-            "cost_difference_perturbed_minus_opponent_eur": (
-                row["total_cost_eur"] - controls[opponent]["total_cost_eur"]
-            ),
-        })
+        comparisons.append(
+            {
+                "technology_perturbed": row["technology"],
+                "axis": row["axis"],
+                "factor": row["factor"],
+                "chosen_technology_after_full_resolve": winner,
+                "ranking_flipped_from_original_controls": winner != original_winner,
+                "cost_difference_perturbed_minus_opponent_eur": (
+                    row["total_cost_eur"] - controls[opponent]["total_cost_eur"]
+                ),
+            }
+        )
     return {
         "profile_shape": profile,
         "control_winner": original_winner,
@@ -159,17 +169,19 @@ def main() -> None:
             raise RuntimeError(f"Non-optimal: {case}")
         if not checks or not all(checks.values()):
             raise RuntimeError(f"Physical verification failed: {case}")
-        results.append({
-            **case,
-            "status": "OPTIMAL_VERIFIED",
-            "config_sha256": hashlib.sha256(config_path.read_bytes()).hexdigest(),
-            "objective_eur": result.solver["objective_eur"],
-            "total_cost_eur": result.kpis["total_cost_eur"],
-            "e_cap_mwh": result.kpis["e_cap_mwh"],
-            "power_rating_mw": result.kpis["power_rating_mw"],
-            "unmet_heat_mwh": result.kpis["unmet_heat_mwh"],
-            "verification": checks,
-        })
+        results.append(
+            {
+                **case,
+                "status": "OPTIMAL_VERIFIED",
+                "config_sha256": hashlib.sha256(config_path.read_bytes()).hexdigest(),
+                "objective_eur": result.solver["objective_eur"],
+                "total_cost_eur": result.kpis["total_cost_eur"],
+                "e_cap_mwh": result.kpis["e_cap_mwh"],
+                "power_rating_mw": result.kpis["power_rating_mw"],
+                "unmet_heat_mwh": result.kpis["unmet_heat_mwh"],
+                "verification": checks,
+            }
+        )
         print(f"{args.profile} {case} => {result.kpis['total_cost_eur']:.2f}", flush=True)
     report = {
         "design": spec,
