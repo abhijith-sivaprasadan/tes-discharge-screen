@@ -73,7 +73,7 @@ def modify_config(config, axis: str, factor: float):
 
 
 def analyse(records: list[dict], profile: str) -> dict:
-    controls = {r["technology"]: r for r in records if r["axis"] == "control"}
+    controls = {r["technology"]: r for r in records if r["axis"] == "control" and r.get("status") == "OPTIMAL_VERIFIED"}
     if set(controls) != set(TECHNOLOGIES):
         raise ValueError("Incomplete controls")
     original_winner = min(controls, key=lambda k: controls[k]["total_cost_eur"])
