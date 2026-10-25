@@ -161,6 +161,7 @@ def main() -> None:
             raise RuntimeError(f"Physical verification failed: {case}")
         results.append({
             **case,
+            "status": "OPTIMAL_VERIFIED",
             "config_sha256": hashlib.sha256(config_path.read_bytes()).hexdigest(),
             "objective_eur": result.solver["objective_eur"],
             "total_cost_eur": result.kpis["total_cost_eur"],
