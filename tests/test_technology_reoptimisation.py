@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from scripts.run_technology_reoptimisation import (
     FACTORS,
     PHYSICAL_FACTORS,
@@ -15,7 +17,7 @@ def test_registered_design_and_single_axis():
 
 
 def test_cost_perturbation_does_not_change_physics():
-    original = load_config("configs/packed_bed_300c_flat.yaml")
+    original = load_config(Path("configs/packed_bed_300c_flat.yaml"))
     changed = modify_config(original, "storage_capex", 1.5)
     assert changed.storage == original.storage
     assert changed.economics.storage_capex_eur_per_mwh == 1.5 * (
@@ -24,7 +26,7 @@ def test_cost_perturbation_does_not_change_physics():
 
 
 def test_physical_perturbation_does_not_change_economics():
-    original = load_config("configs/packed_bed_300c_flat.yaml")
+    original = load_config(Path("configs/packed_bed_300c_flat.yaml"))
     changed = modify_config(original, "standing_loss", 2.0)
     assert changed.economics == original.economics
     assert changed.storage.standing_loss_fraction_per_hour == 0.002
