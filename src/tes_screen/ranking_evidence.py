@@ -169,5 +169,8 @@ def audit_ranking_evidence(manifest: dict, deltas_csv: str, rankings_csv: str) -
         "margins": sorted(
             output, key=lambda row: (row["temperature_c"], row["profile_shape"], row["formulation"])
         ),
-        "interpretation": "Fixed solved-output additive surcharge screening ONLY; no re-optimisation or CAPEX validation.",
+        "interpretation": (
+            "Fixed solved-output additive surcharge screening ONLY; "
+            "no re-optimisation or CAPEX validation."
+        ),
     }
