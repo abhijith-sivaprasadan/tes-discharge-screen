@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import pytest
+
+from tes_screen.config import load_config
 
 from scripts.run_posthoc_fidelity_crossover import (
     compare_fidelity_rankings,
     study_grid,
+    write_derived_config,
 )
 from scripts.run_targeted_fidelity_transition import TARGET_FACTORS
 
@@ -51,3 +57,13 @@ def test_do_not_treat_missing_optimisations_as_winners():
     report = compare_fidelity_rankings(rows, "flat", factors=factors)
     assert report["unresolved_factors"] == list(factors)
     assert report["confirmed_disagreements"] == 0
+
+
+def test_archived_derived_config_is_valid_json_and_has_stable_hash(tmp_path):
+    cfg = load_config(Path("configs/molten_salt_300c_flat.yaml"))
+    target = tmp_path / "config.json"
+    sha = write_derived_config(target, cfg)
+    assert json.loads(target.read_text())["economics"]["storage_capex_eur_per_mwh"] == 26000
+    assert len(sha) == 64
+    with pytest.raises(FileExistsError):
+        write_derived_config(target, cfg)
