@@ -144,7 +144,8 @@ def compare_fidelity_rankings(
             "Both formulations use original model curves, prices, demand and 6h duration.",
             "The salt CAPEX coefficients are illustrative and unverified by procurement data.",
             "Packed-bed blower is modelled; molten-salt pump parasitic is omitted.",
-            "A 1 EUR annual objective tie tolerance is an interpretive filter, not solver precision.",
+            "A 1 EUR annual objective tie tolerance is an interpretive filter, "
+            "not solver precision.",
             "No threshold interpolation, field validation, confidence interval or LCOH claim.",
         ],
     }
