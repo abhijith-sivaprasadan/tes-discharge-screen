@@ -20,8 +20,6 @@ from tes_screen.dispatch import solve_dispatch
 from tes_screen.synthetic_profiles import build_load_profile, synthetic_daily_price_profile
 from tes_screen.verification import verify_schedule
 
-from scripts.run_technology_reoptimisation import CONFIGS, modify_config
-
 SALT_CAPEX_FACTORS = (0.25, 0.35, 0.375, 0.4, 0.425, 0.45, 0.5, 1.0)
 FORMULATIONS = ("constant", "soc_dependent")
 TECHNOLOGIES = ("packed_bed", "molten_salt")
@@ -49,8 +47,7 @@ def _winner(salt_minus_packed_eur: float) -> str:
 def compare_fidelity_rankings(rows: list[dict], profile: str) -> dict:
     """No missing cost may be substituted with a guessed/interpolated value."""
     expected = {
-        (r["molten_salt_capex_factor"], r["formulation"], r["technology"])
-        for r in study_grid()
+        (r["molten_salt_capex_factor"], r["formulation"], r["technology"]) for r in study_grid()
     }
     by_id = {}
     for row in rows:
@@ -95,8 +92,7 @@ def compare_fidelity_rankings(rows: list[dict], profile: str) -> dict:
             else:
                 flag = "DISAGREEMENT" if constant["winner"] != soc["winner"] else "AGREEMENT"
             delta_margin = (
-                soc["salt_minus_packed_eur_per_year"]
-                - constant["salt_minus_packed_eur_per_year"]
+                soc["salt_minus_packed_eur_per_year"] - constant["salt_minus_packed_eur_per_year"]
             )
         else:
             flag, delta_margin = "UNDETERMINED_MISSING_RESULT", None
@@ -135,6 +131,7 @@ def compare_fidelity_rankings(rows: list[dict], profile: str) -> dict:
 
 def run_experiment(profile: str) -> dict:
     from scripts import run_phase_c_full_matrix_experiment as full_matrix
+    from scripts.run_technology_reoptimisation import CONFIGS, modify_config
 
     curves = {}
     for technology in TECHNOLOGIES:
@@ -164,9 +161,7 @@ def run_experiment(profile: str) -> dict:
         config_path = CONFIGS[technology]
         base = load_config(config_path)
         changed = (
-            modify_config(base, "storage_capex", factor)
-            if technology == "molten_salt"
-            else base
+            modify_config(base, "storage_capex", factor) if technology == "molten_salt" else base
         )
         cfg = full_matrix._duration_matched_config(
             changed, profile, soc_dependent=(formulation == "soc_dependent")
@@ -222,9 +217,7 @@ def run_experiment(profile: str) -> dict:
         print(f"{profile} {case}: {item['total_cost_eur']:.3f} EUR", flush=True)
     return {
         "study_design": study_grid(),
-        "number_distinct_solves": len(
-            [r for r in results if "solve_reused_from_factor" not in r]
-        ),
+        "number_distinct_solves": len([r for r in results if "solve_reused_from_factor" not in r]),
         "records": results,
         "analysis": compare_fidelity_rankings(results, profile),
     }
