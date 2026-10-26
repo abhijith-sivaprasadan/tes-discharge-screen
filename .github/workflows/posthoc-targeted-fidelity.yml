@@ -1,0 +1,40 @@
+name: 2026 post-hoc detailed discharge-fidelity crossover
+on:
+  push:
+    branches: [research/posthoc-fidelity-ranking-crossovers-20261026]
+    paths:
+      - scripts/run_targeted_fidelity_transition.py
+      - scripts/run_posthoc_fidelity_crossover.py
+      - tests/test_targeted_fidelity_transition.py
+      - .github/workflows/posthoc-targeted-fidelity.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  targeted-reoptim:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: [flat, two_shift, seasonal]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install uv==0.12.7
+      - run: uv sync --all-extras --frozen
+      - name: Test targeted study and integrity gates
+        run: uv run python -m pytest -q tests/test_targeted_fidelity_transition.py
+      - name: Run 8760h matched-physics post-hoc solves
+        run: uv run python -m scripts.run_targeted_fidelity_transition --profile ${{ matrix.profile }} --output runs/targeted-${{ matrix.profile }}.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tes-posthoc-targeted-${{ matrix.profile }}-raw
+          path: |
+            runs/targeted-${{ matrix.profile }}.json
+            runs/hourly-${{ matrix.profile }}/*.csv
+            runs/hourly-${{ matrix.profile }}/*.json
+          if-no-files-found: warn
