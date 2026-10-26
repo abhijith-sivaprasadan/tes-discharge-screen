@@ -26,11 +26,15 @@ TECHNOLOGIES = ("packed_bed", "molten_salt")
 COMPARISON_TOLERANCE_EUR = 1.0
 
 
-def study_grid() -> list[dict]:
+def study_grid(factors: tuple[float, ...] = SALT_CAPEX_FACTORS) -> list[dict]:
     """Same economic perturbation for molten salt in each physical formulation."""
+    if not factors or len(set(factors)) != len(factors) or any(
+        not math.isfinite(f) or f <= 0 for f in factors
+    ):
+        raise ValueError("Unique positive finite CAPEX factors required")
     return [
         {"technology": t, "formulation": form, "molten_salt_capex_factor": fac}
-        for fac in SALT_CAPEX_FACTORS
+        for fac in factors
         for form in FORMULATIONS
         for t in TECHNOLOGIES
     ]
@@ -44,10 +48,12 @@ def _winner(salt_minus_packed_eur: float) -> str:
     return "packed_bed" if salt_minus_packed_eur > 0 else "molten_salt"
 
 
-def compare_fidelity_rankings(rows: list[dict], profile: str) -> dict:
+def compare_fidelity_rankings(
+    rows: list[dict], profile: str, *, factors: tuple[float, ...] = SALT_CAPEX_FACTORS
+) -> dict:
     """No missing cost may be substituted with a guessed/interpolated value."""
     expected = {
-        (r["molten_salt_capex_factor"], r["formulation"], r["technology"]) for r in study_grid()
+        (r["molten_salt_capex_factor"], r["formulation"], r["technology"]) for r in study_grid(factors)
     }
     by_id = {}
     for row in rows:
@@ -59,7 +65,7 @@ def compare_fidelity_rankings(rows: list[dict], profile: str) -> dict:
         raise ValueError("Missing registered exploratory grid points")
 
     pairs = []
-    for fac in SALT_CAPEX_FACTORS:
+    for fac in factors:
         form_out = {}
         for formulation in FORMULATIONS:
             packed = by_id[(fac, formulation, "packed_bed")]
@@ -108,7 +114,7 @@ def compare_fidelity_rankings(rows: list[dict], profile: str) -> dict:
         "status": "EXPLORATORY_POSTHOC_RESOLVED_FORMULATION_COMPARISON",
         "profile_shape": profile,
         "registered_after_prior_2026_sensitivity_results": True,
-        "cost_grid": list(SALT_CAPEX_FACTORS),
+        "cost_grid": list(factors),
         "pairwise_comparisons": pairs,
         "confirmed_disagreements": sum(
             row["formulation_ranking_comparison"] == "DISAGREEMENT" for row in pairs
@@ -129,7 +135,9 @@ def compare_fidelity_rankings(rows: list[dict], profile: str) -> dict:
     }
 
 
-def run_experiment(profile: str) -> dict:
+def run_experiment(
+    profile: str, *, factors: tuple[float, ...] = SALT_CAPEX_FACTORS
+) -> dict:
     from scripts import run_phase_c_full_matrix_experiment as full_matrix
     from scripts.run_technology_reoptimisation import CONFIGS, modify_config
 
@@ -144,7 +152,7 @@ def run_experiment(profile: str) -> dict:
     # mathematically identical at each factor. We still record the exact
     # originating solve identifier, rather than presenting eight new solves.
     verified_packed = {}
-    for case in study_grid():
+    for case in study_grid(factors):
         technology = case["technology"]
         formulation = case["formulation"]
         factor = case["molten_salt_capex_factor"]
@@ -154,7 +162,7 @@ def run_experiment(profile: str) -> dict:
                 {
                     **case,
                     **{k: v for k, v in source.items() if k not in case},
-                    "solve_reused_from_factor": 0.25,
+                    "solve_reused_from_factor": factors[0],
                 }
             )
             continue
@@ -216,10 +224,10 @@ def run_experiment(profile: str) -> dict:
             verified_packed[formulation] = item
         print(f"{profile} {case}: {item['total_cost_eur']:.3f} EUR", flush=True)
     return {
-        "study_design": study_grid(),
+        "study_design": study_grid(factors),
         "number_distinct_solves": len([r for r in results if "solve_reused_from_factor" not in r]),
         "records": results,
-        "analysis": compare_fidelity_rankings(results, profile),
+        "analysis": compare_fidelity_rankings(results, profile, factors=factors),
     }
 
 
