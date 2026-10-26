@@ -40,8 +40,10 @@ def write_derived_config(path: Path, config: object) -> str:
 
 def study_grid(factors: tuple[float, ...] = SALT_CAPEX_FACTORS) -> list[dict]:
     """Same economic perturbation for molten salt in each physical formulation."""
-    if not factors or len(set(factors)) != len(factors) or any(
-        not math.isfinite(f) or f <= 0 for f in factors
+    if (
+        not factors
+        or len(set(factors)) != len(factors)
+        or any(not math.isfinite(f) or f <= 0 for f in factors)
     ):
         raise ValueError("Unique positive finite CAPEX factors required")
     return [
@@ -65,7 +67,8 @@ def compare_fidelity_rankings(
 ) -> dict:
     """No missing cost may be substituted with a guessed/interpolated value."""
     expected = {
-        (r["molten_salt_capex_factor"], r["formulation"], r["technology"]) for r in study_grid(factors)
+        (r["molten_salt_capex_factor"], r["formulation"], r["technology"])
+        for r in study_grid(factors)
     }
     by_id = {}
     for row in rows:
