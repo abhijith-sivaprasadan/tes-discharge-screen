@@ -139,16 +139,10 @@ def audit_archive(path: Path) -> dict:
                 raise ValueError("Reused packed-bed solve is not an unchanged solved source")
             if rec["technology"] != "packed_bed":
                 raise ValueError("Only unperturbed packed-bed results may be reused")
-        if (
-            report["number_distinct_solves"]
-            != len(distinct) + len(unresolved)
-        ):
+        if report["number_distinct_solves"] != len(distinct) + len(unresolved):
             raise ValueError("Attempted solve count conflicts with archived cases")
         factors = report["analysis"]["cost_grid"]
-        actual = {
-            (r["molten_salt_capex_factor"], r["formulation"], r["technology"])
-            for r in cases
-        }
+        actual = {(r["molten_salt_capex_factor"], r["formulation"], r["technology"]) for r in cases}
         expected = {
             (f, form, tech)
             for f in factors
