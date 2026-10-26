@@ -75,7 +75,9 @@ def main() -> None:
                     blower_specific_power_mw_per_mw=auxiliary,
                 )
             except RuntimeError as exc:
-                records.append({**identity, "status": "NO_LOADABLE_SOLUTION", "exception": type(exc).__name__})
+                records.append(
+                    {**identity, "status": "NO_LOADABLE_SOLUTION", "exception": type(exc).__name__}
+                )
                 print(f"{identity}: no loadable solution", flush=True)
                 continue
             checks = verify_schedule(result.schedule, cfg, result.solver["objective_eur"])
@@ -86,17 +88,19 @@ def main() -> None:
                 or not all(checks.values())
             ):
                 raise RuntimeError(f"Unverified physical solution: {identity}")
-            records.append({
-                **identity,
-                "status": "OPTIMAL_VERIFIED",
-                "objective_eur": result.kpis["total_cost_eur"],
-                "size_mwh": result.kpis["e_cap_mwh"],
-                "rated_mw": result.kpis["power_rating_mw"],
-                "checks": checks,
-                "derived_config_sha256": hashlib.sha256(
-                    json.dumps(dataclasses.asdict(cfg), sort_keys=True).encode()
-                ).hexdigest(),
-            })
+            records.append(
+                {
+                    **identity,
+                    "status": "OPTIMAL_VERIFIED",
+                    "objective_eur": result.kpis["total_cost_eur"],
+                    "size_mwh": result.kpis["e_cap_mwh"],
+                    "rated_mw": result.kpis["power_rating_mw"],
+                    "checks": checks,
+                    "derived_config_sha256": hashlib.sha256(
+                        json.dumps(dataclasses.asdict(cfg), sort_keys=True).encode()
+                    ).hexdigest(),
+                }
+            )
             print(f"{identity}: {result.kpis['total_cost_eur']:.6f}", flush=True)
     result = {
         "status": "EXPLORATORY_REOPTIMIZED_UNCALIBRATED_AUXILIARY_PROXY",
