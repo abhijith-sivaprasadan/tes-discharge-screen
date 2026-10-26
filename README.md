@@ -1,5 +1,15 @@
 # tes-discharge-screen
 
+> **Computational research freeze — 26 October 2026:** Original broad
+> registered sweep: 35/36 verified and no ranking reversal. Subsequent,
+> **post-hoc** targeted grid: 23/24 verified and six synthetic near-tie
+> formulation-dependent technology choices. A separate, uncalibrated
+> 24-solve auxiliary-electricity proxy screen removes the salt advantage
+> at small hypothetical load ratios. **This does not validate a real
+> installation or a technology procurement preference.** Read the
+> [exact evidence freeze](docs/RESEARCH_FREEZE_2026-10-26.md)
+> and [working paper](docs/TES_CROSSOVER_WORKING_PAPER_2026-10-26.md).
+>
 [![CI](https://github.com/abhijith-sivaprasadan/tes-discharge-screen/actions/workflows/ci.yml/badge.svg)](https://github.com/abhijith-sivaprasadan/tes-discharge-screen/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10-3.13](https://img.shields.io/badge/Python-3.10--3.13-3776AB.svg)](pyproject.toml)
