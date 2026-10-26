@@ -1,0 +1,35 @@
+name: 2026 registered thermal technology reoptimisation
+on:
+  push:
+    branches: [research/technology-cost-physics-reoptimisation-20261026]
+    paths:
+      - scripts/run_technology_reoptimisation.py
+      - tests/test_technology_reoptimisation.py
+      - .github/workflows/reopt-registered.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  registered-screen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: [flat, seasonal, two_shift]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install uv==0.12.7
+      - run: uv sync --all-extras --frozen
+      - run: uv run python -m pytest -q tests/test_technology_reoptimisation.py
+      - name: Re-solve registered matrix
+        run: uv run python -m scripts.run_technology_reoptimisation --profile ${{ matrix.profile }} --output runs/reopt-${{ matrix.profile }}.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reoptimised-techno-economic-${{ matrix.profile }}
+          path: runs/reopt-${{ matrix.profile }}.json
+          if-no-files-found: warn
