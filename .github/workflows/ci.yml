@@ -45,5 +45,7 @@ jobs:
         run: uv run python -m pytest -q
       - name: Ruff
         run: |
+          uv run ruff format --diff . || true
           uv run ruff format --check .
+          uv run ruff check --diff . || true
           uv run ruff check .
