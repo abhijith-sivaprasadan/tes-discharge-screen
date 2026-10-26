@@ -7,14 +7,13 @@ from pathlib import Path
 
 import pytest
 
-from tes_screen.config import load_config
-
 from scripts.run_posthoc_fidelity_crossover import (
     compare_fidelity_rankings,
     study_grid,
     write_derived_config,
 )
 from scripts.run_targeted_fidelity_transition import TARGET_FACTORS
+from tes_screen.config import load_config
 
 
 def test_three_separate_posthoc_followups_are_labelled():
