@@ -232,7 +232,7 @@ def run_experiment(
             config_path_json = hourly_output_dir / f"{prefix}.json"
             solved.schedule.to_csv(schedule_path, index=False)
             config_path_json.write_text(
-                json.dumps(dataclasses.asdict(cfg), sort_keys=True, indent=2) + "\\n",
+                json.dumps(dataclasses.asdict(cfg), sort_keys=True, indent=2) + "\n",
                 encoding="utf-8",
             )
             item["hourly_csv"] = schedule_path.name
