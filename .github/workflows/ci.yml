@@ -46,5 +46,4 @@ jobs:
       - name: Ruff
         run: |
           uv run ruff format --check .
-          uv run ruff check --diff . || true
           uv run ruff check .
