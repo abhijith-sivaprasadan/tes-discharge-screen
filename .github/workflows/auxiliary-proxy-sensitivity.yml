@@ -1,0 +1,35 @@
+name: Post-hoc reoptimised auxiliary-electricity proxy
+on:
+  push:
+    branches: [research/posthoc-fidelity-ranking-crossovers-20261026]
+    paths:
+      - scripts/run_auxiliary_proxy_sensitivity.py
+      - tests/test_auxiliary_proxy_sensitivity.py
+      - .github/workflows/auxiliary-proxy-sensitivity.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  auxiliary-screen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: [flat, two_shift, seasonal]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install uv==0.12.7
+      - run: uv sync --all-extras --frozen
+      - run: uv run python -m pytest -q tests/test_auxiliary_proxy_sensitivity.py
+      - name: Re-optimise 8 full-year storage models under hypothetical aux ratios
+        run: uv run python -m scripts.run_auxiliary_proxy_sensitivity --profile ${{ matrix.profile }} --output runs/auxiliary-${{ matrix.profile }}.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tes-auxiliary-proxy-${{ matrix.profile }}
+          path: runs/auxiliary-${{ matrix.profile }}.json
+          if-no-files-found: warn
