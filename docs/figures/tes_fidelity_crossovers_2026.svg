@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 1050" role="img" aria-label="Comparison of molten salt versus packed bed annual costs under two discharge model formulations">
+<rect width="980" height="1050" fill="white"/>
+<text x="70" y="48" font-size="27" font-family="Arial,sans-serif" fill="#243549" font-weight="bold">Discharge fidelity changes decisions only near synthetic cost ties</text>
+<text x="70" y="80" font-size="16" font-family="Arial,sans-serif" fill="#68788a">Annual salt minus packed-bed cost (EUR); positive favours packed bed</text>
+<text x="90" y="108" font-family="Arial,sans-serif" font-size="20" font-weight="bold" fill="#243549">Flat</text>
+<line x1="90" y1="316.6666666666667" x2="840" y2="316.6666666666667" stroke="#ddd" stroke-width="1" stroke-dasharray="3 5"/>
+<text x="80" y="320.6666666666667" font-family="Arial,sans-serif" text-anchor="end" font-size="13" fill="#666">-500</text>
+<line x1="90" y1="240" x2="840" y2="240" stroke="#555" stroke-width="2" stroke-dasharray="6 5"/>
+<text x="80" y="244" font-family="Arial,sans-serif" text-anchor="end" font-size="13" fill="#666">0</text>
+<line x1="90" y1="163.33333333333334" x2="840" y2="163.33333333333334" stroke="#ddd" stroke-width="1" stroke-dasharray="3 5"/>
+<text x="80" y="167.33333333333334" font-family="Arial,sans-serif" text-anchor="end" font-size="13" fill="#666">500</text>
+<text x="95" y="379" font-family="Arial,sans-serif" text-anchor="middle" font-size="14" fill="#444">0.3825</text>
+<text x="461" y="379" font-family="Arial,sans-serif" text-anchor="middle" font-size="14" fill="#444">0.3850</text>
+<text x="827" y="379" font-family="Arial,sans-serif" text-anchor="middle" font-size="14" fill="#444">0.3875</text>
+<line x1="95" y1="244.75500675629334" x2="461" y2="190.17837090958" stroke="#405B76" stroke-width="3" stroke-dasharray="8 5"/>
+<line x1="461" y1="190.17837090958" x2="827" y2="135.60173506286665" stroke="#405B76" stroke-width="3" stroke-dasharray="8 5"/>
+<circle cx="95" cy="244.75500675629334" r="7" fill="#405B76" stroke="white" stroke-width="2"/>
+<circle cx="461" cy="190.17837090958" r="7" fill="#405B76" stroke="white" stroke-width="2"/>
+<circle cx="827" cy="135.60173506286665" r="7" fill="#405B76" stroke="white" stroke-width="2"/>
+<line x1="95" y1="339.31936923898667" x2="461" y2="284.73107453142666" stroke="#B6543E" stroke-width="3" stroke-dasharray=""/>
+<line x1="461" y1="284.73107453142666" x2="827" y2="230.15109132988" stroke="#B6543E" stroke-width="3" stroke-dasharray=""/>
+<circle cx="95" cy="339.31936923898667" r="7" fill="#B6543E" stroke="white" stroke-width="2"/>
+<circle cx="461" cy="284.73107453142666" r="7" fill="#B6543E" stroke="white" stroke-width="2"/>
+<circle cx="827" cy="230.15109132988" r="7" fill="#B6543E" stroke="white" stroke-width="2"/>
+<text x="90" y="408" font-family="Arial,sans-serif" font-size="20" font-weight="bold" fill="#243549">Two-shift</text>
+<line x1="90" y1="616.6666666666666" x2="840" y2="616.6666666666666" stroke="#ddd" stroke-width="1" stroke-dasharray="3 5"/>
+<text x="80" y="620.6666666666666" font-family="Arial,sans-serif" text-anchor="end" font-size="13" fill="#666">-500</text>
+<line x1="90" y1="540" x2="840" y2="540" stroke="#555" stroke-width="2" stroke-dasharray="6 5"/>
+<text x="80" y="544" font-family="Arial,sans-serif" text-anchor="end" font-size="13" fill="#666">0</text>
+<line x1="90" y1="463.33333333333337" x2="840" y2="463.33333333333337" stroke="#ddd" stroke-width="1" stroke-dasharray="3 5"/>
+<text x="80" y="467.33333333333337" font-family="Arial,sans-serif" text-anchor="end" font-size="13" fill="#666">500</text>
+<text x="95" y="679" font-family="Arial,sans-serif" text-anchor="middle" font-size="14" fill="#444">0.3925</text>
+<text x="461" y="679" font-family="Arial,sans-serif" text-anchor="middle" font-size="14" fill="#444">0.3930</text>
+<text x="827" y="679" font-family="Arial,sans-serif" text-anchor="middle" font-size="14" fill="#444">0.3935</text>
+<line x1="95" y1="531.5390022030333" x2="461" y2="514.8926694743334" stroke="#405B76" stroke-width="3" stroke-dasharray="8 5"/>
+<line x1="461" y1="514.8926694743334" x2="827" y2="498.24633674563336" stroke="#405B76" stroke-width="3" stroke-dasharray="8 5"/>
+<circle cx="95" cy="531.5390022030333" r="7" fill="#405B76" stroke="white" stroke-width="2"/>
+<circle cx="461" cy="514.8926694743334" r="7" fill="#405B76" stroke="white" stroke-width="2"/>
+<circle cx="827" cy="498.24633674563336" r="7" fill="#405B76" stroke="white" stroke-width="2"/>
+<line x1="95" y1="576.0116162507934" x2="461" y2="559.3652835291466" stroke="#B6543E" stroke-width="3" stroke-dasharray=""/>
+<line x1="461" y1="559.3652835291466" x2="827" y2="542.7189507961533" stroke="#B6543E" stroke-width="3" stroke-dasharray=""/>
+<circle cx="95" cy="576.0116162507934" r="7" fill="#B6543E" stroke="white" stroke-width="2"/>
+<circle cx="461" cy="559.3652835291466" r="7" fill="#B6543E" stroke="white" stroke-width="2"/>
+<circle cx="827" cy="542.7189507961533" r="7" fill="#B6543E" stroke="white" stroke-width="2"/>
+<text x="90" y="708" font-family="Arial,sans-serif" font-size="20" font-weight="bold" fill="#243549">Seasonal</text>
+<line x1="90" y1="916.6666666666666" x2="840" y2="916.6666666666666" stroke="#ddd" stroke-width="1" stroke-dasharray="3 5"/>
+<text x="80" y="920.6666666666666" font-family="Arial,sans-serif" text-anchor="end" font-size="13" fill="#666">-500</text>
+<line x1="90" y1="840" x2="840" y2="840" stroke="#555" stroke-width="2" stroke-dasharray="6 5"/>
+<text x="80" y="844" font-family="Arial,sans-serif" text-anchor="end" font-size="13" fill="#666">0</text>
+<line x1="90" y1="763.3333333333334" x2="840" y2="763.3333333333334" stroke="#ddd" stroke-width="1" stroke-dasharray="3 5"/>
+<text x="80" y="767.3333333333334" font-family="Arial,sans-serif" text-anchor="end" font-size="13" fill="#666">500</text>
+<text x="95" y="979" font-family="Arial,sans-serif" text-anchor="middle" font-size="14" fill="#444">0.3965</text>
+<text x="461" y="979" font-family="Arial,sans-serif" text-anchor="middle" font-size="14" fill="#444">0.3980</text>
+<text x="827" y="979" font-family="Arial,sans-serif" text-anchor="middle" font-size="14" fill="#444">0.3990</text>
+<line x1="95" y1="828.1042797238" x2="461" y2="785.0806987311801" stroke="#405B76" stroke-width="3" stroke-dasharray="8 5"/>
+<line x1="461" y1="785.0806987311801" x2="827" y2="756.4129705680734" stroke="#405B76" stroke-width="3" stroke-dasharray="8 5"/>
+<circle cx="95" cy="828.1042797238" r="7" fill="#405B76" stroke="white" stroke-width="2"/>
+<circle cx="461" cy="785.0806987311801" r="7" fill="#405B76" stroke="white" stroke-width="2"/>
+<circle cx="827" cy="756.4129705680734" r="7" fill="#405B76" stroke="white" stroke-width="2"/>
+<circle cx="95" cy="924.0338889595333" r="7" fill="#B6543E" stroke="white" stroke-width="2"/>
+<circle cx="827" cy="852.3688105934133" r="7" fill="#B6543E" stroke="white" stroke-width="2"/>
+<text x="461" y="760" font-family="Arial,sans-serif" font-size="14" text-anchor="middle" fill="#8A6A59">No SOC solution</text>
+<line x1="90" x2="138" y1="1007" y2="1007" stroke="#405B76" stroke-width="3" stroke-dasharray="8 5"/><text x="150" y="1013" font-family="Arial,sans-serif" font-size="16" fill="#333">Constant-power</text>
+<line x1="385" x2="433" y1="1007" y2="1007" stroke="#B6543E" stroke-width="3"/><text x="444" y="1013" font-family="Arial,sans-serif" font-size="16" fill="#333">SOC-dependent</text>
+<text x="685" y="1013" font-family="Arial,sans-serif" font-size="12" fill="#777">Post-hoc factors, not measured costs</text>
+</svg>

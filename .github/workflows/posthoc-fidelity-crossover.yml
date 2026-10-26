@@ -1,0 +1,36 @@
+name: Post-hoc fidelity and thermal technology choice crossover
+on:
+  push:
+    branches: [research/posthoc-fidelity-ranking-crossovers-20261026]
+    paths:
+      - scripts/run_posthoc_fidelity_crossover.py
+      - tests/test_posthoc_fidelity_crossover.py
+      - .github/workflows/posthoc-fidelity-crossover.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  paired-fidelity-screen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: [flat, two_shift, seasonal]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install uv==0.12.7
+      - run: uv sync --all-extras --frozen
+      - name: Run post-hoc comparison negative controls
+        run: uv run python -m pytest -q tests/test_posthoc_fidelity_crossover.py
+      - name: Re-solve annual paired-physics scenarios
+        run: uv run python -m scripts.run_posthoc_fidelity_crossover --profile ${{ matrix.profile }} --output runs/posthoc-${{ matrix.profile }}.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tes-fidelity-crossover-${{ matrix.profile }}
+          path: runs/posthoc-${{ matrix.profile }}.json
+          if-no-files-found: warn
