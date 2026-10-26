@@ -18,7 +18,6 @@ from tes_screen.dispatch import solve_dispatch
 from tes_screen.synthetic_profiles import build_load_profile, synthetic_daily_price_profile
 from tes_screen.verification import verify_schedule
 
-
 FACTORS = (0.5, 1.0, 1.5, 2.0)
 PHYSICAL_FACTORS = (0.5, 2.0)
 TECHNOLOGIES = ("packed_bed", "molten_salt")
