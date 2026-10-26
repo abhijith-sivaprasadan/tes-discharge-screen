@@ -28,9 +28,7 @@ def test_targeted_grid_has_four_records_per_factor_and_two_formulations():
     for factors in TARGET_FACTORS.values():
         cases = study_grid(factors)
         assert len(cases) == 12
-        assert {
-            (case["technology"], case["formulation"]) for case in cases
-        } == {
+        assert {(case["technology"], case["formulation"]) for case in cases} == {
             ("packed_bed", "constant"),
             ("packed_bed", "soc_dependent"),
             ("molten_salt", "constant"),
