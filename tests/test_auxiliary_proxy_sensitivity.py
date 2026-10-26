@@ -12,7 +12,7 @@ def test_preregistered_after_finding_fidelity_crossovers():
     assert len(grid()) == 8
     assert len(PROXY_PARASITIC_FACTORS) == 4
     assert PROXY_PARASITIC_FACTORS[0] == 0
-    assert PROXY_PARASITIC_FACTORS == tuple(sorted(set(PROXY_PARASITIC_FACTORS)))
+    assert tuple(sorted(set(PROXY_PARASITIC_FACTORS))) == PROXY_PARASITIC_FACTORS
     assert set(FORMULATIONS) == {"constant", "soc_dependent"}
     assert TARGET_SALT_CAPEX_FACTORS == {
         "flat": 0.385,
