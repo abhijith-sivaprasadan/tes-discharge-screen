@@ -26,6 +26,18 @@ TECHNOLOGIES = ("packed_bed", "molten_salt")
 COMPARISON_TOLERANCE_EUR = 1.0
 
 
+def write_derived_config(path: Path, config: object) -> str:
+    """Write a JSON-decodable versioned parameter snapshot and return its hash."""
+    if path.exists():
+        raise FileExistsError("Never overwrite saved model configuration")
+    data = json.dumps(dataclasses.asdict(config), sort_keys=True, indent=2) + "\n"
+    # Test the exact on-disk text, not merely its hash, before claiming it as
+    # an independently parseable model input.
+    json.loads(data)
+    path.write_text(data, encoding="utf-8")
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
 def study_grid(factors: tuple[float, ...] = SALT_CAPEX_FACTORS) -> list[dict]:
     """Same economic perturbation for molten salt in each physical formulation."""
     if not factors or len(set(factors)) != len(factors) or any(
@@ -231,16 +243,10 @@ def run_experiment(
             schedule_path = hourly_output_dir / f"{prefix}.csv"
             config_path_json = hourly_output_dir / f"{prefix}.json"
             solved.schedule.to_csv(schedule_path, index=False)
-            config_path_json.write_text(
-                json.dumps(dataclasses.asdict(cfg), sort_keys=True, indent=2) + "\n",
-                encoding="utf-8",
-            )
+            item["config_json_sha256"] = write_derived_config(config_path_json, cfg)
             item["hourly_csv"] = schedule_path.name
             item["hourly_csv_sha256"] = hashlib.sha256(schedule_path.read_bytes()).hexdigest()
             item["config_json"] = config_path_json.name
-            item["config_json_sha256"] = hashlib.sha256(
-                config_path_json.read_bytes()
-            ).hexdigest()
         results.append(item)
         if technology == "packed_bed":
             verified_packed[formulation] = item
