@@ -36,8 +36,11 @@ def test_study_is_fixed_posthoc_grid_and_both_formulations():
     cases = study_grid()
     assert len(cases) == 4 * len(SALT_CAPEX_FACTORS)
     assert len({tuple(sorted(c.items())) for c in cases}) == len(cases)
-    assert all({c["formulation"] for c in cases if c["molten_salt_capex_factor"] == f}
-               == {"constant", "soc_dependent"} for f in SALT_CAPEX_FACTORS)
+    assert all(
+        {c["formulation"] for c in cases if c["molten_salt_capex_factor"] == f}
+        == {"constant", "soc_dependent"}
+        for f in SALT_CAPEX_FACTORS
+    )
 
 
 def test_winner_changes_by_assumption_not_fabricated_between_factors():
