@@ -13,11 +13,7 @@ import hashlib
 import json
 from pathlib import Path
 
-from scripts.run_phase_c_full_matrix_experiment import (
-    CURVE_BUILDERS,
-    _blower_ratio,
-    _duration_matched_config,
-)
+from scripts import run_phase_c_full_matrix_experiment as full_matrix
 from tes_screen.config import load_config
 from tes_screen.dispatch import solve_dispatch
 from tes_screen.synthetic_profiles import build_load_profile, synthetic_daily_price_profile
@@ -124,7 +120,8 @@ def analyse(records: list[dict], profile: str) -> dict:
             "Matched duration is 6 h in both technologies and formulations.",
             "Only SOC-dependent models were re-optimised under each perturbation.",
             "Packed bed prices a quantified blower; molten salt pump parasitic is unmodelled.",
-            "No confidence intervals, observed prices, plant validation or external cost certification.",
+            "No confidence intervals, observed prices, plant validation or "
+            "external cost certification.",
             "No interpolation between factors is presented as a solved break-even threshold.",
         ],
     }
@@ -139,15 +136,15 @@ def main() -> None:
     # Build all physical curves once and reuse for all strictly registered scenarios.
     curves = {}
     for technology in TECHNOLOGIES:
-        curve, _raw, mass_flow = CURVE_BUILDERS[technology](300.0)
-        curves[technology] = (curve, _blower_ratio(technology, curve, mass_flow))
+        curve, _raw, mass_flow = full_matrix.CURVE_BUILDERS[technology](300.0)
+        curves[technology] = (curve, full_matrix._blower_ratio(technology, curve, mass_flow))
     results = []
     for case in spec:
         technology = case["technology"]
         config_path = CONFIGS[technology]
         base = load_config(config_path)
         perturbed = modify_config(base, case["axis"], case["factor"])
-        config = _duration_matched_config(perturbed, args.profile, soc_dependent=True)
+        config = full_matrix._duration_matched_config(perturbed, args.profile, soc_dependent=True)
         horizon = config.optimization.horizon_hours
         load = build_load_profile(args.profile, config.process.annual_peak_load_mw, horizon)
         price = synthetic_daily_price_profile(horizon)
