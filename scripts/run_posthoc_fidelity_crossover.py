@@ -136,11 +136,18 @@ def compare_fidelity_rankings(
 
 
 def run_experiment(
-    profile: str, *, factors: tuple[float, ...] = SALT_CAPEX_FACTORS
+    profile: str,
+    *,
+    factors: tuple[float, ...] = SALT_CAPEX_FACTORS,
+    hourly_output_dir: Path | None = None,
 ) -> dict:
     from scripts import run_phase_c_full_matrix_experiment as full_matrix
     from scripts.run_technology_reoptimisation import CONFIGS, modify_config
 
+    if hourly_output_dir is not None:
+        if hourly_output_dir.exists():
+            raise FileExistsError("Never overwrite hourly source evidence")
+        hourly_output_dir.mkdir(parents=True)
     curves = {}
     for technology in TECHNOLOGIES:
         curve, _source, mass_flow = full_matrix.CURVE_BUILDERS[technology](300.0)
@@ -219,6 +226,21 @@ def run_experiment(
             "verification": checks,
             "derived_config_sha256": config_digest,
         }
+        if hourly_output_dir is not None:
+            prefix = f"{formulation}_{technology}_factor_{factor:.4f}"
+            schedule_path = hourly_output_dir / f"{prefix}.csv"
+            config_path_json = hourly_output_dir / f"{prefix}.json"
+            solved.schedule.to_csv(schedule_path, index=False)
+            config_path_json.write_text(
+                json.dumps(dataclasses.asdict(cfg), sort_keys=True, indent=2) + "\\n",
+                encoding="utf-8",
+            )
+            item["hourly_csv"] = schedule_path.name
+            item["hourly_csv_sha256"] = hashlib.sha256(schedule_path.read_bytes()).hexdigest()
+            item["config_json"] = config_path_json.name
+            item["config_json_sha256"] = hashlib.sha256(
+                config_path_json.read_bytes()
+            ).hexdigest()
         results.append(item)
         if technology == "packed_bed":
             verified_packed[formulation] = item
